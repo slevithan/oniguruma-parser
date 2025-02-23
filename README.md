@@ -1,8 +1,8 @@
 # `oniguruma-parser`
 
-This library was initially built for [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es). It can be used wherever you want to generate, validate, or traverse ASTs for Oniguruma regular expressions.
+This library was originally built for [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es). It can be used to create, validate, and traverse ASTs for Oniguruma regular expressions.
 
-The primary function of this library is `toOnigurumaAst`, which returns an Oniguruma AST generated from an Oniguruma pattern.
+The primary function is `toOnigurumaAst`, which returns an Oniguruma AST generated from an Oniguruma pattern.
 
 ```ts
 function toOnigurumaAst(
@@ -19,7 +19,7 @@ function toOnigurumaAst(
 
 An error is thrown if the pattern isn't valid in Oniguruma.
 
-Additional exports are available that provide access to the tokenizer, parser, traverser, etc.
+Additional exports are available that provide access to the tokenizer, parser, traverser, etc., with additional options.
 
 ## Unsupported features
 
@@ -41,7 +41,7 @@ Keep in mind that some Oniguruma features are so exotic that they aren't used in
 
 ## Intentional differences
 
-- This library (but not Oniguruma) treats it as an error for numbered backreferences to come before their referenced group.
+- This library (but not Oniguruma) treats it as an error if numbered backreferences come before their referenced group.
   - Most such placements are mistakes and can never match (based on the Oniguruma behavior for backreferences to nonparticipating groups).
   - Erroring matches the behavior of named backreferences.
   - This only applies to `\1`–`\9`, since it's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
