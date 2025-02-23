@@ -1,6 +1,6 @@
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenTypes} from './tokenize.js';
 import {hasOnlyChild, traverse} from './traverse.js';
-import {JsUnicodePropertiesMap, JsUnicodePropertiesOfStringsMap, PosixClassNames, slug} from './unicode.js';
+import {PosixClassNames, slug} from './unicode.js';
 import {getOrInsert, r, throwIfNot} from './utils.js';
 
 const AstTypes = {
@@ -63,18 +63,20 @@ const AstVariableLengthCharacterSetKinds = {
 /**
 @param {import('./tokenize.js').TokenizerResult} tokenizerResult
 @param {{
+  normalizeUnknownUnicodePropertyNames?: boolean;
   skipBackrefValidation?: boolean;
   skipLookbehindValidation?: boolean;
-  skipPropertyNameValidation?: boolean;
+  unicodePropertyNameMap?: Map<string, string>?;
   verbose?: boolean;
 }} [options]
 @returns {OnigurumaAst}
 */
 function parse({tokens, flags, rules}, options) {
   const opts = {
+    normalizeUnknownUnicodePropertyNames: false,
     skipBackrefValidation: false,
     skipLookbehindValidation: false,
-    skipPropertyNameValidation: false,
+    unicodePropertyNameMap: null,
     verbose: false,
     ...options,
   };
@@ -83,13 +85,14 @@ function parse({tokens, flags, rules}, options) {
     current: 0,
     hasNumberedRef: false,
     namedGroupsByName: new Map(),
+    normalizeUnknownUnicodePropertyNames: opts.normalizeUnknownUnicodePropertyNames,
     parent: null,
     skipBackrefValidation: opts.skipBackrefValidation,
     skipLookbehindValidation: opts.skipLookbehindValidation,
-    skipPropertyNameValidation: opts.skipPropertyNameValidation,
     subroutines: [],
     token: null,
     tokens,
+    unicodePropertyNameMap: opts.unicodePropertyNameMap,
     verbose: opts.verbose,
     walk,
   };
@@ -290,7 +293,7 @@ function parseCharacterClassOpen(context, state) {
   return node;
 }
 
-function parseCharacterSet({token, skipPropertyNameValidation}) {
+function parseCharacterSet({token, normalizeUnknownUnicodePropertyNames, unicodePropertyNameMap}) {
   let {kind, negate, value} = token;
   if (kind === TokenCharacterSetKinds.property) {
     const normalized = slug(value);
@@ -300,7 +303,8 @@ function parseCharacterSet({token, skipPropertyNameValidation}) {
     } else {
       return createUnicodeProperty(value, {
         negate,
-        skipPropertyNameValidation,
+        normalizeUnknownUnicodePropertyNames,
+        unicodePropertyNameMap,
       });
     }
   }
@@ -696,16 +700,28 @@ function createSubroutine(ref) {
   };
 }
 
-function createUnicodeProperty(value, options) {
+function createUnicodeProperty(name, options) {
   const opts = {
     negate: false,
-    skipPropertyNameValidation: false,
+    normalizeUnknownUnicodePropertyNames: false,
+    unicodePropertyNameMap: null,
     ...options,
   };
+  const slugged = slug(name);
+  let normalized;
+  let map = opts.unicodePropertyNameMap;
+  if (map?.has(slugged)) {
+    normalized = map.get(slugged);
+  } else if (opts.normalizeUnknownUnicodePropertyNames) {
+    normalized = normalizeUnicodePropertyName(name);
+  } else if (map) {
+    throw new Error(r`Invalid Unicode property "\p{${name}}"`);
+  }
   return {
     type: AstTypes.CharacterSet,
     kind: AstCharacterSetKinds.property,
-    value: opts.skipPropertyNameValidation ? value : getJsUnicodePropertyName(value),
+    // Let the name through as-is if a map isn't provided and normalization isn't requested
+    value: normalized ?? name,
     negate: opts.negate,
   }
 }
@@ -718,28 +734,6 @@ function createVariableLengthCharacterSet(kind) {
       '\\X': AstVariableLengthCharacterSetKinds.grapheme,
     }[kind], `Unexpected varcharset kind "${kind}"`),
   };
-}
-
-// Unlike Onig, JS Unicode property names are case sensitive, don't ignore spaces, hyphens, and
-// underscores, and require underscores in specific positions
-function getJsUnicodePropertyName(value) {
-  const slugged = slug(value);
-  if (JsUnicodePropertiesOfStringsMap.has(slugged)) {
-    // Variable-length properties of strings aren't supported by Onig
-    throw new Error(r`Unicode property "\p{${value}}" unsupported in Oniguruma`);
-  }
-  const jsName = JsUnicodePropertiesMap.get(slugged);
-  if (jsName) {
-    return jsName;
-  }
-  // Assume it's a script name (avoids including heavyweight data for long list of script names);
-  // JS requires formatting `Like_This`, so use best effort to reformat the name (covers a lot, but
-  // isn't able to map for all possible formatting differences)
-  return value.
-    trim().
-    replace(/[- _]+/g, '_').
-    replace(/[A-Z][a-z]+(?=[A-Z])/g, '$&_'). // `PropertyName` to `Property_Name`
-    replace(/[A-Za-z]+/g, m => m[0].toUpperCase() + m.slice(1).toLowerCase());
 }
 
 // If a direct child group is needlessly nested, return it instead (after modifying it)
@@ -765,6 +759,17 @@ function isValidGroupName(name) {
   // Note that backrefs and subroutines might contextually use `-` and `+` to indicate relative
   // index or recursion level
   return /^[\p{Alpha}\p{Pc}][^)]*$/u.test(name);
+}
+
+function normalizeUnicodePropertyName(name) {
+  // In Onig, Unicode property names ignore case, spaces, hyphens, and underscores. Use best effort
+  // to reformat the name to follow official values (covers a lot, but isn't able to map for all
+  // possible formatting differences)
+  return name.
+    trim().
+    replace(/[- _]+/g, '_').
+    replace(/[A-Z][a-z]+(?=[A-Z])/g, '$&_'). // `PropertyName` to `Property_Name`
+    replace(/[A-Za-z]+/g, m => m[0].toUpperCase() + m.slice(1).toLowerCase());
 }
 
 // For any intersection classes that contain only a class, swap the parent with its (modded) child
