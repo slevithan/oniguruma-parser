@@ -35,7 +35,7 @@ validation, or when you want to use a custom map of valid names.
 @param {string} pattern Oniguruma regex pattern.
 @param {{
   flags?: string;
-  normalizeUnknownUnicodePropertyNames?: boolean;
+  normalizeUnknownPropertyNames?: boolean;
   unicodePropertyMap?: Map<string, string>;
   rules?: {
     captureGroup?: boolean;
@@ -47,7 +47,7 @@ validation, or when you want to use a custom map of valid names.
 function toOnigurumaAstWithCustomUnicodeData(pattern, options) {
   const opts = {
     flags: '',
-    normalizeUnknownUnicodePropertyNames: false,
+    normalizeUnknownPropertyNames: false,
     unicodePropertyMap: null,
     ...options,
     rules: {
@@ -57,7 +57,7 @@ function toOnigurumaAstWithCustomUnicodeData(pattern, options) {
     },
   };
   return parse(tokenize(pattern, opts.flags, opts.rules), {
-    normalizeUnknownUnicodePropertyNames: opts.normalizeUnknownUnicodePropertyNames,
+    normalizeUnknownPropertyNames: opts.normalizeUnknownPropertyNames,
     unicodePropertyMap: opts.unicodePropertyMap,
   });
 }
