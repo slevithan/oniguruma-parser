@@ -63,9 +63,10 @@ const AstVariableLengthCharacterSetKinds = {
 /**
 @param {import('./tokenize.js').TokenizerResult} tokenizerResult
 @param {{
-  normalizeUnknownUnicodePropertyNames?: boolean;
+  normalizeUnknownPropertyNames?: boolean;
   skipBackrefValidation?: boolean;
   skipLookbehindValidation?: boolean;
+  skipPropertyNameValidation?: boolean;
   unicodePropertyNameMap?: Map<string, string>?;
   verbose?: boolean;
 }} [options]
@@ -73,9 +74,10 @@ const AstVariableLengthCharacterSetKinds = {
 */
 function parse({tokens, flags, rules}, options) {
   const opts = {
-    normalizeUnknownUnicodePropertyNames: false,
+    normalizeUnknownPropertyNames: false,
     skipBackrefValidation: false,
     skipLookbehindValidation: false,
+    skipPropertyNameValidation: false,
     unicodePropertyNameMap: null,
     verbose: false,
     ...options,
@@ -85,10 +87,11 @@ function parse({tokens, flags, rules}, options) {
     current: 0,
     hasNumberedRef: false,
     namedGroupsByName: new Map(),
-    normalizeUnknownUnicodePropertyNames: opts.normalizeUnknownUnicodePropertyNames,
+    normalizeUnknownPropertyNames: opts.normalizeUnknownPropertyNames,
     parent: null,
     skipBackrefValidation: opts.skipBackrefValidation,
     skipLookbehindValidation: opts.skipLookbehindValidation,
+    skipPropertyNameValidation: opts.skipPropertyNameValidation,
     subroutines: [],
     token: null,
     tokens,
@@ -293,17 +296,19 @@ function parseCharacterClassOpen(context, state) {
   return node;
 }
 
-function parseCharacterSet({token, normalizeUnknownUnicodePropertyNames, unicodePropertyNameMap}) {
+function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNameValidation, unicodePropertyNameMap}) {
   let {kind, negate, value} = token;
   if (kind === TokenCharacterSetKinds.property) {
     const normalized = slug(value);
-    if (PosixClassNames.has(normalized)) {
+    // Don't treat as POSIX if it's in the provided list of Unicode property names
+    if (PosixClassNames.has(normalized) && !unicodePropertyNameMap?.has(normalized)) {
       kind = TokenCharacterSetKinds.posix;
       value = normalized;
     } else {
       return createUnicodeProperty(value, {
         negate,
-        normalizeUnknownUnicodePropertyNames,
+        normalizeUnknownPropertyNames,
+        skipPropertyNameValidation,
         unicodePropertyNameMap,
       });
     }
@@ -703,24 +708,24 @@ function createSubroutine(ref) {
 function createUnicodeProperty(name, options) {
   const opts = {
     negate: false,
-    normalizeUnknownUnicodePropertyNames: false,
+    normalizeUnknownPropertyNames: false,
+    skipPropertyNameValidation: false,
     unicodePropertyNameMap: null,
     ...options,
   };
-  const slugged = slug(name);
-  let normalized;
-  let map = opts.unicodePropertyNameMap;
-  if (map?.has(slugged)) {
-    normalized = map.get(slugged);
-  } else if (opts.normalizeUnknownUnicodePropertyNames) {
+  let normalized = opts.unicodePropertyNameMap?.get(slug(name));
+  if (normalized) {
+    // No-op
+  } else if (opts.normalizeUnknownPropertyNames) {
     normalized = normalizeUnicodePropertyName(name);
-  } else if (map) {
+  } else if (!opts.skipPropertyNameValidation) {
     throw new Error(r`Invalid Unicode property "\p{${name}}"`);
   }
   return {
     type: AstTypes.CharacterSet,
     kind: AstCharacterSetKinds.property,
-    // Let the name through as-is if a map isn't provided and normalization isn't requested
+    // Let the name through as-is if it's not in the map, normalization isn't requested, and
+    // explicitly skipping validation
     value: normalized ?? name,
     negate: opts.negate,
   }

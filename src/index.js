@@ -64,4 +64,5 @@ function toOnigurumaAstWithCustomUnicodeData(pattern, options) {
 
 export {
   toOnigurumaAst,
+  toOnigurumaAstWithCustomUnicodeData,
 };
