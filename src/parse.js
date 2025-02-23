@@ -523,7 +523,7 @@ function createByGroupKind({flags, kind, name, negate, number}) {
 
 function createCapturingGroup(number, name) {
   const hasName = name !== undefined;
-  if (hasName && !isValidGroupNameOniguruma(name)) {
+  if (hasName && !isValidGroupName(name)) {
     throw new Error(`Group name "${name}" invalid in Oniguruma`);
   }
   return {
@@ -760,10 +760,9 @@ function getOptimizedGroup(node) {
   return node;
 }
 
-function isValidGroupNameOniguruma(name) {
-  // The more restrictive rules for valid JS group names are captured in `isValidGroupNameJs`. Note
-  // that backrefs and subroutines might contextually use `-` and `+` to indicate relative index or
-  // recursion level
+function isValidGroupName(name) {
+  // Note that backrefs and subroutines might contextually use `-` and `+` to indicate relative
+  // index or recursion level
   return /^[\p{Alpha}\p{Pc}][^)]*$/u.test(name);
 }
 
