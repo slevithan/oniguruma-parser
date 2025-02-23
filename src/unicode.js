@@ -144,7 +144,7 @@ const PosixClassesMap = new Map([
   ['graph', r`[\P{space}&&\P{cntrl}&&\P{Cn}&&\P{Cs}]`],
   ['lower', r`\p{Lower}`],
   ['print', r`[[\P{space}&&\P{cntrl}&&\P{Cn}&&\P{Cs}]\p{Zs}]`],
-  ['punct', r`[\p{P}\p{S}]`], // New value from Oniguruma 6.9.9
+  ['punct', r`[\p{P}\p{S}]`], // Updated value from Oniguruma 6.9.9
   ['space', r`\p{space}`],
   ['upper', r`\p{Upper}`],
   ['word', r`[\p{Alpha}\p{M}\p{Nd}\p{Pc}]`],
@@ -173,16 +173,34 @@ const PosixProperties = new Set([
   // 'upper', // (JS: Upper)
 ]);
 
+const PosixClassNames = new Set([
+  'alnum',
+  'alpha',
+  'ascii',
+  'blank',
+  'cntrl',
+  'digit',
+  'graph',
+  'lower',
+  'print',
+  'punct',
+  'space',
+  'upper',
+  'word',
+  'xdigit',
+]);
+
 // Generates a Unicode property lookup name: lowercase, without spaces, hyphens, underscores
 function slug(name) {
   return name.replace(/[- _]+/g, '').toLowerCase();
 }
 
 export {
-  JsUnicodeProperties,
-  JsUnicodePropertiesMap,
-  JsUnicodePropertiesOfStringsMap,
-  PosixClassesMap,
-  PosixProperties,
+  JsUnicodeProperties, // TODO: Move out
+  JsUnicodePropertiesMap, // TODO: Move out
+  JsUnicodePropertiesOfStringsMap, // TODO: Move out
+  PosixClassNames,
+  PosixClassesMap, // TODO: Move out
+  PosixProperties, // TODO: Move out
   slug,
 };

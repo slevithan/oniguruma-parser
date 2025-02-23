@@ -1,6 +1,6 @@
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenTypes} from './tokenize.js';
 import {hasOnlyChild, traverse} from './traverse.js';
-import {JsUnicodePropertiesMap, JsUnicodePropertiesOfStringsMap, PosixProperties, slug} from './unicode.js';
+import {JsUnicodePropertiesMap, JsUnicodePropertiesOfStringsMap, PosixClassNames, slug} from './unicode.js';
 import {getOrInsert, r, throwIfNot} from './utils.js';
 
 const AstTypes = {
@@ -64,6 +64,7 @@ const AstVariableLengthCharacterSetKinds = {
 @param {import('./tokenize.js').TokenizerResult} tokenizerResult
 @param {{
   skipBackrefValidation?: boolean;
+  skipLookbehindValidation?: boolean;
   skipPropertyNameValidation?: boolean;
   verbose?: boolean;
 }} [options]
@@ -293,7 +294,7 @@ function parseCharacterSet({token, skipPropertyNameValidation}) {
   let {kind, negate, value} = token;
   if (kind === TokenCharacterSetKinds.property) {
     const normalized = slug(value);
-    if (PosixProperties.has(normalized)) {
+    if (PosixClassNames.has(normalized)) {
       kind = TokenCharacterSetKinds.posix;
       value = normalized;
     } else {
