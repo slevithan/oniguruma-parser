@@ -24,7 +24,7 @@ function toOnigurumaAst(pattern, options) {
     },
   };
   return parse(tokenize(pattern, opts.flags, opts.rules), {
-    unicodePropertyNameMap: null, // TODO
+    unicodePropertyMap: null, // TODO
   });
 }
 
@@ -36,7 +36,7 @@ validation, or when you want to use a custom map of valid names.
 @param {{
   flags?: string;
   normalizeUnknownUnicodePropertyNames?: boolean;
-  unicodePropertyNameMap?: Map<string, string>;
+  unicodePropertyMap?: Map<string, string>;
   rules?: {
     captureGroup?: boolean;
     singleline?: boolean;
@@ -48,7 +48,7 @@ function toOnigurumaAstWithCustomUnicodeData(pattern, options) {
   const opts = {
     flags: '',
     normalizeUnknownUnicodePropertyNames: false,
-    unicodePropertyNameMap: null,
+    unicodePropertyMap: null,
     ...options,
     rules: {
       captureGroup: false,
@@ -58,7 +58,7 @@ function toOnigurumaAstWithCustomUnicodeData(pattern, options) {
   };
   return parse(tokenize(pattern, opts.flags, opts.rules), {
     normalizeUnknownUnicodePropertyNames: opts.normalizeUnknownUnicodePropertyNames,
-    unicodePropertyNameMap: opts.unicodePropertyNameMap,
+    unicodePropertyMap: opts.unicodePropertyMap,
   });
 }
 

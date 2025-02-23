@@ -67,7 +67,7 @@ const AstVariableLengthCharacterSetKinds = {
   skipBackrefValidation?: boolean;
   skipLookbehindValidation?: boolean;
   skipPropertyNameValidation?: boolean;
-  unicodePropertyNameMap?: Map<string, string>?;
+  unicodePropertyMap?: Map<string, string>?;
   verbose?: boolean;
 }} [options]
 @returns {OnigurumaAst}
@@ -78,7 +78,7 @@ function parse({tokens, flags, rules}, options) {
     skipBackrefValidation: false,
     skipLookbehindValidation: false,
     skipPropertyNameValidation: false,
-    unicodePropertyNameMap: null,
+    unicodePropertyMap: null,
     verbose: false,
     ...options,
   };
@@ -95,7 +95,7 @@ function parse({tokens, flags, rules}, options) {
     subroutines: [],
     token: null,
     tokens,
-    unicodePropertyNameMap: opts.unicodePropertyNameMap,
+    unicodePropertyMap: opts.unicodePropertyMap,
     verbose: opts.verbose,
     walk,
   };
@@ -296,12 +296,12 @@ function parseCharacterClassOpen(context, state) {
   return node;
 }
 
-function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNameValidation, unicodePropertyNameMap}) {
+function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNameValidation, unicodePropertyMap}) {
   let {kind, negate, value} = token;
   if (kind === TokenCharacterSetKinds.property) {
     const normalized = slug(value);
     // Don't treat as POSIX if it's in the provided list of Unicode property names
-    if (PosixClassNames.has(normalized) && !unicodePropertyNameMap?.has(normalized)) {
+    if (PosixClassNames.has(normalized) && !unicodePropertyMap?.has(normalized)) {
       kind = TokenCharacterSetKinds.posix;
       value = normalized;
     } else {
@@ -309,7 +309,7 @@ function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNa
         negate,
         normalizeUnknownPropertyNames,
         skipPropertyNameValidation,
-        unicodePropertyNameMap,
+        unicodePropertyMap,
       });
     }
   }
@@ -710,22 +710,21 @@ function createUnicodeProperty(name, options) {
     negate: false,
     normalizeUnknownPropertyNames: false,
     skipPropertyNameValidation: false,
-    unicodePropertyNameMap: null,
+    unicodePropertyMap: null,
     ...options,
   };
-  let normalized = opts.unicodePropertyNameMap?.get(slug(name));
-  if (normalized) {
-    // No-op
-  } else if (opts.normalizeUnknownPropertyNames) {
-    normalized = normalizeUnicodePropertyName(name);
-  } else if (!opts.skipPropertyNameValidation) {
-    throw new Error(r`Invalid Unicode property "\p{${name}}"`);
+  let normalized = opts.unicodePropertyMap?.get(slug(name));
+  if (!normalized) {
+    if (opts.normalizeUnknownPropertyNames) {
+      normalized = normalizeUnicodePropertyName(name);
+    // Let the name through as-is if no map provided and normalization not requested
+    } else if (opts.unicodePropertyMap && !opts.skipPropertyNameValidation) {
+      throw new Error(r`Invalid Unicode property "\p{${name}}"`);
+    }
   }
   return {
     type: AstTypes.CharacterSet,
     kind: AstCharacterSetKinds.property,
-    // Let the name through as-is if it's not in the map, normalization isn't requested, and
-    // explicitly skipping validation
     value: normalized ?? name,
     negate: opts.negate,
   }
