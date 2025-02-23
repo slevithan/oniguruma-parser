@@ -1,5 +1,4 @@
-import {PosixClassNames} from './unicode.js';
-import {r} from './utils.js';
+import {PosixClassNames, r} from './utils.js';
 
 const TokenTypes = /** @type {const} */ ({
   Alternator: 'Alternator',

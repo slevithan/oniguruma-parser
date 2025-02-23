@@ -1,4 +1,4 @@
-import {parse} from './parse.js';
+import {AstAssertionKinds, AstTypes, parse} from './parse.js';
 import {tokenize} from './tokenize.js';
 
 /**
@@ -62,7 +62,45 @@ function toOnigurumaAstWithCustomUnicodeData(pattern, options) {
   });
 }
 
+function hasOnlyChild({alternatives}, kidFn) {
+  return (
+    alternatives.length === 1 &&
+    alternatives[0].elements.length === 1 &&
+    (!kidFn || kidFn(alternatives[0].elements[0]))
+  );
+}
+
+// Consumptive groups add to the match.
+// - Includes: Capturing, named capturing, noncapturing, atomic, and flag groups.
+// - Excludes: Lookarounds.
+//   - Special case: Absent functions are consumptive (and negated, quantified) but are different
+//     in other ways so are excluded here.
+// See also `AstTypeAliases.AnyGroup`.
+function isConsumptiveGroup({type}) {
+  return type === AstTypes.CapturingGroup || type === AstTypes.Group;
+}
+
+function isLookaround({type, kind}) {
+  return (
+    type === AstTypes.Assertion &&
+    (kind === AstAssertionKinds.lookahead || kind === AstAssertionKinds.lookbehind)
+  );
+}
+
+/**
+Generates a Unicode property lookup name: lowercase, without spaces, hyphens, or underscores.
+@param {string} name Unicode property name.
+@returns {string}
+*/
+function slug(name) {
+  return name.replace(/[- _]+/g, '').toLowerCase();
+}
+
 export {
+  hasOnlyChild,
+  isConsumptiveGroup,
+  isLookaround,
+  slug,
   toOnigurumaAst,
   toOnigurumaAstWithCustomUnicodeData,
 };

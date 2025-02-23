@@ -1,7 +1,7 @@
+import {hasOnlyChild, slug} from './index.js';
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenTypes} from './tokenize.js';
-import {hasOnlyChild, traverse} from './traverse.js';
-import {PosixClassNames, slug} from './unicode.js';
-import {getOrInsert, r, throwIfNot} from './utils.js';
+import {traverse} from './traverse.js';
+import {getOrInsert, PosixClassNames, r, throwIfNot} from './utils.js';
 
 const AstTypes = {
   AbsentFunction: 'AbsentFunction',

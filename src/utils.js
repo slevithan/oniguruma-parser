@@ -1,5 +1,22 @@
 const r = String.raw;
 
+const PosixClassNames = new Set([
+  'alnum',
+  'alpha',
+  'ascii',
+  'blank',
+  'cntrl',
+  'digit',
+  'graph',
+  'lower',
+  'print',
+  'punct',
+  'space',
+  'upper',
+  'word',
+  'xdigit',
+]);
+
 function getOrInsert(map, key, defaultValue) {
   if (!map.has(key)) {
     map.set(key, defaultValue);
@@ -16,6 +33,7 @@ function throwIfNot(value, msg) {
 
 export {
   getOrInsert,
+  PosixClassNames,
   r,
   throwIfNot,
 };

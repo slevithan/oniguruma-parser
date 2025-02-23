@@ -9,8 +9,7 @@
     ".": "./dist/index.js",
     "./parse": "./dist/parse.js",
     "./tokenize": "./dist/tokenize.js",
-    "./traverse": "./dist/traverse.js",
-    "./unicode": "./dist/unicode.js"
+    "./traverse": "./dist/traverse.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",

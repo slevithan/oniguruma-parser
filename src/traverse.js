@@ -1,4 +1,5 @@
-import {AstAssertionKinds, AstTypes} from './parse.js';
+import {isConsumptiveGroup, isLookaround} from './index.js';
+import {AstTypes} from './parse.js';
 import {throwIfNot} from './utils.js';
 
 function traverse(path, state, visitor) {
@@ -114,31 +115,6 @@ function getAstTypeAliases(node) {
   return types;
 }
 
-function hasOnlyChild({alternatives}, kidFn) {
-  return (
-    alternatives.length === 1 &&
-    alternatives[0].elements.length === 1 &&
-    (!kidFn || kidFn(alternatives[0].elements[0]))
-  );
-}
-
-// Consumptive groups add to the match.
-// - Includes: Capturing, named capturing, noncapturing, atomic, and flag groups.
-// - Excludes: Lookarounds.
-//   - Special case: Absent functions are consumptive (and negated, quantified) but are different
-//     in other ways so are excluded here.
-// See also `AstTypeAliases.AnyGroup`.
-function isConsumptiveGroup({type}) {
-  return type === AstTypes.CapturingGroup || type === AstTypes.Group;
-}
-
-function isLookaround({type, kind}) {
-  return (
-    type === AstTypes.Assertion &&
-    (kind === AstAssertionKinds.lookahead || kind === AstAssertionKinds.lookbehind)
-  );
-}
-
 function setParent(node, parent) {
   // The traverser can work with ASTs whose nodes include or don't include `parent` props, so only
   // update the parent if a prop for it exists
@@ -148,8 +124,5 @@ function setParent(node, parent) {
 }
 
 export {
-  hasOnlyChild,
-  isConsumptiveGroup,
-  isLookaround,
   traverse,
 };
