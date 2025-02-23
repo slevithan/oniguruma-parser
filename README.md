@@ -36,17 +36,8 @@ The following throw errors since they aren't yet supported. They're all extremel
 The following don't yet throw errors, but should:
 
 - Subroutines used in ways that resemble infinite recursion.
-- Most invalid Unicode property names (see details below).
 
 Keep in mind that some Oniguruma features are so exotic that they aren't used in *any* public code on GitHub. `oniguruma-parser` supports ~99.99% of real-world Oniguruma regexes, based on a sample of 54,531 regexes used in 219 TextMate grammars.
-
-### Unicode property name validation
-
-This library is designed to be lightweight for use in browsers, so it doesn't currently include the list of Unicode script and block names supported by Oniguruma. Thus it can't determine most invalid Unicode property names. However:
-
-- It does know that Unicode "properties of strings" names are invalid.
-- It does normalize property names, and knows the list of supported POSIX, binary property, and general category names and aliases (so it can do perfect rather than just best-effort normalization on those).
-- Future versions of this library will make the Unicode property name data available for validation in a tree-shakable way.
 
 ## Intentional differences
 

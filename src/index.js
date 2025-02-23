@@ -1,5 +1,6 @@
 import {AstAssertionKinds, AstTypes, parse} from './parse.js';
 import {tokenize} from './tokenize.js';
+import {OnigUnicodePropertyMap} from './unicode-properties.js';
 
 /**
 Returns an Oniguruma AST generated from an Oniguruma pattern.
@@ -24,7 +25,7 @@ function toOnigurumaAst(pattern, options) {
     },
   };
   return parse(tokenize(pattern, opts.flags, opts.rules), {
-    unicodePropertyMap: null, // TODO
+    unicodePropertyMap: OnigUnicodePropertyMap,
   });
 }
 
@@ -62,6 +63,16 @@ function toOnigurumaAstWithCustomUnicodeData(pattern, options) {
   });
 }
 
+/**
+Check whether the node has exactly one alternative with one child element, and optionally that the
+child satisfies a condition.
+@param {{alternatives: Array<{
+  type: 'Alternative';
+  elements: Array<{type: string;}>;
+}>;}} node
+@param {(node: {type: string;}) => boolean} [kidFn]
+@returns {boolean}
+*/
 function hasOnlyChild({alternatives}, kidFn) {
   return (
     alternatives.length === 1 &&
@@ -70,13 +81,16 @@ function hasOnlyChild({alternatives}, kidFn) {
   );
 }
 
-// Consumptive groups add to the match.
-// - Includes: Capturing, named capturing, noncapturing, atomic, and flag groups.
-// - Excludes: Lookarounds.
-//   - Special case: Absent functions are consumptive (and negated, quantified) but are different
-//     in other ways so are excluded here.
-// See also `AstTypeAliases.AnyGroup`.
+/**
+Check whether the node is a consumptive group that adds to a regex match.
+- Includes: Capturing, named capturing, noncapturing, atomic, and flag groups.
+- Excludes: Lookarounds.
+- Special case: Absent functions are consumptive but are different in other ways so are excluded.
+@param {{type: string;}} node
+@returns {boolean}
+*/
 function isConsumptiveGroup({type}) {
+  // See also `AstTypeAliases.AnyGroup`
   return type === AstTypes.CapturingGroup || type === AstTypes.Group;
 }
 
