@@ -291,10 +291,6 @@ function getTokenWithDetails(context, pattern, m, lastIndex) {
         }),
       };
     }
-    // Grapheme boundaries not yet unsupported; avoid treating as an identity escape
-    if ('yY'.includes(m1)) {
-      throw new Error(`Unsupported grapheme boundary "${m}"`);
-    }
     // Run last since it assumes an identity escape as final condition
     const result = createTokenForSharedEscape(m, {inCharClass: false});
     return Array.isArray(result) ? {tokens: result} : {token: result};
