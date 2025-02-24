@@ -1,4 +1,3 @@
-import {isConsumptiveGroup} from './index.js';
 import {AstTypes} from './parse.js';
 import {throwIfNot} from './utils.js';
 
@@ -105,12 +104,16 @@ const AstTypeAliases = {
   AnyNode: 'AnyNode',
 };
 
-function getAstTypeAliases(node) {
+function getAstTypeAliases({type}) {
   const types = [AstTypeAliases.AnyNode];
-  if (isConsumptiveGroup(node) || node.type === AstTypes.LookaroundAssertion) {
+  if (
+    type === AstTypes.CapturingGroup ||
+    type === AstTypes.Group ||
+    type === AstTypes.LookaroundAssertion
+  ) {
     types.push(AstTypeAliases.AnyGroup);
   }
-  types.push(node.type);
+  types.push(type);
   return types;
 }
 
@@ -123,5 +126,6 @@ function setParent(node, parent) {
 }
 
 export {
+  AstTypeAliases,
   traverse,
 };

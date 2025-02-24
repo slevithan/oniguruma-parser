@@ -48,19 +48,6 @@ function hasOnlyChild({alternatives}, kidFn) {
 }
 
 /**
-Check whether the node is a consumptive group that adds to a regex match.
-- Includes: Capturing, named capturing, noncapturing, atomic, and flag groups.
-- Excludes: Lookarounds, flag directives.
-- Special case: Absent functions are consumptive but are different in other ways so are excluded.
-@param {{type: string;}} node
-@returns {boolean}
-*/
-function isConsumptiveGroup({type}) {
-  // See also `AstTypeAliases.AnyGroup`
-  return type === AstTypes.CapturingGroup || type === AstTypes.Group;
-}
-
-/**
 Generates a Unicode property lookup name: lowercase, without spaces, hyphens, or underscores.
 @param {string} name Unicode property name.
 @returns {string}
@@ -71,7 +58,6 @@ function slug(name) {
 
 export {
   hasOnlyChild,
-  isConsumptiveGroup,
   slug,
   toOnigurumaAst,
 };

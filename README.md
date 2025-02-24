@@ -36,7 +36,7 @@ The following don't yet throw errors, but should:
 
 - Subroutines used in ways that resemble infinite recursion.
 
-Keep in mind that some Oniguruma features are so exotic that they aren't used in *any* public code on GitHub. `oniguruma-parser` supports more than 99.99% of real-world Oniguruma regexes, based on a sample of ~55k regexes used in TextMate grammars. Conditionals were used in three regexes in the sample, and other unsupported features weren't used at all.
+Keep in mind that some Oniguruma features are so exotic that they aren't used in *any* public code on GitHub. `oniguruma-parser` supports more than 99.99% of real-world Oniguruma regexes, based on a sample of ~55k regexes used in TextMate grammars. Conditionals were used in three regexes, and other unsupported features weren't used at all.
 
 Contributions that add support for remaining features are welcome.
 
