@@ -36,14 +36,16 @@ The following don't yet throw errors, but should:
 
 - Subroutines used in ways that resemble infinite recursion.
 
-Keep in mind that some Oniguruma features are so exotic that they aren't used in *any* public code on GitHub. `oniguruma-parser` supports ~99.99% of real-world Oniguruma regexes, based on a sample of 54,531 regexes used in 219 TextMate grammars.
+Keep in mind that some Oniguruma features are so exotic that they aren't used in *any* public code on GitHub. `oniguruma-parser` supports more than 99.99% of real-world Oniguruma regexes, based on a sample of ~55k regexes used in TextMate grammars. Conditionals were used in three regexes in the sample, and other unsupported features weren't used at all.
 
-## Intentional differences
+Contributions that add support for remaining features are welcome.
+
+## Known differences
 
 - This library (but not Oniguruma) treats it as an error if numbered backreferences come before their referenced group.
   - Most such placements are mistakes and can never match (based on the Oniguruma behavior for backreferences to nonparticipating groups).
   - Erroring matches the behavior of named backreferences.
-  - This only applies to `\1`–`\9`, since it's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
+  - This only affects `\1`–`\9`, since it's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
 
 ## About
 

@@ -17,12 +17,13 @@ const AstTypes = {
   Directive: 'Directive',
   Flags: 'Flags',
   Group: 'Group',
+  LookaroundAssertion: 'LookaroundAssertion',
   Pattern: 'Pattern',
   Quantifier: 'Quantifier',
   Regex: 'Regex',
   Subroutine: 'Subroutine',
   VariableLengthCharacterSet: 'VariableLengthCharacterSet',
-  // Used only by the transformer for Regex+ ASTs
+  // Used only by the `oniguruma-to-es` transformer for Regex+ ASTs
   Recursion: 'Recursion',
 };
 
@@ -35,8 +36,6 @@ const AstAssertionKinds = {
   grapheme_boundary: 'grapheme_boundary',
   line_end: 'line_end',
   line_start: 'line_start',
-  lookahead: 'lookahead',
-  lookbehind: 'lookbehind',
   search_start: 'search_start',
   string_end: 'string_end',
   string_end_newline: 'string_end_newline',
@@ -47,6 +46,11 @@ const AstAssertionKinds = {
 // Identical values
 const AstCharacterSetKinds = TokenCharacterSetKinds;
 const AstDirectiveKinds = TokenDirectiveKinds;
+
+const AstLookaroundAssertionKinds = {
+  lookahead: 'lookahead',
+  lookbehind: 'lookbehind',
+};
 
 const AstVariableLengthCharacterSetKinds = {
   grapheme: 'grapheme',
@@ -206,7 +210,7 @@ function parseBackreference(context) {
     //    defined to the left (it's an octal or identity escape).
     // [TODO] Ideally this would be refactored to include the backref in the AST when it's not an
     // error in Onig (due to the reffed group being defined to the right), and the error handling
-    // would move to the transformer
+    // would move to the `oniguruma-to-es` transformer
     if (num > numCapturesToLeft) {
       // [WARNING] Skipping the error breaks assumptions and might create edge case issues, since
       // backrefs are required to come after their captures; unfortunately this option is needed
@@ -329,7 +333,7 @@ function parseGroupOpen(context, state) {
   const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, verbose, walk} = context;
   let node = createByGroupKind(token);
   const isAbsentFunction = node.type === AstTypes.AbsentFunction;
-  const isLookbehind = node.kind === AstAssertionKinds.lookbehind;
+  const isLookbehind = node.kind === AstLookaroundAssertionKinds.lookbehind;
   const isNegLookbehind = isLookbehind && node.negate;
   // Track capturing group details for backrefs and subroutines (before parsing the group's
   // contents so nested groups with the same name are tracked in order)
@@ -368,13 +372,19 @@ function parseGroupOpen(context, state) {
         if (isNegLookbehind || state.isInNegLookbehind) {
           // - Invalid: `(?=…)`, `(?!…)`, capturing groups
           // - Valid: `(?<=…)`, `(?<!…)`
-          if (child.kind === AstAssertionKinds.lookahead || child.type === AstTypes.CapturingGroup) {
+          if (
+            child.kind === AstLookaroundAssertionKinds.lookahead ||
+            child.type === AstTypes.CapturingGroup
+          ) {
             throw new Error(msg);
           }
         } else {
           // - Invalid: `(?=…)`, `(?!…)`, `(?<!…)`
           // - Valid: `(?<=…)`, capturing groups
-          if (child.kind === AstAssertionKinds.lookahead || (child.kind === AstAssertionKinds.lookbehind && child.negate)) {
+          if (
+            child.kind === AstLookaroundAssertionKinds.lookahead ||
+            (child.kind === AstLookaroundAssertionKinds.lookbehind && child.negate)
+          ) {
             throw new Error(msg);
           }
         }
@@ -396,7 +406,8 @@ function parseQuantifier({token, parent}) {
   if (
     !quantifiedNode ||
     quantifiedNode.type === AstTypes.Assertion ||
-    quantifiedNode.type === AstTypes.Directive
+    quantifiedNode.type === AstTypes.Directive ||
+    quantifiedNode.type === AstTypes.LookaroundAssertion
   ) {
     throw new Error(`Quantifier requires a repeatable token`);
   }
@@ -477,7 +488,6 @@ function createAlternative() {
 }
 
 function createAssertion(kind, options) {
-  // Use `createLookaround` for lookahead and lookbehind assertions
   const node = {
     type: AstTypes.Assertion,
     kind,
@@ -527,7 +537,7 @@ function createByGroupKind({flags, kind, name, negate, number}) {
       return createGroup({flags});
     case TokenGroupKinds.lookahead:
     case TokenGroupKinds.lookbehind:
-      return createLookaround({
+      return createLookaroundAssertion({
         behind: kind === TokenGroupKinds.lookbehind,
         negate,
       });
@@ -655,15 +665,15 @@ function createGroup(options) {
   };
 }
 
-function createLookaround(options) {
+function createLookaroundAssertion(options) {
   const opts = {
     behind: false,
     negate: false,
     ...options,
   };
   return {
-    type: AstTypes.Assertion,
-    kind: opts.behind ? AstAssertionKinds.lookbehind : AstAssertionKinds.lookahead,
+    type: AstTypes.LookaroundAssertion,
+    kind: opts.behind ? AstLookaroundAssertionKinds.lookbehind : AstLookaroundAssertionKinds.lookahead,
     negate: opts.negate,
     alternatives: [createAlternative()],
   };
@@ -811,6 +821,7 @@ export {
   AstAssertionKinds,
   AstCharacterSetKinds,
   AstDirectiveKinds,
+  AstLookaroundAssertionKinds,
   AstTypes,
   AstVariableLengthCharacterSetKinds,
   createAbsentFunction,
@@ -825,7 +836,7 @@ export {
   createCharacterSet,
   createFlags,
   createGroup,
-  createLookaround,
+  createLookaroundAssertion,
   createPattern,
   createQuantifier,
   createRegex,

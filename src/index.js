@@ -60,13 +60,6 @@ function isConsumptiveGroup({type}) {
   return type === AstTypes.CapturingGroup || type === AstTypes.Group;
 }
 
-function isLookaround({type, kind}) {
-  return (
-    type === AstTypes.Assertion &&
-    (kind === AstAssertionKinds.lookahead || kind === AstAssertionKinds.lookbehind)
-  );
-}
-
 /**
 Generates a Unicode property lookup name: lowercase, without spaces, hyphens, or underscores.
 @param {string} name Unicode property name.
@@ -79,7 +72,6 @@ function slug(name) {
 export {
   hasOnlyChild,
   isConsumptiveGroup,
-  isLookaround,
   slug,
   toOnigurumaAst,
 };

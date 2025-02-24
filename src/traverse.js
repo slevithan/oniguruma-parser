@@ -1,4 +1,4 @@
-import {isConsumptiveGroup, isLookaround} from './index.js';
+import {isConsumptiveGroup} from './index.js';
 import {AstTypes} from './parse.js';
 import {throwIfNot} from './utils.js';
 
@@ -62,10 +62,6 @@ function traverse(path, state, visitor) {
           traverseArray(node.elements, node);
           break;
         case AstTypes.Assertion:
-          if (isLookaround(node)) {
-            traverseArray(node.alternatives, node);
-          }
-          break;
         case AstTypes.Backreference:
         case AstTypes.Character:
         case AstTypes.CharacterSet:
@@ -88,6 +84,9 @@ function traverse(path, state, visitor) {
           traverseNode(node.min, node, 'min');
           traverseNode(node.max, node, 'max');
           break;
+        case AstTypes.LookaroundAssertion:
+          traverseArray(node.alternatives, node);
+          break;
         case AstTypes.Quantifier:
           traverseNode(node.element, node, 'element');
           break;
@@ -108,7 +107,7 @@ const AstTypeAliases = {
 
 function getAstTypeAliases(node) {
   const types = [AstTypeAliases.AnyNode];
-  if (isConsumptiveGroup(node) || isLookaround(node)) {
+  if (isConsumptiveGroup(node) || node.type === AstTypes.LookaroundAssertion) {
     types.push(AstTypeAliases.AnyGroup);
   }
   types.push(node.type);
