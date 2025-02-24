@@ -28,6 +28,7 @@ describe('toOnigurumaAst', () => {
         dotAll: false,
         extended: false,
         ignoreCase: false,
+        posixIsAscii: false,
         spaceIsAscii: false,
         wordIsAscii: false,
         parent: null,

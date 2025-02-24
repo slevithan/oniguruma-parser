@@ -125,9 +125,13 @@ const charClassTokenRe = new RegExp(r`
 @typedef {{
   tokens: Array<Token>;
   flags: {
+    digitIsAscii: boolean;
     dotAll: boolean;
     extended: boolean;
     ignoreCase: boolean;
+    posixIsAscii: boolean;
+    spaceIsAscii: boolean;
+    wordIsAscii: boolean;
   };
   rules: {
     captureGroup: boolean;
@@ -155,11 +159,8 @@ function tokenize(pattern, flags = '', rules) {
   if (typeof pattern !== 'string') {
     throw new Error('String expected as pattern');
   }
-  if (!/^[imxDSW]*$/.test(flags)) {
-    throw new Error(`Flags "${flags}" includes unsupported value`);
-  }
-  const extended = flags.includes('x');
-  const xStack = [extended];
+  const flagsObj = getFlagsObj(flags);
+  const xStack = [flagsObj.extended];
   const context = {
     captureGroup: rules.captureGroup,
     getCurrentModX: () => xStack.at(-1),
@@ -210,18 +211,7 @@ function tokenize(pattern, flags = '', rules) {
 
   return {
     tokens,
-    flags: {
-      ignoreCase: flags.includes('i'),
-      // Flag m is called `multiline` in Onig, but that has a different meaning in JS. Onig flag m
-      // is equivalent to JS flag s
-      dotAll: flags.includes('m'),
-      // Flag x is fully handled during tokenization
-      extended,
-      // Flags D, S, W are currently only supported as top-level flags
-      digitIsAscii: flags.includes('D'),
-      spaceIsAscii: flags.includes('S'),
-      wordIsAscii: flags.includes('W'),
-    },
+    flags: flagsObj,
     rules,
   };
 }
@@ -725,6 +715,37 @@ function getFlagPropsForToken(flags) {
     obj.extended = true;
   }
   return Object.keys(obj).length ? obj : null;
+}
+
+function getFlagsObj(flags) {
+  if (!/^[imxDPSW]*$/.test(flags)) {
+    throw new Error(`Flags "${flags}" includes unsupported value`);
+  }
+  const flagsObj = {
+    ignoreCase: false,
+    dotAll: false,
+    extended: false,
+    digitIsAscii: false,
+    posixIsAscii: false,
+    spaceIsAscii: false,
+    wordIsAscii: false,
+  };
+  for (const char of flags) {
+    flagsObj[{
+      i: 'ignoreCase',
+      // Flag m is called `multiline` in Onig, but that has a different meaning in JS. Onig flag m
+      // is equivalent to JS flag s
+      m: 'dotAll',
+      // Flag x is fully handled during tokenization
+      x: 'extended',
+      // Flags D, P, S, W are currently only supported as top-level flags
+      D: 'digitIsAscii',
+      P: 'posixIsAscii',
+      S: 'spaceIsAscii',
+      W: 'wordIsAscii',
+    }[char]] = true;
+  }
+  return flagsObj;
 }
 
 // - Unenclosed `\xNN` above 0x7F is handled elsewhere as a UTF-8 encoded byte sequence

@@ -30,7 +30,7 @@ The following throw errors since they aren't yet supported. They're all extremel
 - Absent expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.
 - Callouts: `(?{…})`, `(*…)`, etc.
-- Flags `P` (POSIX is ASCII) and `y{g}`/`y{w}` (grapheme boundary modes); whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest); flags `D`, `S`, `W` within mode modifiers.
+- Flags `y{g}`/`y{w}` (grapheme boundary modes); whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest); flags `D`, `P`, `S`, `W` (digit/POSIX/space/word is ASCII) within mode modifiers.
 
 The following don't yet throw errors, but should:
 
