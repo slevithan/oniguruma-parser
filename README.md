@@ -1,8 +1,8 @@
 # `oniguruma-parser`
 
-This library was originally built for [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es). It can be used to create, validate, and traverse ASTs for Oniguruma regular expressions.
+This library was originally built for [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es). It can be used to validate and optimize Oniguruma regular expressions and to create, traverse, and transform Oniguruma ASTs.
 
-The primary function is `toOnigurumaAst`, which returns an Oniguruma AST generated from an Oniguruma pattern.
+The core function is `toOnigurumaAst`, which returns an Oniguruma AST generated from an Oniguruma pattern.
 
 ```ts
 function toOnigurumaAst(

@@ -50,7 +50,7 @@ function hasOnlyChild({alternatives}, kidFn) {
 /**
 Check whether the node is a consumptive group that adds to a regex match.
 - Includes: Capturing, named capturing, noncapturing, atomic, and flag groups.
-- Excludes: Lookarounds.
+- Excludes: Lookarounds, flag directives.
 - Special case: Absent functions are consumptive but are different in other ways so are excluded.
 @param {{type: string;}} node
 @returns {boolean}
