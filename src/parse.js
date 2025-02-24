@@ -32,6 +32,7 @@ const AstAbsentFunctionKinds = {
 };
 
 const AstAssertionKinds = {
+  grapheme_boundary: 'grapheme_boundary',
   line_end: 'line_end',
   line_start: 'line_start',
   lookahead: 'lookahead',
@@ -477,12 +478,14 @@ function createAlternative() {
 
 function createAssertion(kind, options) {
   // Use `createLookaround` for lookahead and lookbehind assertions
-  const negate = !!options?.negate;
-  return {
+  const node = {
     type: AstTypes.Assertion,
     kind,
-    ...(kind === AstAssertionKinds.word_boundary && {negate}),
   };
+  if (kind === AstAssertionKinds.word_boundary || kind === AstAssertionKinds.grapheme_boundary) {
+    node.negate = !!options?.negate;
+  }
+  return node;
 }
 
 function createAssertionFromToken({kind}) {
@@ -494,10 +497,12 @@ function createAssertionFromToken({kind}) {
       '\\b': AstAssertionKinds.word_boundary,
       '\\B': AstAssertionKinds.word_boundary,
       '\\G': AstAssertionKinds.search_start,
+      '\\y': AstAssertionKinds.grapheme_boundary,
+      '\\Y': AstAssertionKinds.grapheme_boundary,
       '\\z': AstAssertionKinds.string_end,
       '\\Z': AstAssertionKinds.string_end_newline,
     }[kind], `Unexpected assertion kind "${kind}"`),
-    {negate: kind === r`\B`}
+    {negate: kind === r`\B` || kind === r`\Y`}
   );
 }
 

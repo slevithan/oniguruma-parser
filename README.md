@@ -27,11 +27,10 @@ The following throw errors since they aren't yet supported. They're all extremel
 
 - Rarely-used character specifiers: Non-A-Za-z with `\cx`, `\C-x`; meta `\M-x`, `\M-\C-x`; bracketed octals `\o{…}`; octal UTF-8 encoded bytes (≥ `\200`).
 - Code point sequences: `\x{H H …}`, `\o{O O …}`.
-- Grapheme boundaries: `\y`, `\Y`.
 - Absent expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.
 - Callouts: `(?{…})`, `(*…)`, etc.
-- Flags `P` (POSIX is ASCII) and `y{g}`/`y{w}` (grapheme boundary modes). Also flags `D`, `S`, `W` in mode modifiers, and whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest).
+- Flags `P` (POSIX is ASCII) and `y{g}`/`y{w}` (grapheme boundary modes); whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest); flags `D`, `S`, `W` within mode modifiers.
 
 The following don't yet throw errors, but should:
 

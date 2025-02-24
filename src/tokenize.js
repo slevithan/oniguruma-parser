@@ -240,7 +240,7 @@ function getTokenWithDetails(context, pattern, m, lastIndex) {
   }
 
   if (m0 === '\\') {
-    if ('AbBGzZ'.includes(m1)) {
+    if ('AbBGyYzZ'.includes(m1)) {
       return {
         token: createToken(TokenTypes.Assertion, m, {
           kind: m,
