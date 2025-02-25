@@ -68,7 +68,6 @@ function traverse(path, state, visitor) {
         case AstTypes.Flags:
         case AstTypes.Recursion:
         case AstTypes.Subroutine:
-        case AstTypes.VariableLengthCharacterSet:
           break;
         case AstTypes.AbsentFunction:
         case AstTypes.CapturingGroup:

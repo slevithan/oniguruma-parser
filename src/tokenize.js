@@ -15,37 +15,36 @@ const TokenTypes = /** @type {const} */ ({
   GroupOpen: 'GroupOpen',
   Subroutine: 'Subroutine',
   Quantifier: 'Quantifier',
-  // These aren't allowed in char classes, so they aren't equivalent to JS `[\q{}]`
-  VariableLengthCharacterSet: 'VariableLengthCharacterSet',
   // Intermediate representation not included in results
   EscapedNumber: 'EscapedNumber',
 });
 
-const TokenCharacterSetKinds = {
+const TokenCharacterSetKinds = /** @type {const} */ ({
   any: 'any',
   digit: 'digit',
   dot: 'dot',
+  grapheme: 'grapheme',
   hex: 'hex',
-  non_newline: 'non_newline',
+  newline: 'newline',
   posix: 'posix',
   property: 'property',
   space: 'space',
   word: 'word',
-};
+});
 
-const TokenDirectiveKinds = {
+const TokenDirectiveKinds = /** @type {const} */ ({
   flags: 'flags',
   keep: 'keep',
-};
+});
 
-const TokenGroupKinds = {
+const TokenGroupKinds = /** @type {const} */ ({
   absent_repeater: 'absent_repeater',
   atomic: 'atomic',
   capturing: 'capturing',
   group: 'group',
   lookahead: 'lookahead',
   lookbehind: 'lookbehind',
-};
+});
 
 const EscapeCharCodes = new Map([
   ['a',  7], // alert/bell (Not available in JS)
@@ -260,10 +259,11 @@ function getTokenWithDetails(context, pattern, m, lastIndex) {
         }),
       };
     }
-    if (m1 === 'N') {
+    if (m1 === 'N' || m1 === 'R') {
       return {
         token: createToken(TokenTypes.CharacterSet, m, {
-          kind: TokenCharacterSetKinds.non_newline,
+          kind: TokenCharacterSetKinds.newline,
+          negate: m1 === 'N',
         }),
       };
     }
@@ -274,10 +274,10 @@ function getTokenWithDetails(context, pattern, m, lastIndex) {
         }),
       };
     }
-    if ('RX'.includes(m1)) {
+    if (m1 === 'X') {
       return {
-        token: createToken(TokenTypes.VariableLengthCharacterSet, m, {
-          kind: m,
+        token: createToken(TokenTypes.CharacterSet, m, {
+          kind: TokenCharacterSetKinds.grapheme,
         }),
       };
     }
@@ -503,8 +503,8 @@ function createTokenForAnyTokenWithinCharClass(raw) {
     }
     return createToken(TokenTypes.CharacterSet, raw, {
       kind: TokenCharacterSetKinds.posix,
-      negate: !!posix.groups.negate,
       value: posix.groups.name,
+      negate: !!posix.groups.negate,
     });
   }
   // Range (possibly invalid) or literal hyphen
@@ -667,7 +667,7 @@ function createTokenForQuantifier(raw) {
     data.min = +min;
     data.max = max === undefined ? +min : (max === '' ? Infinity : +max);
     data.greedy = !raw.endsWith('?');
-    // By default, Onig doesn't support making interval quantifiers possessive
+    // By default, Onig doesn't support making interval quantifiers possessive with a `+` suffix
     data.possessive = false;
   } else {
     data.min = raw[0] === '+' ? 1 : 0;
@@ -683,8 +683,8 @@ function createTokenForShorthandCharClass(raw) {
   return createToken(TokenTypes.CharacterSet, raw, {
     kind: {
       'd': TokenCharacterSetKinds.digit,
-      'h': TokenCharacterSetKinds.hex, // Not available in JS
-      's': TokenCharacterSetKinds.space, // Different than JS
+      'h': TokenCharacterSetKinds.hex,
+      's': TokenCharacterSetKinds.space,
       'w': TokenCharacterSetKinds.word,
     }[lower],
     negate: raw[1] !== lower,
@@ -696,8 +696,8 @@ function createTokenForUnicodeProperty(raw) {
   const negate = (p === 'P' && !neg) || (p === 'p' && !!neg);
   return createToken(TokenTypes.CharacterSet, raw, {
     kind: TokenCharacterSetKinds.property,
-    negate,
     value,
+    negate,
   });
 }
 

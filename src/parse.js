@@ -3,7 +3,7 @@ import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenTypes
 import {traverse} from './traverse.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from './utils.js';
 
-const AstTypes = {
+const AstTypes = /** @type {const} */ ({
   AbsentFunction: 'AbsentFunction',
   Alternative: 'Alternative',
   Assertion: 'Assertion',
@@ -22,17 +22,16 @@ const AstTypes = {
   Quantifier: 'Quantifier',
   Regex: 'Regex',
   Subroutine: 'Subroutine',
-  VariableLengthCharacterSet: 'VariableLengthCharacterSet',
   // Used only by the `oniguruma-to-es` transformer for Regex+ ASTs
   Recursion: 'Recursion',
-};
+});
 
-const AstAbsentFunctionKinds = {
+const AstAbsentFunctionKinds = /** @type {const} */ ({
   // See <github.com/slevithan/oniguruma-to-es/issues/13>
   repeater: 'repeater',
-};
+});
 
-const AstAssertionKinds = {
+const AstAssertionKinds = /** @type {const} */ ({
   grapheme_boundary: 'grapheme_boundary',
   line_end: 'line_end',
   line_start: 'line_start',
@@ -41,21 +40,16 @@ const AstAssertionKinds = {
   string_end_newline: 'string_end_newline',
   string_start: 'string_start',
   word_boundary: 'word_boundary',
-};
+});
 
 // Identical values
 const AstCharacterSetKinds = TokenCharacterSetKinds;
 const AstDirectiveKinds = TokenDirectiveKinds;
 
-const AstLookaroundAssertionKinds = {
+const AstLookaroundAssertionKinds = /** @type {const} */ ({
   lookahead: 'lookahead',
   lookbehind: 'lookbehind',
-};
-
-const AstVariableLengthCharacterSetKinds = {
-  grapheme: 'grapheme',
-  newline: 'newline',
-};
+});
 
 /**
 @typedef {{
@@ -134,8 +128,6 @@ function parse({tokens, flags, rules}, options) {
         return parseQuantifier(context);
       case TokenTypes.Subroutine:
         return parseSubroutine(context);
-      case TokenTypes.VariableLengthCharacterSet:
-        return createVariableLengthCharacterSet(token.kind);
       default:
         throw new Error(`Unexpected token type "${token.type}"`);
     }
@@ -319,12 +311,7 @@ function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNa
     }
   }
   if (kind === TokenCharacterSetKinds.posix) {
-    return {
-      type: AstTypes.CharacterSet,
-      kind: AstCharacterSetKinds.posix,
-      negate,
-      value,
-    };
+    return createPosixClass(value, {negate});
   }
   return createCharacterSet(kind, {negate});
 }
@@ -611,7 +598,20 @@ function createCharacterClassRange(min, max) {
   };
 }
 
-function createCharacterSet(kind, {negate}) {
+/**
+@param {keyof Omit<AstCharacterSetKinds, 'posix' | 'property'>} kind
+@param {{
+  negate?: boolean;
+}} [options]
+@returns {{
+  type: 'CharacterSet';
+  kind: keyof Omit<AstCharacterSetKinds, 'posix' | 'property'>;
+  negate?: boolean;
+  variableLength?: boolean;
+}}
+*/
+function createCharacterSet(kind, options) {
+  const negate = !!options?.negate;
   const node = {
     type: AstTypes.CharacterSet,
     kind: throwIfNot(AstCharacterSetKinds[kind], `Unexpected character set kind "${kind}"`),
@@ -619,10 +619,17 @@ function createCharacterSet(kind, {negate}) {
   if (
     kind === TokenCharacterSetKinds.digit ||
     kind === TokenCharacterSetKinds.hex ||
+    kind === TokenCharacterSetKinds.newline ||
     kind === TokenCharacterSetKinds.space ||
     kind === TokenCharacterSetKinds.word
   ) {
     node.negate = negate;
+  }
+  if (
+    kind === TokenCharacterSetKinds.grapheme ||
+    (kind === TokenCharacterSetKinds.newline && !negate)
+  ) {
+    node.variableLength = true;
   }
   return node;
 }
@@ -686,6 +693,31 @@ function createPattern() {
   };
 }
 
+/**
+@param {string} name
+@param {{
+  negate?: boolean;
+}} [options]
+@returns {{
+  type: 'CharacterSet';
+  kind: 'posix';
+  value: string;
+  negate: boolean;
+}}
+*/
+function createPosixClass(name, options) {
+  const negate = !!options?.negate;
+  if (!PosixClassNames.has(name)) {
+    throw new Error(`Invalid POSIX class "${name}"`);
+  }
+  return {
+    type: AstTypes.CharacterSet,
+    kind: AstCharacterSetKinds.posix,
+    value: name,
+    negate,
+  };
+}
+
 function createQuantifier(element, min, max, greedy = true, possessive = false) {
   const node = {
     type: AstTypes.Quantifier,
@@ -721,6 +753,21 @@ function createSubroutine(ref) {
   };
 }
 
+/**
+@param {string} name
+@param {{
+  negate?: boolean;
+  normalizeUnknownPropertyNames?: boolean;
+  skipPropertyNameValidation?: boolean;
+  unicodePropertyMap?: Map<string, string>?;
+}} [options]
+@returns {{
+  type: 'CharacterSet';
+  kind: 'property';
+  value: string;
+  negate: boolean;
+}}
+*/
 function createUnicodeProperty(name, options) {
   const opts = {
     negate: false,
@@ -744,16 +791,6 @@ function createUnicodeProperty(name, options) {
     value: normalized ?? name,
     negate: opts.negate,
   }
-}
-
-function createVariableLengthCharacterSet(kind) {
-  return {
-    type: AstTypes.VariableLengthCharacterSet,
-    kind: throwIfNot({
-      '\\R': AstVariableLengthCharacterSetKinds.newline,
-      '\\X': AstVariableLengthCharacterSetKinds.grapheme,
-    }[kind], `Unexpected varcharset kind "${kind}"`),
-  };
 }
 
 // If a direct child group is needlessly nested, return it instead (after modifying it)
@@ -823,7 +860,6 @@ export {
   AstDirectiveKinds,
   AstLookaroundAssertionKinds,
   AstTypes,
-  AstVariableLengthCharacterSetKinds,
   createAbsentFunction,
   createAlternative,
   createAssertion,
@@ -838,10 +874,10 @@ export {
   createGroup,
   createLookaroundAssertion,
   createPattern,
+  createPosixClass,
   createQuantifier,
   createRegex,
   createSubroutine,
   createUnicodeProperty,
-  createVariableLengthCharacterSet,
   parse,
 };
