@@ -11,7 +11,6 @@ const AstTypes = /** @type {const} */ ({
   CapturingGroup: 'CapturingGroup',
   Character: 'Character',
   CharacterClass: 'CharacterClass',
-  CharacterClassIntersection: 'CharacterClassIntersection',
   CharacterClassRange: 'CharacterClassRange',
   CharacterSet: 'CharacterSet',
   Directive: 'Directive',
@@ -26,8 +25,8 @@ const AstTypes = /** @type {const} */ ({
   Recursion: 'Recursion',
 });
 
+// See <github.com/slevithan/oniguruma-to-es/issues/13>
 const AstAbsentFunctionKinds = /** @type {const} */ ({
-  // See <github.com/slevithan/oniguruma-to-es/issues/13>
   repeater: 'repeater',
 });
 
@@ -42,6 +41,11 @@ const AstAssertionKinds = /** @type {const} */ ({
   word_boundary: 'word_boundary',
 });
 
+const AstCharacterClassKinds = /** @type {const} */ ({
+  union: 'union',
+  intersection: 'intersection',
+});
+
 // Identical values
 const AstCharacterSetKinds = TokenCharacterSetKinds;
 const AstDirectiveKinds = TokenDirectiveKinds;
@@ -53,10 +57,14 @@ const AstLookaroundAssertionKinds = /** @type {const} */ ({
 
 /**
 @typedef {{
+  [key: string]: any;
+  type: keyof AstTypes;
+}} AstNode
+@typedef {{
   type: 'Regex';
   parent: null;
-  pattern: Object;
-  flags: Object;
+  pattern: AstNode;
+  flags: AstNode;
 }} OnigurumaAst
 */
 /**
@@ -262,31 +270,27 @@ function parseCharacterClassHyphen(context, state) {
 }
 
 function parseCharacterClassOpen(context, state) {
-  const {token, tokens, verbose, walk} = context;
+  const {token, tokens, walk} = context;
   const firstClassToken = tokens[context.current];
-  let node = createCharacterClass({negate: token.negate});
-  const intersection = node.elements[0];
+  const intersections = [createCharacterClass()];
   let nextToken = throwIfUnclosedCharacterClass(firstClassToken);
   while (nextToken.type !== TokenTypes.CharacterClassClose) {
     if (nextToken.type === TokenTypes.CharacterClassIntersector) {
-      intersection.classes.push(createCharacterClass({negate: false, baseOnly: true}));
+      intersections.push(createCharacterClass());
       // Skip the intersector
       context.current++;
     } else {
-      const cc = intersection.classes.at(-1);
+      const cc = intersections.at(-1);
       cc.elements.push(walk(cc, state));
     }
     nextToken = throwIfUnclosedCharacterClass(tokens[context.current], firstClassToken);
   }
-  if (!verbose) {
-    optimizeCharacterClassIntersection(intersection);
-  }
-  // Simplify tree if we don't need the intersection wrapper
-  if (intersection.classes.length === 1) {
-    const cc = intersection.classes[0];
-    // Only needed if `!verbose`; otherwise an intersection's direct kids are never negated
-    cc.negate = node.negate !== cc.negate;
-    node = cc;
+  const node = createCharacterClass({negate: token.negate});
+  if (intersections.length === 1) {
+    node.elements = intersections[0].elements;
+  } else {
+    node.kind = AstCharacterClassKinds.intersection;
+    node.elements = intersections.map(cc => cc.elements.length === 1 ? cc.elements[0] : cc);
   }
   // Skip the closing square bracket
   context.current++;
@@ -467,6 +471,15 @@ function createAbsentFunction(kind) {
   };
 }
 
+/**
+@typedef {{
+  type: 'Alternative';
+  elements: Array<AstNode>;
+}} AstAlternativeNode
+*/
+/**
+@returns {AstAlternativeNode}
+*/
 function createAlternative() {
   return {
     type: AstTypes.Alternative,
@@ -567,23 +580,29 @@ function createCharacter(charCode, options) {
   };
 }
 
+/**
+@param {{
+  kind?: keyof AstCharacterClassKinds;
+  negate?: boolean;
+}} [options]
+@returns {{
+  type: 'CharacterClass';
+  kind: keyof AstCharacterClassKinds;
+  negate: boolean;
+  elements: Array<AstNode>;
+}}
+*/
 function createCharacterClass(options) {
   const opts = {
-    baseOnly: false,
+    kind: AstCharacterClassKinds.union,
     negate: false,
     ...options,
   };
   return {
     type: AstTypes.CharacterClass,
+    kind: opts.kind,
     negate: opts.negate,
-    elements: opts.baseOnly ? [] : [createCharacterClassIntersection()],
-  };
-}
-
-function createCharacterClassIntersection() {
-  return {
-    type: AstTypes.CharacterClassIntersection,
-    classes: [createCharacterClass({negate: false, baseOnly: true})],
+    elements: [],
   };
 }
 
@@ -829,18 +848,6 @@ function normalizeUnicodePropertyName(name) {
     replace(/[A-Za-z]+/g, m => m[0].toUpperCase() + m.slice(1).toLowerCase());
 }
 
-// For any intersection classes that contain only a class, swap the parent with its (modded) child
-function optimizeCharacterClassIntersection(intersection) {
-  for (let i = 0; i < intersection.classes.length; i++) {
-    const cc = intersection.classes[i];
-    const firstChild = cc.elements[0];
-    if (cc.elements.length === 1 && firstChild.type === AstTypes.CharacterClass) {
-      intersection.classes[i] = firstChild;
-      firstChild.negate = cc.negate !== firstChild.negate;
-    }
-  }
-}
-
 function throwIfUnclosedCharacterClass(token, firstClassToken) {
   return throwIfNot(
     token,
@@ -856,6 +863,7 @@ function throwIfUnclosedGroup(token) {
 export {
   AstAbsentFunctionKinds,
   AstAssertionKinds,
+  AstCharacterClassKinds,
   AstCharacterSetKinds,
   AstDirectiveKinds,
   AstLookaroundAssertionKinds,
@@ -867,7 +875,6 @@ export {
   createCapturingGroup,
   createCharacter,
   createCharacterClass,
-  createCharacterClassIntersection,
   createCharacterClassRange,
   createCharacterSet,
   createFlags,

@@ -75,9 +75,6 @@ function traverse(path, state, visitor) {
         case AstTypes.Pattern:
           traverseArray(node.alternatives, node);
           break;
-        case AstTypes.CharacterClassIntersection:
-          traverseArray(node.classes, node);
-          break;
         case AstTypes.CharacterClassRange:
           traverseNode(node.min, node, 'min');
           traverseNode(node.max, node, 'max');

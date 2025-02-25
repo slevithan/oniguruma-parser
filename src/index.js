@@ -1,4 +1,4 @@
-import {AstAssertionKinds, AstTypes, parse} from './parse.js';
+import {parse} from './parse.js';
 import {tokenize} from './tokenize.js';
 import {OnigUnicodePropertyMap} from './unicode-properties.js';
 
@@ -32,11 +32,10 @@ function toOnigurumaAst(pattern, options) {
 /**
 Check whether the node has exactly one alternative with one child element, and optionally that the
 child satisfies a condition.
-@param {{alternatives: Array<{
-  type: 'Alternative';
-  elements: Array<{type: string;}>;
-}>;}} node
-@param {(node: {type: string;}) => boolean} [kidFn]
+@param {import('./parse.js').AstNode & {
+  alternatives: Array<import('./parse.js').AstAlternativeNode>;
+}} node
+@param {(node: import('./parse.js').AstNode) => boolean} [kidFn]
 @returns {boolean}
 */
 function hasOnlyChild({alternatives}, kidFn) {

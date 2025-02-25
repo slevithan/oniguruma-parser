@@ -263,6 +263,7 @@ function getTokenWithDetails(context, pattern, m, lastIndex) {
       return {
         token: createToken(TokenTypes.CharacterSet, m, {
           kind: TokenCharacterSetKinds.newline,
+          // `\N` and `\R` are not actually opposites since the former only excludes `\n`
           negate: m1 === 'N',
         }),
       };
@@ -581,7 +582,10 @@ function createTokenForSharedEscape(raw, {inCharClass}) {
   }
   // Meta `\M-x` and `\M-\C-x` are unsupported; avoid treating as an identity escape
   if (char1 === 'M') {
-    // Supportable; see <github.com/kkos/oniguruma/blob/master/doc/SYNTAX.md#12-onig_syn_op2_esc_capital_m_bar_meta-enable-m-x>, <github.com/kkos/oniguruma/blob/43a8c3f3daf263091f3a74019d4b32ebb6417093/src/regparse.c#L4695>, <https://github.com/ammar/regexp_parser/blob/8851030feda68223d74f502335fb254a20d77016/lib/regexp_parser/expression/classes/escape_sequence.rb#L75>
+    // Supportable; see:
+    // - <github.com/kkos/oniguruma/blob/master/doc/SYNTAX.md#12-onig_syn_op2_esc_capital_m_bar_meta-enable-m-x>
+    // - <github.com/kkos/oniguruma/blob/43a8c3f3daf263091f3a74019d4b32ebb6417093/src/regparse.c#L4695>
+    // - <github.com/ammar/regexp_parser/blob/8851030feda68223d74f502335fb254a20d77016/lib/regexp_parser/expression/classes/escape_sequence.rb#L75>
     throw new Error(`Unsupported meta "${raw}"`);
   }
   // Identity escape; count code point length
