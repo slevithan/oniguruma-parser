@@ -32,10 +32,10 @@ function toOnigurumaAst(pattern, options) {
 /**
 Check whether the node has exactly one alternative with one child element, and optionally that the
 child satisfies a condition.
-@param {import('./parse.js').AstNode & {
-  alternatives: Array<import('./parse.js').AstAlternativeNode>;
+@param {import('./parse.js').Node & {
+  alternatives: Array<import('./parse.js').AlternativeNode>;
 }} node
-@param {(node: import('./parse.js').AstNode) => boolean} [kidFn]
+@param {(node: import('./parse.js').Node) => boolean} [kidFn]
 @returns {boolean}
 */
 function hasOnlyChild({alternatives}, kidFn) {

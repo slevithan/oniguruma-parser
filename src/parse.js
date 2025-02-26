@@ -59,12 +59,12 @@ const AstLookaroundAssertionKinds = /** @type {const} */ ({
 @typedef {{
   [key: string]: any;
   type: keyof AstTypes;
-}} AstNode
+}} Node
 @typedef {{
   type: 'Regex';
   parent: null;
-  pattern: AstNode;
-  flags: AstNode;
+  pattern: Node;
+  flags: Node;
 }} OnigurumaAst
 */
 /**
@@ -474,11 +474,11 @@ function createAbsentFunction(kind) {
 /**
 @typedef {{
   type: 'Alternative';
-  elements: Array<AstNode>;
-}} AstAlternativeNode
+  elements: Array<Node>;
+}} AlternativeNode
 */
 /**
-@returns {AstAlternativeNode}
+@returns {AlternativeNode}
 */
 function createAlternative() {
   return {
@@ -589,7 +589,7 @@ function createCharacter(charCode, options) {
   type: 'CharacterClass';
   kind: keyof AstCharacterClassKinds;
   negate: boolean;
-  elements: Array<AstNode>;
+  elements: Array<Node>;
 }}
 */
 function createCharacterClass(options) {
