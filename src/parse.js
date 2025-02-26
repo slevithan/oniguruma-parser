@@ -159,7 +159,7 @@ function parse({tokens, flags, rules}, options) {
         return parseCharacterSet(context);
       case TokenTypes.Directive:
         return createDirective(
-          throwIfNot(AstDirectiveKinds[token.kind], `Unexpected directive kind "${kind}"`),
+          throwIfNot(AstDirectiveKinds[token.kind], `Unexpected directive kind "${token.kind}"`),
           {flags: token.flags}
         );
       case TokenTypes.GroupOpen:
