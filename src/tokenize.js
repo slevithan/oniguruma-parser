@@ -117,21 +117,22 @@ const charClassTokenRe = new RegExp(r`
 
 /**
 @typedef {{
+  ignoreCase: boolean;
+  dotAll: boolean;
+  extended: boolean;
+  digitIsAscii: boolean;
+  posixIsAscii: boolean;
+  spaceIsAscii: boolean;
+  wordIsAscii: boolean;
+}} RegexFlags
+@typedef {{
   type: keyof TokenTypes;
   raw: string;
   [key: string]: string | number | boolean;
 }} Token
 @typedef {{
   tokens: Array<Token>;
-  flags: {
-    digitIsAscii: boolean;
-    dotAll: boolean;
-    extended: boolean;
-    ignoreCase: boolean;
-    posixIsAscii: boolean;
-    spaceIsAscii: boolean;
-    wordIsAscii: boolean;
-  };
+  flags: RegexFlags;
   rules: {
     captureGroup: boolean;
     singleline: boolean;
@@ -630,8 +631,8 @@ function createTokenForFlagMod(raw, context) {
   off ??= '';
   // Flag x is used directly by the tokenizer since it changes how to interpret the pattern
   const isXOn = (context.getCurrentModX() || on.includes('x')) && !off.includes('x');
-  const enabledFlags = getFlagPropsForToken(on);
-  const disabledFlags = getFlagPropsForToken(off);
+  const enabledFlags = getFlagGroupSwitches(on);
+  const disabledFlags = getFlagGroupSwitches(off);
   const flagChanges = {};
   enabledFlags && (flagChanges.enable = enabledFlags);
   disabledFlags && (flagChanges.disable = disabledFlags);
@@ -705,7 +706,18 @@ function createTokenForUnicodeProperty(raw) {
   });
 }
 
-function getFlagPropsForToken(flags) {
+/**
+@typedef {{
+  ignoreCase?: true;
+  dotAll?: true;
+  extended?: true;
+}} FlagGroupSwitches
+*/
+/**
+@param {string} flags
+@returns {FlagGroupSwitches?}
+*/
+function getFlagGroupSwitches(flags) {
   // Don't include `false` for flags that aren't included
   const obj = {};
   if (flags.includes('i')) {

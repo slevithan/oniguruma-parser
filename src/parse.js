@@ -25,6 +25,47 @@ const AstTypes = /** @type {const} */ ({
   Recursion: 'Recursion',
 });
 
+/**
+@typedef {
+  AbsentFunctionNode |
+  CapturingGroupNode |
+  GroupNode |
+  LookaroundAssertionNode |
+  PatternNode
+} AlternativeContainerNode
+@typedef {
+  AbsentFunctionNode |
+  AssertionNode |
+  BackreferenceNode |
+  CapturingGroupNode |
+  CharacterNode |
+  CharacterClassNode |
+  CharacterSetNode |
+  DirectiveNode |
+  GroupNode |
+  LookaroundAssertionNode |
+  QuantifierNode |
+  SubroutineNode
+} AlternativeContentsNode
+@typedef {
+  CharacterNode |
+  CharacterClassNode |
+  CharacterClassRangeNode |
+  CharacterSetNode
+} CharacterClassContentsNode
+@typedef {
+  AbsentFunctionNode |
+  BackreferenceNode |
+  CapturingGroupNode |
+  CharacterNode |
+  CharacterClassNode |
+  CharacterSetNode |
+  GroupNode |
+  QuantifierNode |
+  SubroutineNode
+} QuantifiableNode
+*/
+
 // See <github.com/slevithan/oniguruma-to-es/issues/13>
 const AstAbsentFunctionKinds = /** @type {const} */ ({
   repeater: 'repeater',
@@ -56,19 +97,7 @@ const AstLookaroundAssertionKinds = /** @type {const} */ ({
 });
 
 /**
-@typedef {{
-  [key: string]: any;
-  type: keyof AstTypes;
-}} Node
-@typedef {{
-  type: 'Regex';
-  parent: null;
-  pattern: Node;
-  flags: Node;
-}} OnigurumaAst
-*/
-/**
-@param {import('./tokenize.js').TokenizerResult} tokenizerResult
+@param {import('./tokenize.js').TokenizerResult} tokenized
 @param {{
   normalizeUnknownPropertyNames?: boolean;
   skipBackrefValidation?: boolean;
@@ -129,7 +158,10 @@ function parse({tokens, flags, rules}, options) {
       case TokenTypes.CharacterSet:
         return parseCharacterSet(context);
       case TokenTypes.Directive:
-        return createDirectiveFromToken(token);
+        return createDirective(
+          throwIfNot(AstDirectiveKinds[token.kind], `Unexpected directive kind "${kind}"`),
+          {flags: token.flags}
+        );
       case TokenTypes.GroupOpen:
         return parseGroupOpen(context, state);
       case TokenTypes.Quantifier:
@@ -460,6 +492,17 @@ function parseSubroutine(context) {
   return node;
 }
 
+/**
+@typedef {{
+  type: 'AbsentFunction';
+  kind: keyof AstAbsentFunctionKinds;
+  alternatives: Array<AlternativeNode>;
+}} AbsentFunctionNode
+*/
+/**
+@param {keyof AstAbsentFunctionKinds} kind
+@returns {AbsentFunctionNode}
+*/
 function createAbsentFunction(kind) {
   if (kind !== AstAbsentFunctionKinds.repeater) {
     throw new Error(`Unexpected absent function kind "${kind}"`);
@@ -474,7 +517,7 @@ function createAbsentFunction(kind) {
 /**
 @typedef {{
   type: 'Alternative';
-  elements: Array<Node>;
+  elements: Array<AlternativeContentsNode>;
 }} AlternativeNode
 */
 /**
@@ -487,6 +530,20 @@ function createAlternative() {
   };
 }
 
+/**
+@typedef {{
+  type: 'Assertion';
+  kind: keyof AstAssertionKinds;
+  negate?: boolean;
+}} AssertionNode
+*/
+/**
+@param {keyof AstAssertionKinds} kind
+@param {{
+  negate?: boolean;
+}} [options]
+@returns {AssertionNode}
+*/
 function createAssertion(kind, options) {
   const node = {
     type: AstTypes.Assertion,
@@ -516,12 +573,26 @@ function createAssertionFromToken({kind}) {
   );
 }
 
+/**
+@typedef {{
+  type: 'Backreference';
+  ref: string | number;
+  orphan?: boolean;
+}} BackreferenceNode
+*/
+/**
+@param {string | number} ref
+@param {{
+  orphan?: boolean;
+}} [options]
+@returns {BackreferenceNode}
+*/
 function createBackreference(ref, options) {
   const orphan = !!options?.orphan;
   return {
     type: AstTypes.Backreference,
-    ...(orphan && {orphan}),
     ref,
+    ...(orphan && {orphan}),
   };
 }
 
@@ -546,6 +617,19 @@ function createByGroupKind({flags, kind, name, negate, number}) {
   }
 }
 
+/**
+@typedef {{
+  type: 'CapturingGroup';
+  number: number;
+  name?: string;
+  alternatives: Array<AlternativeNode>;
+}} CapturingGroupNode
+*/
+/**
+@param {number} number
+@param {string} [name]
+@returns {CapturingGroupNode}
+*/
 function createCapturingGroup(number, name) {
   const hasName = name !== undefined;
   if (hasName && !isValidGroupName(name)) {
@@ -559,6 +643,19 @@ function createCapturingGroup(number, name) {
   };
 }
 
+/**
+@typedef {{
+  type: 'Character';
+  value: number;
+}} CharacterNode
+*/
+/**
+@param {number} charCode
+@param {{
+  useLastValid?: boolean;
+}} [options]
+@returns {CharacterNode}
+*/
 function createCharacter(charCode, options) {
   const opts = {
     useLastValid: false,
@@ -581,16 +678,19 @@ function createCharacter(charCode, options) {
 }
 
 /**
+@typedef {{
+  type: 'CharacterClass';
+  kind: keyof AstCharacterClassKinds;
+  negate: boolean;
+  elements: Array<CharacterClassContentsNode>;
+}} CharacterClassNode
+*/
+/**
 @param {{
   kind?: keyof AstCharacterClassKinds;
   negate?: boolean;
 }} [options]
-@returns {{
-  type: 'CharacterClass';
-  kind: keyof AstCharacterClassKinds;
-  negate: boolean;
-  elements: Array<Node>;
-}}
+@returns {CharacterClassNode}
 */
 function createCharacterClass(options) {
   const opts = {
@@ -606,6 +706,18 @@ function createCharacterClass(options) {
   };
 }
 
+/**
+@typedef {{
+  type: 'CharacterClassRange';
+  min: CharacterNode;
+  max: CharacterNode;
+}} CharacterClassRangeNode
+*/
+/**
+@param {CharacterNode} min
+@param {CharacterNode} max
+@returns {CharacterClassRangeNode}
+*/
 function createCharacterClassRange(min, max) {
   if (max.value < min.value) {
     throw new Error('Character class range out of order');
@@ -618,16 +730,24 @@ function createCharacterClassRange(min, max) {
 }
 
 /**
+@typedef {{
+  type: 'CharacterSet';
+  kind: keyof AstCharacterSetKinds;
+  value?: string;
+  negate?: boolean;
+  variableLength?: boolean;
+}} CharacterSetNode
+*/
+/**
 @param {keyof Omit<AstCharacterSetKinds, 'posix' | 'property'>} kind
 @param {{
   negate?: boolean;
 }} [options]
-@returns {{
-  type: 'CharacterSet';
-  kind: keyof Omit<AstCharacterSetKinds, 'posix' | 'property'>;
-  negate?: boolean;
-  variableLength?: boolean;
-}}
+@returns {
+  Omit<CharacterSetNode, 'value'> & {
+    kind: keyof Omit<AstCharacterSetKinds, 'posix' | 'property'>;
+  }
+}
 */
 function createCharacterSet(kind, options) {
   const negate = !!options?.negate;
@@ -653,33 +773,69 @@ function createCharacterSet(kind, options) {
   return node;
 }
 
-function createDirectiveFromToken({kind, flags}) {
+/**
+@typedef {{
+  type: 'Directive';
+  kind: keyof AstDirectiveKinds;
+  flags?: FlagGroupModifiers;
+}} DirectiveNode
+*/
+/**
+@param {keyof AstDirectiveKinds} kind
+@param {{
+  flags?: FlagGroupModifiers;
+}} [options]
+@returns {DirectiveNode}
+*/
+function createDirective(kind, options) {
   const node = {
     type: AstTypes.Directive,
-    kind: throwIfNot(AstDirectiveKinds[kind], `Unexpected directive kind "${kind}"`),
+    kind,
   };
   // Can't optimize by simply creating a `Group` with a `flags` prop and wrapping the remainder of
   // the open group or pattern in it, because the flag modifier's effect might extend across
   // alternation. Ex: `a(?i)b|c` is equivalent to `a(?i:b)|(?i:c)`, not `a(?i:b|c)`
-  if (kind === TokenDirectiveKinds.flags) {
-    node.flags = flags;
+  if (kind === AstDirectiveKinds.flags) {
+    node.flags = options.flags;
   }
   return node;
 }
 
-function createFlags({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}) {
+/**
+@typedef {{
+  type: 'Flags';
+} & import('./tokenize.js').RegexFlags} FlagsNode
+*/
+/**
+@param {import('./tokenize.js').RegexFlags} flags
+@returns {FlagsNode}
+*/
+function createFlags(flags) {
   return {
     type: AstTypes.Flags,
-    ignoreCase,
-    dotAll,
-    extended,
-    digitIsAscii,
-    posixIsAscii,
-    spaceIsAscii,
-    wordIsAscii,
+    ...flags,
   };
 }
 
+/**
+@typedef {{
+  enable?: import('./tokenize.js').FlagGroupSwitches;
+  disable?: import('./tokenize.js').FlagGroupSwitches;
+}} FlagGroupModifiers
+@typedef {{
+  type: 'Group';
+  atomic?: boolean;
+  flags?: FlagGroupModifiers;
+  alternatives: Array<AlternativeNode>;
+}} GroupNode
+*/
+/**
+@param {{
+  atomic?: boolean;
+  flags?: FlagGroupModifiers;
+}} [options]
+@returns {GroupNode}
+*/
 function createGroup(options) {
   const atomic = options?.atomic;
   const flags = options?.flags;
@@ -691,6 +847,21 @@ function createGroup(options) {
   };
 }
 
+/**
+@typedef {{
+  type: 'LookaroundAssertion';
+  kind: keyof AstLookaroundAssertionKinds;
+  negate: boolean;
+  alternatives: Array<AlternativeNode>;
+}} LookaroundAssertionNode
+*/
+/**
+@param {{
+  behind?: boolean;
+  negate?: boolean;
+}} [options]
+@returns {LookaroundAssertionNode}
+*/
 function createLookaroundAssertion(options) {
   const opts = {
     behind: false,
@@ -705,6 +876,15 @@ function createLookaroundAssertion(options) {
   };
 }
 
+/**
+@typedef {{
+  type: 'Pattern';
+  alternatives: Array<AlternativeNode>;
+}} PatternNode
+*/
+/**
+@returns {PatternNode}
+*/
 function createPattern() {
   return {
     type: AstTypes.Pattern,
@@ -717,12 +897,13 @@ function createPattern() {
 @param {{
   negate?: boolean;
 }} [options]
-@returns {{
-  type: 'CharacterSet';
-  kind: 'posix';
-  value: string;
-  negate: boolean;
-}}
+@returns {
+  CharacterSetNode & {
+    kind: 'posix';
+    value: string;
+    negate: boolean;
+  }
+}
 */
 function createPosixClass(name, options) {
   const negate = !!options?.negate;
@@ -737,6 +918,24 @@ function createPosixClass(name, options) {
   };
 }
 
+/**
+@typedef {{
+  type: 'Quantifier';
+  min: number;
+  max: number;
+  greedy: boolean;
+  possessive: boolean;
+  element: QuantifiableNode;
+}} QuantifierNode
+*/
+/**
+@param {QuantifiableNode} element
+@param {number} min
+@param {number} max
+@param {boolean} [greedy]
+@param {boolean} [possessive]
+@returns {QuantifierNode}
+*/
 function createQuantifier(element, min, max, greedy = true, possessive = false) {
   const node = {
     type: AstTypes.Quantifier,
@@ -757,6 +956,18 @@ function createQuantifier(element, min, max, greedy = true, possessive = false) 
   return node;
 }
 
+/**
+@typedef {{
+  type: 'Regex';
+  pattern: PatternNode;
+  flags: FlagsNode;
+}} OnigurumaAst
+*/
+/**
+@param {PatternNode} pattern
+@param {FlagsNode} flags
+@returns {OnigurumaAst}
+*/
 function createRegex(pattern, flags) {
   return {
     type: AstTypes.Regex,
@@ -765,6 +976,16 @@ function createRegex(pattern, flags) {
   };
 }
 
+/**
+@typedef {{
+  type: 'Subroutine';
+  ref: string | number;
+}} SubroutineNode
+*/
+/**
+@param {string | number} ref
+@returns {SubroutineNode}
+*/
 function createSubroutine(ref) {
   return {
     type: AstTypes.Subroutine,
@@ -780,12 +1001,13 @@ function createSubroutine(ref) {
   skipPropertyNameValidation?: boolean;
   unicodePropertyMap?: Map<string, string>?;
 }} [options]
-@returns {{
-  type: 'CharacterSet';
-  kind: 'property';
-  value: string;
-  negate: boolean;
-}}
+@returns {
+  CharacterSetNode & {
+    kind: 'property';
+    value: string;
+    negate: boolean;
+  }
+}
 */
 function createUnicodeProperty(name, options) {
   const opts = {
@@ -877,6 +1099,7 @@ export {
   createCharacterClass,
   createCharacterClassRange,
   createCharacterSet,
+  createDirective,
   createFlags,
   createGroup,
   createLookaroundAssertion,
