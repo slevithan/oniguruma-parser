@@ -1,4 +1,4 @@
-import {hasOnlyChild, slug} from './index.js';
+import {slug} from './index.js';
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenQuantifierKinds, TokenTypes} from './tokenize.js';
 import {traverse} from './traverse.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from './utils.js';
@@ -105,7 +105,6 @@ const AstLookaroundAssertionKinds = /** @type {const} */ ({
   skipLookbehindValidation?: boolean;
   skipPropertyNameValidation?: boolean;
   unicodePropertyMap?: Map<string, string>?;
-  verbose?: boolean;
 }} [options]
 @returns {OnigurumaAst}
 */
@@ -116,7 +115,6 @@ function parse({tokens, flags, rules}, options) {
     skipLookbehindValidation: false,
     skipPropertyNameValidation: false,
     unicodePropertyMap: null,
-    verbose: false,
     ...options,
   };
   const context = {
@@ -133,7 +131,6 @@ function parse({tokens, flags, rules}, options) {
     token: null,
     tokens,
     unicodePropertyMap: opts.unicodePropertyMap,
-    verbose: opts.verbose,
     walk,
   };
   function walk(parent, state) {
@@ -354,7 +351,7 @@ function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNa
 }
 
 function parseGroupOpen(context, state) {
-  const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, verbose, walk} = context;
+  const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context;
   let node = createByGroupKind(token);
   const isAbsentFunction = node.type === AstTypes.AbsentFunction;
   const isLookbehind = node.kind === AstLookaroundAssertionKinds.lookbehind;
@@ -415,9 +412,6 @@ function parseGroupOpen(context, state) {
       }
     }
     nextToken = throwIfUnclosedGroup(tokens[context.current]);
-  }
-  if (!verbose) {
-    node = getOptimizedGroup(node);
   }
   // Skip the closing parenthesis
   context.current++;
@@ -1035,25 +1029,6 @@ function createUnicodeProperty(name, options) {
     value: normalized ?? name,
     negate: opts.negate,
   }
-}
-
-// If a direct child group is needlessly nested, return it instead (after modifying it)
-function getOptimizedGroup(node) {
-  const firstAltFirstEl = node.alternatives[0].elements[0];
-  if (
-    node.type === AstTypes.Group &&
-    hasOnlyChild(node, kid => kid.type === AstTypes.Group) &&
-    !(node.atomic && firstAltFirstEl.flags) &&
-    !(node.flags && (firstAltFirstEl.atomic || firstAltFirstEl.flags))
-  ) {
-    if (node.atomic) {
-      firstAltFirstEl.atomic = true;
-    } else if (node.flags) {
-      firstAltFirstEl.flags = node.flags;
-    }
-    return firstAltFirstEl;
-  }
-  return node;
 }
 
 function isValidGroupName(name) {
