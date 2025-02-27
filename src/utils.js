@@ -1,3 +1,4 @@
+const cp = String.fromCodePoint;
 const r = String.raw;
 
 const PosixClassNames = new Set([
@@ -32,6 +33,7 @@ function throwIfNot(value, msg) {
 }
 
 export {
+  cp,
   getOrInsert,
   PosixClassNames,
   r,
