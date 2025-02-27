@@ -7,11 +7,26 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./generator": "./dist/generator/index.js",
-    "./optimizer": "./dist/optimizer/index.js",
-    "./parser": "./dist/parser/index.js",
-    "./tokenizer": "./dist/tokenizer/index.js",
-    "./traverser": "./dist/traverser/index.js"
+    "./generator": {
+      "types": "./dist/generator/index.d.ts",
+      "import": "./dist/generator/index.js"
+    },
+    "./optimizer": {
+      "types": "./dist/optimizer/index.d.ts",
+      "import": "./dist/optimizer/index.js"
+    },
+    "./parser": {
+      "types": "./dist/parser/index.d.ts",
+      "import": "./dist/parser/index.js"
+    },
+    "./tokenizer": {
+      "types": "./dist/tokenizer/index.d.ts",
+      "import": "./dist/tokenizer/index.js"
+    },
+    "./traverser": {
+      "types": "./dist/traverser/index.d.ts",
+      "import": "./dist/traverser/index.js"
+    }
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
