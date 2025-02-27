@@ -46,6 +46,12 @@ const TokenGroupKinds = /** @type {const} */ ({
   lookbehind: 'lookbehind',
 });
 
+const TokenQuantifierKinds = /** @type {const} */ ({
+  greedy: 'greedy',
+  lazy: 'lazy',
+  possessive: 'possessive',
+});
+
 const EscapeCharCodes = new Map([
   ['a',  7], // alert/bell (Not available in JS)
   ['b',  8], // backspace (only in char classes)
@@ -671,14 +677,14 @@ function createTokenForQuantifier(raw) {
     }
     data.min = +min;
     data.max = max === undefined ? +min : (max === '' ? Infinity : +max);
-    data.greedy = !raw.endsWith('?');
     // By default, Onig doesn't support making interval quantifiers possessive with a `+` suffix
-    data.possessive = false;
+    data.kind = raw.endsWith('?') ? TokenQuantifierKinds.lazy : TokenQuantifierKinds.greedy;
   } else {
     data.min = raw[0] === '+' ? 1 : 0;
     data.max = raw[0] === '?' ? 1 : Infinity;
-    data.greedy = raw[1] !== '?';
-    data.possessive = raw[1] === '+';
+    data.kind = raw[1] === '+' ?
+      TokenQuantifierKinds.possessive :
+      (raw[1] === '?' ? TokenQuantifierKinds.lazy : TokenQuantifierKinds.greedy);
   }
   return createToken(TokenTypes.Quantifier, raw, data);
 }
@@ -836,5 +842,6 @@ export {
   TokenCharacterSetKinds,
   TokenDirectiveKinds,
   TokenGroupKinds,
+  TokenQuantifierKinds,
   TokenTypes,
 };

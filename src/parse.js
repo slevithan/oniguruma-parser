@@ -1,5 +1,5 @@
 import {hasOnlyChild, slug} from './index.js';
-import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenTypes} from './tokenize.js';
+import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenQuantifierKinds, TokenTypes} from './tokenize.js';
 import {traverse} from './traverse.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from './utils.js';
 
@@ -90,6 +90,7 @@ const AstCharacterClassKinds = /** @type {const} */ ({
 // Identical values
 const AstCharacterSetKinds = TokenCharacterSetKinds;
 const AstDirectiveKinds = TokenDirectiveKinds;
+const AstQuantifierKinds = TokenQuantifierKinds;
 
 const AstLookaroundAssertionKinds = /** @type {const} */ ({
   lookahead: 'lookahead',
@@ -424,7 +425,7 @@ function parseGroupOpen(context, state) {
 }
 
 function parseQuantifier({token, parent}) {
-  const {min, max, greedy, possessive} = token;
+  const {min, max, kind} = token;
   const quantifiedNode = parent.elements.at(-1);
   if (
     !quantifiedNode ||
@@ -434,7 +435,12 @@ function parseQuantifier({token, parent}) {
   ) {
     throw new Error(`Quantifier requires a repeatable token`);
   }
-  const node = createQuantifier(quantifiedNode, min, max, greedy, possessive);
+  const node = createQuantifier(
+    quantifiedNode,
+    min,
+    max,
+    throwIfNot(AstQuantifierKinds[kind], `Unexpected quantifier kind "${kind}"`)
+  );
   parent.elements.pop();
   return node;
 }
@@ -923,8 +929,7 @@ function createPosixClass(name, options) {
   type: 'Quantifier';
   min: number;
   max: number;
-  greedy: boolean;
-  possessive: boolean;
+  kind: keyof AstQuantifierKinds;
   element: QuantifiableNode;
 }} QuantifierNode
 */
@@ -932,17 +937,15 @@ function createPosixClass(name, options) {
 @param {QuantifiableNode} element
 @param {number} min
 @param {number} max
-@param {boolean} [greedy]
-@param {boolean} [possessive]
+@param {keyof AstQuantifierKinds} [kind]
 @returns {QuantifierNode}
 */
-function createQuantifier(element, min, max, greedy = true, possessive = false) {
+function createQuantifier(element, min, max, kind = AstQuantifierKinds.greedy) {
   const node = {
     type: AstTypes.Quantifier,
     min,
     max,
-    greedy,
-    possessive,
+    kind,
     element,
   };
   if (max < min) {
@@ -950,7 +953,7 @@ function createQuantifier(element, min, max, greedy = true, possessive = false) 
       ...node,
       min: max,
       max: min,
-      possessive: true,
+      kind: AstQuantifierKinds.possessive,
     };
   }
   return node;
@@ -1090,6 +1093,7 @@ export {
   AstDirectiveKinds,
   AstLookaroundAssertionKinds,
   AstTypes,
+  AstQuantifierKinds,
   createAbsentFunction,
   createAlternative,
   createAssertion,
