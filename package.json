@@ -5,6 +5,7 @@
   "author": "Steven Levithan",
   "license": "MIT",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -31,8 +32,7 @@
       "import": "./dist/traverser/index.js"
     }
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "browser": "./dist/index.min.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "bundle:global": "esbuild src/index.js --outfile=dist/index.min.js --global-name=OnigurumaParser --bundle --minify --sourcemap",
