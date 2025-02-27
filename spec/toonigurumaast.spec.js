@@ -1,4 +1,4 @@
-import {toOnigurumaAst} from '../dist/index.js';
+import {toOnigurumaAst} from '../src/index.js';
 
 describe('toOnigurumaAst', () => {
   it('should throw for non-string patterns', () => {
