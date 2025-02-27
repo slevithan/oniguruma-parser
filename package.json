@@ -1,6 +1,6 @@
 {
   "name": "oniguruma-parser",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Parse Oniguruma regular expressions",
   "author": "Steven Levithan",
   "license": "MIT",
@@ -42,7 +42,7 @@
     "build": "pnpm run bundle:global && pnpm run bundle:esm && pnpm run types",
     "pretest": "pnpm run build",
     "test": "jasmine",
-    "prepare": "pnpm test"
+    "prepublishOnly": "pnpm test"
   },
   "files": [
     "dist"
