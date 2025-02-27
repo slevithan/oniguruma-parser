@@ -46,13 +46,13 @@ const AstTypes = /** @type {const} */ ({
   LookaroundAssertionNode |
   QuantifierNode |
   SubroutineNode
-} AlternativeContentsNode
+} AlternativeElementNode
 @typedef {
   CharacterNode |
   CharacterClassNode |
   CharacterClassRangeNode |
   CharacterSetNode
-} CharacterClassContentsNode
+} CharacterClassElementNode
 @typedef {
   AbsentFunctionNode |
   BackreferenceNode |
@@ -517,7 +517,7 @@ function createAbsentFunction(kind) {
 /**
 @typedef {{
   type: 'Alternative';
-  elements: Array<AlternativeContentsNode>;
+  elements: Array<AlternativeElementNode>;
 }} AlternativeNode
 */
 /**
@@ -682,7 +682,7 @@ function createCharacter(charCode, options) {
   type: 'CharacterClass';
   kind: keyof AstCharacterClassKinds;
   negate: boolean;
-  elements: Array<CharacterClassContentsNode>;
+  elements: Array<CharacterClassElementNode>;
 }} CharacterClassNode
 */
 /**
