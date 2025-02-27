@@ -7,17 +7,18 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./generate": "./dist/generate.js",
-    "./parse": "./dist/parse.js",
-    "./tokenize": "./dist/tokenize.js",
-    "./traverse": "./dist/traverse.js"
+    "./generator": "./dist/generator/index.js",
+    "./optimizer": "./dist/optimizer/index.js",
+    "./parser": "./dist/parser/index.js",
+    "./tokenizer": "./dist/tokenizer/index.js",
+    "./traverser": "./dist/traverser/index.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "bundle:global": "esbuild src/bundle.js --outfile=dist/oniguruma-parser.min.js --global-name=OnigurumaParser --bundle --minify --sourcemap",
-    "bundle:esm": "esbuild src/*.js --outdir=dist --minify --sourcemap",
+    "bundle:global": "esbuild src/index.js --outfile=dist/index.min.js --global-name=OnigurumaParser --bundle --minify --sourcemap",
+    "bundle:esm": "esbuild src/**/*.js --outdir=dist --minify --sourcemap",
     "types": "tsc src/index.js --rootDir src --outDir dist --declaration --allowJs --emitDeclarationOnly",
     "prebuild": "rm -rf dist/*",
     "build": "pnpm run bundle:global && pnpm run bundle:esm && pnpm run types",

@@ -1,5 +1,8 @@
-import {parse} from './parse.js';
-import {tokenize} from './tokenize.js';
+import {generate} from './generator/index.js';
+import {optimize} from './optimizer/index.js';
+import {parse} from './parser/index.js';
+import {tokenize} from './tokenizer/index.js';
+import {traverse} from './traverser/index.js';
 import {OnigUnicodePropertyMap} from './unicode-properties.js';
 
 /**
@@ -12,7 +15,7 @@ Returns an Oniguruma AST generated from an Oniguruma pattern.
     singleline?: boolean;
   };
 }} [options]
-@returns {import('./parse.js').OnigurumaAst}
+@returns {import('./parser/index.js').OnigurumaAst}
 */
 function toOnigurumaAst(pattern, options) {
   const opts = {
@@ -39,6 +42,11 @@ function slug(name) {
 }
 
 export {
+  generate,
+  optimize,
+  parse,
   slug,
+  tokenize,
+  traverse,
   toOnigurumaAst,
 };

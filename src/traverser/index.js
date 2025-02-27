@@ -1,5 +1,5 @@
-import {AstTypes} from './parse.js';
-import {throwIfNot} from './utils.js';
+import {AstTypes} from '../parser/index.js';
+import {throwIfNot} from '../utils.js';
 
 function traverse(path, state, visitor) {
   let ast = path.node;

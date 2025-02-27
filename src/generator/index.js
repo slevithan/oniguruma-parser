@@ -1,9 +1,9 @@
-import {AstAbsentFunctionKinds, AstAssertionKinds, AstCharacterClassKinds, AstCharacterSetKinds, AstLookaroundAssertionKinds, AstTypes} from './parse.js';
-import {cp, r, throwIfNot} from './utils.js';
+import {AstAbsentFunctionKinds, AstAssertionKinds, AstCharacterClassKinds, AstCharacterSetKinds, AstLookaroundAssertionKinds, AstTypes} from '../parser/index.js';
+import {cp, r, throwIfNot} from '../utils.js';
 
 /**
 Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
-@param {import('./parse.js').OnigurumaAst} ast
+@param {import('../parser/index.js').OnigurumaAst} ast
 @returns {{
   pattern: string;
   flags: string;
@@ -92,7 +92,7 @@ function genAbsentFunction({kind, alternatives}, _, gen) {
 }
 
 /**
-@param {import('./parse.js').AssertionNode} node
+@param {import('../parser/index.js').AssertionNode} node
 @returns {string}
 */
 function genAssertion({kind, negate}) {
@@ -113,7 +113,7 @@ function genAssertion({kind, negate}) {
 }
 
 /**
-@param {import('./parse.js').BackreferenceNode} node
+@param {import('../parser/index.js').BackreferenceNode} node
 @returns {string}
 */
 function genBackreference({ref}) {
@@ -181,7 +181,7 @@ function genCharacterSet({kind, negate, value}, state) {
 }
 
 /**
-@param {import('./parse.js').DirectiveNode} node
+@param {import('../parser/index.js').DirectiveNode} node
 @returns {string}
 */
 function genDirective({kind, flags}) {
@@ -206,7 +206,7 @@ function genLookaroundAssertion({kind, negate, alternatives}, _, gen) {
 }
 
 /**
-@param {import('./parse.js').SubroutineNode} node
+@param {import('../parser/index.js').SubroutineNode} node
 @returns {string}
 */
 function genSubroutine({ref}) {
@@ -239,7 +239,7 @@ function getCharEscape(codePoint, {escDigit, inCharClass}) {
 }
 
 /**
-@param {import('./tokenize.js').RegexFlags} node
+@param {import('../tokenizer/index.js').RegexFlags} node
 @returns {string}
 */
 function getFlagsStr({ignoreCase, dotAll, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}) {
@@ -261,7 +261,7 @@ function getFlagsStr({ignoreCase, dotAll, digitIsAscii, posixIsAscii, spaceIsAsc
 
 /**
 @param {boolean} atomic
-@param {import('./parse.js').FlagGroupModifiers} flagMods
+@param {import('../parser/index.js').FlagGroupModifiers} flagMods
 @returns {string}
 */
 function getGroupPrefix(atomic, flagMods) {

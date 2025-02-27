@@ -1,7 +1,7 @@
-import {slug} from './index.js';
-import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenQuantifierKinds, TokenTypes} from './tokenize.js';
-import {traverse} from './traverse.js';
-import {getOrInsert, PosixClassNames, r, throwIfNot} from './utils.js';
+import {slug} from '../index.js';
+import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenQuantifierKinds, TokenTypes} from '../tokenizer/index.js';
+import {traverse} from '../traverser/index.js';
+import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
 
 const AstTypes = /** @type {const} */ ({
   AbsentFunction: 'AbsentFunction',
@@ -98,7 +98,7 @@ const AstLookaroundAssertionKinds = /** @type {const} */ ({
 });
 
 /**
-@param {import('./tokenize.js').TokenizerResult} tokenized
+@param {import('../tokenizer/index.js').TokenizerResult} tokenized
 @param {{
   normalizeUnknownPropertyNames?: boolean;
   skipBackrefValidation?: boolean;
@@ -804,10 +804,10 @@ function createDirective(kind, options) {
 /**
 @typedef {{
   type: 'Flags';
-} & import('./tokenize.js').RegexFlags} FlagsNode
+} & import('../tokenizer/index.js').RegexFlags} FlagsNode
 */
 /**
-@param {import('./tokenize.js').RegexFlags} flags
+@param {import('../tokenizer/index.js').RegexFlags} flags
 @returns {FlagsNode}
 */
 function createFlags(flags) {
@@ -819,8 +819,8 @@ function createFlags(flags) {
 
 /**
 @typedef {{
-  enable?: import('./tokenize.js').FlagGroupSwitches;
-  disable?: import('./tokenize.js').FlagGroupSwitches;
+  enable?: import('../tokenizer/index.js').FlagGroupSwitches;
+  disable?: import('../tokenizer/index.js').FlagGroupSwitches;
 }} FlagGroupModifiers
 @typedef {{
   type: 'Group';
