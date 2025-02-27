@@ -1,5 +1,7 @@
 # oniguruma-parser: Optimizer module
 
+> The optimizer is coming soon.
+
 The optimizer transforms an Oniguruma AST into an optimized version, which can then be passed to the generator to get back an optimized Oniguruma regex pattern.
 
 Advantages:
