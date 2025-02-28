@@ -201,7 +201,7 @@ function parse({tokens, flags, rules}, options) {
   }
   // Add `parent` properties now that we have a final AST
   traverse({node: ast}, null, {
-    AnyNode({node, parent}) {
+    '*'({node, parent}) {
       node.parent = parent;
     },
   });

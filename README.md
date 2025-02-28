@@ -26,7 +26,7 @@ Additional exports are available that provide access to the [tokenizer](https://
 Known differences will be resolved in future versions. Contributions are welcome.
 
 <details>
-  <summary>Unsupported features</summary>
+  <summary><b>Unsupported features</b></summary>
 
 The following rarely-used features throw errors since they aren't yet supported:
 
@@ -44,7 +44,7 @@ Some of the Oniguruma features above are so exotic that they aren't used in *any
 </details>
 
 <details>
-  <summary>Unsupported errors</summary>
+  <summary><b>Unsupported errors</b></summary>
 
 The following don't yet throw errors, but should:
 
@@ -55,7 +55,7 @@ The following don't yet throw errors, but should:
 </details>
 
 <details>
-  <summary>Forward backreferences</summary>
+  <summary><b>Forward backreferences</b></summary>
 
 This library currently treats it as an error if numbered backreferences come before their referenced group.
 
@@ -67,7 +67,7 @@ Additionally, this library doesn't yet support the `\k<+N>`/`\k'+N'` syntax for 
 </details>
 
 <details>
-  <summary>Unenclosed four-digit backreferences</summary>
+  <summary><b>Unenclosed four-digit backreferences</b></summary>
 
 This library currently only supports unenclosed backreferences up to three digits (`\999`). Oniguruma supports `\1000` and higher when as many capturing groups are defined to the left, but then, no regex with more than 999 captures works due to an apparent Oniguruma bug (it will fail to match anything, with no error). Tested in Oniguruma 6.9.8.
 </details>

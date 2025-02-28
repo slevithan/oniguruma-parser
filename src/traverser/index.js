@@ -45,11 +45,17 @@ function traverse(path, state, visitor) {
         skipTraversingKidsOfPath = true;
       },
     };
-    const visitorKey = getAstTypeAliases(node).find(key => !!visitor[key]);
-    const methods = visitorKey && visitor[visitorKey];
-    const enterFn = typeof methods === 'function' ? methods : methods?.enter;
-    const exitFn = methods?.exit;
-    enterFn?.(path, state);
+
+    const anyType = visitor['*'];
+    const thisType = visitor[node.type];
+    const enterAllFn = typeof anyType === 'function' ? anyType : anyType?.enter;
+    const enterThisFn = typeof thisType === 'function' ? thisType : thisType?.enter;
+    const exitAllFn = anyType?.exit;
+    const exitThisFn = thisType?.exit;
+
+    enterAllFn?.(path, state);
+    enterThisFn?.(path, state);
+
     if (!skipTraversingKidsOfPath) {
       switch (node.type) {
         case AstTypes.Regex:
@@ -89,28 +95,12 @@ function traverse(path, state, visitor) {
           throw new Error(`Unexpected node type "${node.type}"`);
       }
     }
-    exitFn?.(path, state);
+
+    exitAllFn?.(path, state);
+    exitThisFn?.(path, state);
     return keyShift;
   }
   traverseNode(path.node, path.parent, path.key, path.container);
-}
-
-const AstTypeAliases = {
-  AnyGroup: 'AnyGroup',
-  AnyNode: 'AnyNode',
-};
-
-function getAstTypeAliases({type}) {
-  const types = [AstTypeAliases.AnyNode];
-  if (
-    type === AstTypes.CapturingGroup ||
-    type === AstTypes.Group ||
-    type === AstTypes.LookaroundAssertion
-  ) {
-    types.push(AstTypeAliases.AnyGroup);
-  }
-  types.push(type);
-  return types;
 }
 
 function setParent(node, parent) {
@@ -122,6 +112,5 @@ function setParent(node, parent) {
 }
 
 export {
-  AstTypeAliases,
   traverse,
 };
