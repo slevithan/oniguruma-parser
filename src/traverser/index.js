@@ -2,7 +2,7 @@ import {AstTypes} from '../parser/index.js';
 import {throwIfNot} from '../utils.js';
 
 function traverse(path, state, visitor) {
-  let ast = path.ast ?? path.node;
+  const ast = path.ast ?? path.node;
   function traverseArray(array, parent) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);
@@ -31,7 +31,6 @@ function traverse(path, state, visitor) {
         return throwIfNot(container, 'Container expected').splice(0, Math.max(0, shifted));
       },
       replaceWith(newNode) {
-        setParent(newNode, parent);
         if (container) {
           container[Math.max(0, key + keyShift)] = newNode;
         } else {
@@ -98,14 +97,6 @@ function traverse(path, state, visitor) {
     return keyShift;
   }
   traverseNode(path.node, path.parent, path.key, path.container);
-}
-
-function setParent(node, parent) {
-  // The traverser can work with ASTs whose nodes include or don't include `parent` props, so only
-  // update the parent if a prop for it exists
-  if ('parent' in parent) {
-    node.parent = parent;
-  }
 }
 
 export {
