@@ -17,10 +17,8 @@ describe('toOnigurumaAst', () => {
           {
             type: 'Alternative',
             elements: [],
-            parent: null,
           },
         ],
-        parent: null,
       },
       flags: {
         type: 'Flags',
@@ -31,13 +29,8 @@ describe('toOnigurumaAst', () => {
         posixIsAscii: false,
         spaceIsAscii: false,
         wordIsAscii: false,
-        parent: null,
       },
-      parent: null,
     };
-    ast.pattern.parent = ast;
-    ast.flags.parent = ast;
-    ast.pattern.alternatives[0].parent = ast.pattern;
     expect(toOnigurumaAst('')).toEqual(ast);
   });
 });

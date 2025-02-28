@@ -1,6 +1,5 @@
 import {slug} from '../index.js';
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenQuantifierKinds, TokenTypes} from '../tokenizer/index.js';
-import {traverse} from '../traverser/index.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
 
 const AstTypes = /** @type {const} */ ({
@@ -199,12 +198,6 @@ function parse({tokens, flags, rules}, options) {
       throw new Error(r`Subroutine uses a duplicate group name "\g<${ref}>"`);
     }
   }
-  // Add `parent` properties now that we have a final AST
-  traverse({node: ast}, null, {
-    '*'({node, parent}) {
-      node.parent = parent;
-    },
-  });
   return ast;
 }
 
