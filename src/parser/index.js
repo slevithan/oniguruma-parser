@@ -1,5 +1,5 @@
 import {slug} from '../index.js';
-import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, TokenQuantifierKinds, TokenTypes} from '../tokenizer/index.js';
+import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/index.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
 
 const AstTypes = /** @type {const} */ ({
@@ -97,9 +97,14 @@ const AstLookaroundAssertionKinds = /** @type {const} */ ({
 });
 
 /**
-@param {import('../tokenizer/index.js').TokenizerResult} tokenized
+@param {string} pattern Oniguruma pattern.
+@param {string} [flags] Oniguruma flags.
 @param {{
   normalizeUnknownPropertyNames?: boolean;
+  rules?: {
+    captureGroup?: boolean;
+    singleline?: boolean;
+  };
   skipBackrefValidation?: boolean;
   skipLookbehindValidation?: boolean;
   skipPropertyNameValidation?: boolean;
@@ -107,7 +112,7 @@ const AstLookaroundAssertionKinds = /** @type {const} */ ({
 }} [options]
 @returns {OnigurumaAst}
 */
-function parse({tokens, flags, rules}, options) {
+function parse(pattern, flags = '', options = {}) {
   const opts = {
     normalizeUnknownPropertyNames: false,
     skipBackrefValidation: false,
@@ -115,7 +120,15 @@ function parse({tokens, flags, rules}, options) {
     skipPropertyNameValidation: false,
     unicodePropertyMap: null,
     ...options,
+    rules: {
+      // `ONIG_OPTION_CAPTURE_GROUP`
+      captureGroup: false,
+      // `ONIG_OPTION_SINGLELINE`
+      singleline: false,
+      ...options.rules,
+    },
   };
+  const tokenized = tokenize(pattern, flags, opts.rules);
   const context = {
     capturingGroups: [],
     current: 0,
@@ -128,12 +141,12 @@ function parse({tokens, flags, rules}, options) {
     skipPropertyNameValidation: opts.skipPropertyNameValidation,
     subroutines: [],
     token: null,
-    tokens,
+    tokens: tokenized.tokens,
     unicodePropertyMap: opts.unicodePropertyMap,
     walk,
   };
   function walk(parent, state) {
-    const token = tokens[context.current];
+    const token = tokenized.tokens[context.current];
     context.parent = parent;
     context.token = token;
     // Advance for the next iteration
@@ -169,9 +182,9 @@ function parse({tokens, flags, rules}, options) {
         throw new Error(`Unexpected token type "${token.type}"`);
     }
   }
-  const ast = createRegex(createPattern(), createFlags(flags));
+  const ast = createRegex(createPattern(), createFlags(tokenized.flags));
   let top = ast.pattern.alternatives[0];
-  while (context.current < tokens.length) {
+  while (context.current < tokenized.tokens.length) {
     const node = walk(top, {});
     if (node.type === AstTypes.Alternative) {
       ast.pattern.alternatives.push(node);
@@ -183,7 +196,7 @@ function parse({tokens, flags, rules}, options) {
   // `context` updated by preceding `walk` loop
   const {capturingGroups, hasNumberedRef, namedGroupsByName, subroutines} = context;
   // Validation that requires knowledge about the complete pattern
-  if (hasNumberedRef && namedGroupsByName.size && !rules.captureGroup) {
+  if (hasNumberedRef && namedGroupsByName.size && !opts.rules.captureGroup) {
     throw new Error('Numbered backref/subroutine not allowed when using named capture');
   }
   for (const {ref} of subroutines) {

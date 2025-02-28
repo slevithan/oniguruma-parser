@@ -139,10 +139,6 @@ const charClassTokenRe = new RegExp(r`
 @typedef {{
   tokens: Array<Token>;
   flags: RegexFlags;
-  rules: {
-    captureGroup: boolean;
-    singleline: boolean;
-  };
 }} TokenizerResult
 */
 /**
@@ -218,7 +214,6 @@ function tokenize(pattern, flags = '', rules) {
   return {
     tokens,
     flags: flagsObj,
-    rules,
   };
 }
 

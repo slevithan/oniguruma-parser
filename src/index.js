@@ -1,7 +1,6 @@
 import {generate} from './generator/index.js';
 import {optimize} from './optimizer/index.js';
 import {parse} from './parser/index.js';
-import {tokenize} from './tokenizer/index.js';
 import {traverse} from './traverser/index.js';
 import {OnigUnicodePropertyMap} from './unicode-properties.js';
 
@@ -27,10 +26,11 @@ function toOnigurumaAst(pattern, options = {}) {
     rules: {
       captureGroup: false,
       singleline: false,
-      ...(options?.rules),
+      ...options.rules,
     },
   };
-  return parse(tokenize(pattern, opts.flags, opts.rules), {
+  return parse(pattern, opts.flags, {
+    rules: opts.rules,
     unicodePropertyMap: OnigUnicodePropertyMap,
   });
 }
@@ -49,7 +49,6 @@ export {
   optimize,
   parse,
   slug,
-  tokenize,
   traverse,
   toOnigurumaAst,
 };

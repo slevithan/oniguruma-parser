@@ -19,7 +19,7 @@ function toOnigurumaAst(
 
 An error is thrown if the pattern isn't valid in Oniguruma.
 
-Additional exports are available that provide access to the [tokenizer](https://github.com/slevithan/oniguruma-parser/tree/main/src/tokenizer), [parser](https://github.com/slevithan/oniguruma-parser/tree/main/src/parser), [traverser](https://github.com/slevithan/oniguruma-parser/tree/main/src/traverser), [generator](https://github.com/slevithan/oniguruma-parser/tree/main/src/generator), and [optimizer](https://github.com/slevithan/oniguruma-parser/tree/main/src/optimizer).
+Additional exports are available that provide access to the [parser](https://github.com/slevithan/oniguruma-parser/tree/main/src/parser), [traverser](https://github.com/slevithan/oniguruma-parser/tree/main/src/traverser), [generator](https://github.com/slevithan/oniguruma-parser/tree/main/src/generator), and [optimizer](https://github.com/slevithan/oniguruma-parser/tree/main/src/optimizer).
 
 ## Known differences
 

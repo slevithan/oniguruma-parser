@@ -23,10 +23,6 @@
       "types": "./dist/parser/index.d.ts",
       "import": "./dist/parser/index.js"
     },
-    "./tokenizer": {
-      "types": "./dist/tokenizer/index.d.ts",
-      "import": "./dist/tokenizer/index.js"
-    },
     "./traverser": {
       "types": "./dist/traverser/index.d.ts",
       "import": "./dist/traverser/index.js"
