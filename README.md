@@ -23,13 +23,14 @@ Additional exports are available that provide access to the [tokenizer](https://
 
 ## Unsupported features
 
-The following throw errors since they aren't yet supported. They're all extremely rare.
+The following rarely-used features throw errors since they aren't yet supported.
 
 - Rarely-used character specifiers: Non-A-Za-z with `\cx`, `\C-x`; meta `\M-x`, `\M-\C-x`; bracketed octals `\o{…}`; octal UTF-8 encoded bytes (≥ `\200`).
 - Code point sequences: `\x{H H …}`, `\o{O O …}`.
 - Absent expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.
 - Callouts: `(?{…})`, `(*…)`, etc.
+- Forward references `\k<+N>` and backrefences with recursion level.
 - Flags `y{g}`/`y{w}` (grapheme boundary modes); whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest); flags `D`, `P`, `S`, `W` (digit/POSIX/space/word is ASCII) within mode modifiers.
 
 The following don't yet throw errors, but should:
@@ -37,19 +38,33 @@ The following don't yet throw errors, but should:
 - Special characters that are invalid in backreference names when referencing a valid group name that includes such characters.
 - Subroutines used in ways that resemble infinite recursion.
 
-Keep in mind that some Oniguruma features are so exotic that they aren't used in *any* public code on GitHub. This library supports more than 99.99% of real-world Oniguruma regexes, based on a sample of ~55k regexes used in TextMate grammars. Conditionals were used in three regexes, and other unsupported features weren't used at all.
+Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub. This library already supports more than 99.99% of real-world Oniguruma regexes, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all).
 
-Contributions that add support for remaining features are welcome.
+Contributions that add support for the remaining features above are welcome.
 
 ## Known differences
 
 Known differences will be resolved in future versions.
 
-- This library (but not Oniguruma) treats it as an error if numbered backreferences come before their referenced group.
-  - Most such placements are mistakes and can never match (based on the Oniguruma behavior for backreferences to nonparticipating groups).
-  - Erroring matches the behavior of named backreferences.
-  - This only affects `\1`–`\9`, since it's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
-- Cases where this library throws errors for edge case features that are buggy in Oniguruma will be documented here soon.
+<details>
+  <summary>Forward backreferences</summary>
+
+This library currently treats it as an error if numbered backreferences come before their referenced group.
+
+- Most such placements are mistakes and can never match, due to Oniguruma's behavior for backreferences to nonparticipating groups.
+- Erroring matches the behavior of named backreferences.
+- For unenclosed backreferences, this affects only `\1`–`\9`. It's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
+
+Additionally, this library doesn't yet support the `\k<+N>`/`\k'+N'` syntax for relative forward backreferences.
+</details>
+
+<details>
+  <summary>Unenclosed four-digit backreferences</summary>
+
+This library currently only supports unenclosed backreferences up to three digits (`\999`). Oniguruma supports `\1000` and higher when as many capturing groups are defined to the left, but then, no regex with more than 999 captures works due to an apparent Oniguruma bug (it will fail to match anything, with no error). Tested in Oniguruma 6.9.8.
+</details>
+
+Additional cases where this library throws errors for edge case features that are buggy in Oniguruma will be documented here soon.
 
 ## About
 
