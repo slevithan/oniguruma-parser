@@ -48,7 +48,7 @@ Some of the Oniguruma features above are so exotic that they aren't used in *any
 
 The following don't yet throw errors, but should:
 
-- Special characters that are invalid in backreference names when referencing a valid group with that name.
+- Special characters (apart from `-`, `+`) that are invalid in backreference names when referencing a valid group with that name.
   - Named backreferences have a more restricted set of allowed characters than named groups and subroutines.
 - Subroutines used in ways that resemble infinite recursion.
   - Such subroutines error in Oniguruma, and do not result in infinite recursion.
@@ -69,7 +69,7 @@ Additionally, this library doesn't yet support the `\k<+N>`/`\k'+N'` syntax for 
 <details>
   <summary><b>Unenclosed four-digit backreferences</b></summary>
 
-This library currently only supports unenclosed backreferences up to three digits (`\999`). Oniguruma supports `\1000` and higher when as many capturing groups are defined to the left, but then, no regex with more than 999 captures works due to an apparent Oniguruma bug (it will fail to match anything, with no error). Tested in Oniguruma 6.9.8.
+Although enclosed `\k<…>`/`\k'…'` with any number of digits is supported (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently only support up to three digits (`\999`). Oniguruma supports `\1000` and higher when as many capturing groups are defined to the left, but no Oniguruma regex with more than 999 captures actually works, due to an apparent bug (it will fail to match anything, with no error). Tested in Oniguruma 6.9.8.
 </details>
 
 Additional cases where this library throws for edge cases that are buggy in Oniguruma will be documented here soon.
