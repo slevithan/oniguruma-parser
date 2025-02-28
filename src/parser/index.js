@@ -21,6 +21,7 @@ const AstTypes = /** @type {const} */ ({
   Regex: 'Regex',
   Subroutine: 'Subroutine',
   // Used only by the `oniguruma-to-es` transformer for Regex+ ASTs
+  // [TODO] Refactor to remove this type
   Recursion: 'Recursion',
 });
 
