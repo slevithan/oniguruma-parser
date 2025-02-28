@@ -143,34 +143,38 @@ const charClassTokenRe = new RegExp(r`
 */
 /**
 @param {string} pattern Oniguruma pattern.
-@param {string} [flags] Oniguruma flags.
 @param {{
-  captureGroup?: boolean;
-  singleline?: boolean;
-}} [rules] Oniguruma compile-time options.
+  flags?: string;
+  rules?: {
+    captureGroup?: boolean;
+    singleline?: boolean;
+  };
+}} [options]
 @returns {TokenizerResult}
 */
-function tokenize(pattern, flags = '', rules) {
-  rules = {
-    // `ONIG_OPTION_CAPTURE_GROUP`
-    captureGroup: false,
-    // `ONIG_OPTION_SINGLELINE`
-    singleline: false,
-    ...rules,
+function tokenize(pattern, options = {}) {
+  const opts = {
+    flags: '',
+    ...options,
+    rules: {
+      captureGroup: false, // `ONIG_OPTION_CAPTURE_GROUP`
+      singleline: false, // `ONIG_OPTION_SINGLELINE`
+      ...options.rules,
+    },
   };
   if (typeof pattern !== 'string') {
     throw new Error('String expected as pattern');
   }
-  const flagsObj = getFlagsObj(flags);
+  const flagsObj = getFlagsObj(opts.flags);
   const xStack = [flagsObj.extended];
   const context = {
-    captureGroup: rules.captureGroup,
+    captureGroup: opts.rules.captureGroup,
     getCurrentModX: () => xStack.at(-1),
     numOpenGroups: 0,
     popModX() {xStack.pop()},
     pushModX(isXOn) {xStack.push(isXOn)},
     replaceCurrentModX(isXOn) {xStack[xStack.length - 1] = isXOn},
-    singleline: rules.singleline,
+    singleline: opts.rules.singleline,
   };
   let tokens = [];
   let match;

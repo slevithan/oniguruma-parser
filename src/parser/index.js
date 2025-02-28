@@ -98,8 +98,8 @@ const AstLookaroundAssertionKinds = /** @type {const} */ ({
 
 /**
 @param {string} pattern Oniguruma pattern.
-@param {string} [flags] Oniguruma flags.
 @param {{
+  flags?: string;
   normalizeUnknownPropertyNames?: boolean;
   rules?: {
     captureGroup?: boolean;
@@ -112,8 +112,9 @@ const AstLookaroundAssertionKinds = /** @type {const} */ ({
 }} [options]
 @returns {OnigurumaAst}
 */
-function parse(pattern, flags = '', options = {}) {
+function parse(pattern, options = {}) {
   const opts = {
+    flags: '',
     normalizeUnknownPropertyNames: false,
     skipBackrefValidation: false,
     skipLookbehindValidation: false,
@@ -121,14 +122,19 @@ function parse(pattern, flags = '', options = {}) {
     unicodePropertyMap: null,
     ...options,
     rules: {
-      // `ONIG_OPTION_CAPTURE_GROUP`
-      captureGroup: false,
-      // `ONIG_OPTION_SINGLELINE`
-      singleline: false,
+      captureGroup: false, // `ONIG_OPTION_CAPTURE_GROUP`
+      singleline: false, // `ONIG_OPTION_SINGLELINE`
       ...options.rules,
     },
   };
-  const tokenized = tokenize(pattern, flags, opts.rules);
+  const tokenized = tokenize(pattern, {
+    // Limit to the tokenizer's options
+    flags: opts.flags,
+    rules: {
+      captureGroup: opts.rules.captureGroup,
+      singleline: opts.rules.singleline,
+    },
+  });
   const context = {
     capturingGroups: [],
     current: 0,

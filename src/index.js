@@ -20,17 +20,13 @@ function toOnigurumaAst(pattern, options = {}) {
   if ({}.toString.call(options) !== '[object Object]') {
     throw new Error('Unexpected options');
   }
-  const opts = {
-    flags: '',
-    ...options,
+  return parse(pattern, {
+    // Limit the options that can be passed to the parser
+    flags: options.flags ?? '',
     rules: {
-      captureGroup: false,
-      singleline: false,
-      ...options.rules,
+      captureGroup: options.rules?.captureGroup ?? false,
+      singleline: options.rules?.singleline ?? false,
     },
-  };
-  return parse(pattern, opts.flags, {
-    rules: opts.rules,
     unicodePropertyMap: OnigUnicodePropertyMap,
   });
 }
