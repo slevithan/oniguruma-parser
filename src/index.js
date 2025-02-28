@@ -17,7 +17,10 @@ Returns an Oniguruma AST generated from an Oniguruma pattern.
 }} [options]
 @returns {import('./parser/index.js').OnigurumaAst}
 */
-function toOnigurumaAst(pattern, options) {
+function toOnigurumaAst(pattern, options = {}) {
+  if ({}.toString.call(options) !== '[object Object]') {
+    throw new Error('Unexpected options');
+  }
   const opts = {
     flags: '',
     ...options,
