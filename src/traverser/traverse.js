@@ -12,7 +12,6 @@ function traverse(path, state, visitor) {
   function traverseNode(node, parent = null, key = null, container = null) {
     let keyShift = 0;
     let skipTraversingKidsOfPath = false;
-    let replacementNode = null;
     const path = {
       node,
       parent,
@@ -32,13 +31,17 @@ function traverse(path, state, visitor) {
         keyShift -= shifted;
         return throwIfNot(container, 'Container expected').splice(0, Math.max(0, shifted));
       },
-      replaceWith(newNode) {
+      replaceWith(newNode, options = {}) {
+        const traverseNew = !!options.traverse;
         if (container) {
           container[Math.max(0, key + keyShift)] = newNode;
         } else {
           parent[key] = newNode;
         }
-        replacementNode = newNode;
+        if (traverseNew) {
+          traverseNode(newNode, parent, key, container);
+        }
+        skipTraversingKidsOfPath = true;
       },
       skip() {
         skipTraversingKidsOfPath = true;
@@ -49,17 +52,10 @@ function traverse(path, state, visitor) {
     const thisType = visitor[node.type];
     const enterAllFn = typeof anyType === 'function' ? anyType : anyType?.enter;
     const enterThisFn = typeof thisType === 'function' ? thisType : thisType?.enter;
-    const exitAllFn = anyType?.exit;
-    const exitThisFn = thisType?.exit;
-
     enterAllFn?.(path, state);
     enterThisFn?.(path, state);
 
-    if (replacementNode) {
-      // [TODO] Should still respect `skipTraversingKidsOfPath` for the new node in case `skip` is
-      // called alongside `replaceWith`
-      traverseNode(replacementNode, parent, key, container);
-    } else if (!skipTraversingKidsOfPath) {
+    if (!skipTraversingKidsOfPath) {
       switch (node.type) {
         case AstTypes.Regex:
           traverseNode(node.pattern, node, 'pattern');
@@ -99,8 +95,8 @@ function traverse(path, state, visitor) {
       }
     }
 
-    exitAllFn?.(path, state);
-    exitThisFn?.(path, state);
+    anyType?.exit?.(path, state);
+    thisType?.exit?.(path, state);
     return keyShift;
   }
   traverseNode(path.node, path.parent, path.key, path.container);
