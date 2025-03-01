@@ -58,6 +58,7 @@ The following transforms are enabled by default, but can be excluded by providin
 |  Transform name | Description | Example |
 |-|-|-|
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers | `(?:)a` → `a` |
+| `ungroup` | Remove unnecessary nested groups | `(?:(?>a))` → `(?>a)` |
 
 Additional transforms will be added in future versions.
 
