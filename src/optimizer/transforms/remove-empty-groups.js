@@ -10,13 +10,13 @@ Remove empty noncapturing, atomic, and flag groups, plus any attached quantifier
 - `(?:(?>))a` -> `a`
 */
 const transform = {
-  Group({node, remove, skip}) {
+  Group({node, remove}) {
     if (isEmptyGroupOrContainsOnlyEmptyGroups(node)) {
       remove();
     }
   },
 
-  Quantifier({node, remove, skip}) {
+  Quantifier({node, remove}) {
     let kid = node.element;
     while (kid.type === AstTypes.Quantifier) {
       kid = kid.element;

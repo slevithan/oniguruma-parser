@@ -12,6 +12,7 @@ function traverse(path, state, visitor) {
   function traverseNode(node, parent = null, key = null, container = null) {
     let keyShift = 0;
     let skipTraversingKidsOfPath = false;
+    let replacementNode = null;
     const path = {
       node,
       parent,
@@ -37,7 +38,7 @@ function traverse(path, state, visitor) {
         } else {
           parent[key] = newNode;
         }
-        node = newNode;
+        replacementNode = newNode;
       },
       skip() {
         skipTraversingKidsOfPath = true;
@@ -54,7 +55,11 @@ function traverse(path, state, visitor) {
     enterAllFn?.(path, state);
     enterThisFn?.(path, state);
 
-    if (!skipTraversingKidsOfPath) {
+    if (replacementNode) {
+      // [TODO] Should still respect `skipTraversingKidsOfPath` for the new node in case `skip` is
+      // called alongside `replaceWith`
+      traverseNode(replacementNode, parent, key, container);
+    } else if (!skipTraversingKidsOfPath) {
       switch (node.type) {
         case AstTypes.Regex:
           traverseNode(node.pattern, node, 'pattern');
