@@ -1,5 +1,5 @@
 import {slug} from '../index.js';
-import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/index.js';
+import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
 
 const AstTypes = /** @type {const} */ ({
@@ -817,10 +817,10 @@ function createDirective(kind, options) {
 /**
 @typedef {{
   type: 'Flags';
-} & import('../tokenizer/index.js').RegexFlags} FlagsNode
+} & import('../tokenizer/tokenize.js').RegexFlags} FlagsNode
 */
 /**
-@param {import('../tokenizer/index.js').RegexFlags} flags
+@param {import('../tokenizer/tokenize.js').RegexFlags} flags
 @returns {FlagsNode}
 */
 function createFlags(flags) {
@@ -832,8 +832,8 @@ function createFlags(flags) {
 
 /**
 @typedef {{
-  enable?: import('../tokenizer/index.js').FlagGroupSwitches;
-  disable?: import('../tokenizer/index.js').FlagGroupSwitches;
+  enable?: import('../tokenizer/tokenize.js').FlagGroupSwitches;
+  disable?: import('../tokenizer/tokenize.js').FlagGroupSwitches;
 }} FlagGroupModifiers
 @typedef {{
   type: 'Group';

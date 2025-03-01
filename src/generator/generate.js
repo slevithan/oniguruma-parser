@@ -1,9 +1,9 @@
-import {AstAbsentFunctionKinds, AstAssertionKinds, AstCharacterClassKinds, AstCharacterSetKinds, AstLookaroundAssertionKinds, AstTypes} from '../parser/index.js';
+import {AstAbsentFunctionKinds, AstAssertionKinds, AstCharacterClassKinds, AstCharacterSetKinds, AstLookaroundAssertionKinds, AstTypes} from '../parser/parse.js';
 import {cp, r, throwIfNot} from '../utils.js';
 
 /**
 Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
-@param {import('../parser/index.js').OnigurumaAst} ast
+@param {import('../parser/parse.js').OnigurumaAst} ast
 @returns {{
   pattern: string;
   flags: string;
@@ -217,7 +217,7 @@ function getCharEscape(codePoint, {escDigit, inCharClass}) {
 }
 
 /**
-@param {import('../tokenizer/index.js').RegexFlags} node
+@param {import('../tokenizer/tokenize.js').RegexFlags} node
 @returns {string}
 */
 function getFlagsStr({ignoreCase, dotAll, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}) {
@@ -239,7 +239,7 @@ function getFlagsStr({ignoreCase, dotAll, digitIsAscii, posixIsAscii, spaceIsAsc
 
 /**
 @param {boolean} atomic
-@param {import('../parser/index.js').FlagGroupModifiers} flagMods
+@param {import('../parser/parse.js').FlagGroupModifiers} flagMods
 @returns {string}
 */
 function getGroupPrefix(atomic, flagMods) {

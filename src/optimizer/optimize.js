@@ -1,6 +1,6 @@
 import {toOnigurumaAst} from '../index.js';
-import {generate} from '../generator/index.js';
-import {traverse} from '../traverser/index.js';
+import {generate} from '../generator/generate.js';
+import {traverse} from '../traverser/traverse.js';
 import {transforms} from './transforms.js';
 
 /**

@@ -1,4 +1,4 @@
-import {AstTypes} from '../parser/index.js';
+import {AstTypes} from '../parser/parse.js';
 import {throwIfNot} from '../utils.js';
 
 function traverse(path, state, visitor) {

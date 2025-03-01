@@ -1,4 +1,4 @@
-import {optimize} from '../../dist/optimizer/index.js';
+import {optimize} from '../../dist/optimizer/optimize.js';
 
 describe('optimizer: ungroup', () => {
   function thisOptimization(pattern) {

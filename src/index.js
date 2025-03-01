@@ -1,7 +1,7 @@
-import {generate} from './generator/index.js';
-import {optimize} from './optimizer/index.js';
-import {parse} from './parser/index.js';
-import {traverse} from './traverser/index.js';
+import {generate} from './generator/generate.js';
+import {optimize} from './optimizer/optimize.js';
+import {parse} from './parser/parse.js';
+import {traverse} from './traverser/traverse.js';
 import {OnigUnicodePropertyMap} from './unicode-properties.js';
 
 /**
@@ -14,7 +14,7 @@ Returns an Oniguruma AST generated from an Oniguruma pattern.
     singleline?: boolean;
   };
 }} [options]
-@returns {import('./parser/index.js').OnigurumaAst}
+@returns {import('./parser/parse.js').OnigurumaAst}
 */
 function toOnigurumaAst(pattern, options = {}) {
   if ({}.toString.call(options) !== '[object Object]') {

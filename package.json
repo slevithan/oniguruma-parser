@@ -12,20 +12,20 @@
       "import": "./dist/index.js"
     },
     "./generator": {
-      "types": "./dist/generator/index.d.ts",
-      "import": "./dist/generator/index.js"
+      "types": "./dist/generator/generate.d.ts",
+      "import": "./dist/generator/generate.js"
     },
     "./optimizer": {
-      "types": "./dist/optimizer/index.d.ts",
-      "import": "./dist/optimizer/index.js"
+      "types": "./dist/optimizer/optimize.d.ts",
+      "import": "./dist/optimizer/optimize.js"
     },
     "./parser": {
-      "types": "./dist/parser/index.d.ts",
-      "import": "./dist/parser/index.js"
+      "types": "./dist/parser/parse.d.ts",
+      "import": "./dist/parser/parse.js"
     },
     "./traverser": {
-      "types": "./dist/traverser/index.d.ts",
-      "import": "./dist/traverser/index.js"
+      "types": "./dist/traverser/traverse.d.ts",
+      "import": "./dist/traverser/traverse.js"
     }
   },
   "browser": "./dist/index.min.js",
