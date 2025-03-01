@@ -135,7 +135,9 @@ const generator = {
   Directive({kind, flags}) {
     if (kind === 'flags') {
       const {enable, disable} = flags;
-      return `(?${getFlagsStr(enable ?? {})}${disable ? '-' : ''}${getFlagsStr(disable ?? {})})`;
+      const enableStr = getFlagsStr(enable ?? {});
+      const disableStr = getFlagsStr(disable ?? {});
+      return (enableStr || disableStr) ? `(?${enableStr}${disableStr ? `-${disableStr}` : ''})` : '';
     }
     if (kind === 'keep') {
       return r`\K`;
@@ -219,7 +221,7 @@ function getCharEscape(codePoint, {escDigit, inCharClass}) {
 @returns {string}
 */
 function getFlagsStr({ignoreCase, dotAll, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}) {
-  // Leave out `extended` (flag x) since free-spacing and comments aren't captured by the AST
+  // Leave out `extended` (flag x) since free-spacing and comments aren't included in the AST
   return `${
     ignoreCase ? 'i' : ''
   }${

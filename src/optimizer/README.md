@@ -10,7 +10,7 @@ Advantages:
 
 Transforms are applied in a loop until no further optimization progress is made.
 
-The optimizer takes provided flags into account but does not change top-level flags so that the optimized pattern can be used in situations where you are not able to change the provided flags.
+The optimizer takes provided flags into account but it doesn't change top-level flags so that the optimized pattern can be used in situations where you are not able to change the provided flags. The exception is flag `x`, which is always removed since its effects are always applied to the generated pattern.
 
 ```ts
 function optimize(
@@ -40,7 +40,7 @@ The following transforms are always enabled:
 | Remove comment groups | `(?#comment)a` → `a` |
 | Remove free-spacing and line comments with flag `x` | `(?x) a b` → `ab` |
 | Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
-| Normalize Unicode property names | `\p{ ID -S_TART}` → `\p{ID_Start}` |
+| Normalize Unicode property names | `\p{ IDS - TART}` → `\p{ID_Start}` |
 | Normalize negation for Unicode properties | `\p{^L}` → `\P{L}` |
 
 The following transforms are currently always enabled, but future versions will allow excluding them via the `allow` list:
