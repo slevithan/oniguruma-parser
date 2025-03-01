@@ -39,17 +39,17 @@ The following transforms are always enabled:
 |-|-|
 | Remove comment groups | `(?#comment)a` → `a` |
 | Remove free-spacing and line comments with flag `x` | `(?x) a b` → `ab` |
-| Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
-| Normalize Unicode property names | `\p{ IDS - TART}` → `\p{ID_Start}` |
-| Normalize negation for Unicode properties | `\p{^L}` → `\P{L}` |
 
-The following transforms are currently always enabled, but future versions will allow excluding them via the `allow` list:
+Currently, the following transforms are always enabled, but future versions will allow excluding them via the `allow` list:
 
 | Description | Example |
 |-|-|
-| Remove unnecessary escapes | `\![\?]` → `![?]` |
 | Normalize char codes | `\u0061` → `a` |
 | Normalize quantifier ranges | `a{1,}` → `a+` |
+| Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
+| Normalize negation for Unicode properties | `\p{^L}` → `\P{L}` |
+| Remove unnecessary escapes | `\![\?]` → `![?]` |
+| Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
 
 ### On by default
 
