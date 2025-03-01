@@ -1,8 +1,6 @@
 # oniguruma-parser: Optimizer module
 
-> The optimizer is coming soon.
-
-The optimizer transforms an Oniguruma pattern into an optimized version of it.
+The optimizer transforms an Oniguruma pattern into an optimized version of itself.
 
 Advantages:
 
@@ -11,6 +9,8 @@ Advantages:
 - Some optimizations may improve performance.
 
 Transforms are applied in a loop until no further optimization progress is made.
+
+The optimizer takes provided flags into account but does not change top-level flags so that the optimized pattern can be used in situations where you are not able to change the provided flags.
 
 ```ts
 function optimize(
@@ -29,4 +29,38 @@ function optimize(
 }
 ```
 
-The optimizer was inspired by [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
+## Transforms
+
+### Base
+
+The following transforms are always enabled:
+
+| Description | Example |
+|-|-|
+| Remove comment groups | `(?#comment)a` → `a` |
+| Remove free-spacing and line comments with flag `x` | `(?x) a b` → `ab` |
+| Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
+| Normalize Unicode property names | `\p{ ID -S_TART}` → `\p{ID_Start}` |
+| Normalize negation for Unicode properties | `\p{^L}` → `\P{L}` |
+
+The following transforms are currently always enabled, but future versions will allow excluding them via the `allow` list:
+
+| Description | Example |
+|-|-|
+| Remove unnecessary escapes | `\![\?]` → `![?]` |
+| Normalize char codes | `\u0061` → `a` |
+| Normalize quantifier ranges | `a{1,}` → `a+` |
+
+### On by default
+
+The following transforms are enabled by default, but can be excluded by providing an `allow` list:
+
+|  Transform name | Description | Example |
+|-|-|-|
+| `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers | `(?:)a` → `a` |
+
+Additional transforms will be added in future versions.
+
+## About
+
+Inspiration for the optimizer included [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
