@@ -1,6 +1,5 @@
-import {slug} from '../index.js';
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
-import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
+import {getOrInsert, PosixClassNames, r, slug, throwIfNot} from '../utils.js';
 
 const AstTypes = /** @type {const} */ ({
   AbsentFunction: 'AbsentFunction',

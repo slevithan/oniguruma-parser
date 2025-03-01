@@ -3,6 +3,7 @@ import {optimize} from './optimizer/optimize.js';
 import {parse} from './parser/parse.js';
 import {traverse} from './traverser/traverse.js';
 import {OnigUnicodePropertyMap} from './unicode-properties.js';
+import {slug} from './utils.js';
 
 /**
 Returns an Oniguruma AST generated from an Oniguruma pattern.
@@ -29,15 +30,6 @@ function toOnigurumaAst(pattern, options = {}) {
     },
     unicodePropertyMap: OnigUnicodePropertyMap,
   });
-}
-
-/**
-Generates a Unicode property lookup name: lowercase, without spaces, hyphens, or underscores.
-@param {string} name Unicode property name.
-@returns {string}
-*/
-function slug(name) {
-  return name.replace(/[- _]+/g, '').toLowerCase();
 }
 
 export {

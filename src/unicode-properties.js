@@ -1,4 +1,4 @@
-import {slug} from './index.js';
+import {slug} from './utils.js';
 
 // All Unicode properties supported by Oniguruma as of v6.9.10 (Unicode v16.0.0)
 // Copied from <github.com/kkos/oniguruma/blob/master/doc/UNICODE_PROPERTIES>
