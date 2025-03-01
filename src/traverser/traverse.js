@@ -20,7 +20,8 @@ function traverse(path, state, visitor) {
       ast,
       remove() {
         throwIfNot(container, 'Container expected').splice(Math.max(0, key + keyShift), 1);
-        keyShift -= 1;
+        keyShift--;
+        skipTraversingKidsOfPath = true;
       },
       removeAllNextSiblings() {
         return throwIfNot(container, 'Container expected').splice(key + 1);
@@ -36,6 +37,7 @@ function traverse(path, state, visitor) {
         } else {
           parent[key] = newNode;
         }
+        node = newNode;
       },
       skip() {
         skipTraversingKidsOfPath = true;

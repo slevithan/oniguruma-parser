@@ -13,7 +13,6 @@ const transform = {
   Group({node, remove, skip}) {
     if (isEmptyGroupOrContainsOnlyEmptyGroups(node)) {
       remove();
-      skip();
     }
   },
 
@@ -24,7 +23,6 @@ const transform = {
     }
     if (isEmptyGroupOrContainsOnlyEmptyGroups(kid)) {
       remove();
-      skip();
     }
   },
 };
