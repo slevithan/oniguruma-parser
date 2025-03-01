@@ -32,7 +32,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "bundle:global": "esbuild src/index.js --outfile=dist/index.min.js --global-name=OnigurumaParser --bundle --minify --sourcemap",
-    "bundle:esm": "esbuild src/**/*.js --outdir=dist --minify --sourcemap",
+    "bundle:esm": "esbuild \"src/**/*.js\" --outdir=dist --minify --sourcemap",
     "types": "tsc src/index.js --rootDir src --outDir dist --declaration --allowJs --emitDeclarationOnly",
     "prebuild": "rm -rf dist/*",
     "build": "pnpm run bundle:global && pnpm run bundle:esm && pnpm run types",
