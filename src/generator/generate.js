@@ -79,7 +79,7 @@ const generator = {
 
   CapturingGroup(node, _, gen) {
     const {name, alternatives} = node;
-    const nameWrapper = name ? (name.includes('>') ? `'${name}'` : `<${name}>`) : '';
+    const nameWrapper = name ? `?${name.includes('>') ? `'${name}'` : `<${name}>`}` : '';
     return `(${nameWrapper}${alternatives.map(gen).join('|')})`;
   },
 

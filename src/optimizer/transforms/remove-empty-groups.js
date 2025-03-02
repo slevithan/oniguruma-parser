@@ -1,7 +1,7 @@
 import {AstTypes} from '../../parser/parse.js';
 
 /**
-Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers.
+Remove empty noncapturing, atomic, and flag groups, even if quantified.
 */
 const removeEmptyGroups = {
   Group({node, remove}) {

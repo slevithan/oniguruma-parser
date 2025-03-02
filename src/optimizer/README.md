@@ -24,7 +24,7 @@ function optimize(
 ): {
   pattern: string;
   flags: string;
-}
+};
 ```
 
 ## Optimizations
@@ -55,10 +55,10 @@ The following optimizations are enabled by default, but can be excluded by provi
 
 |  Transform name | Description | Example |
 |-|-|-|
-| `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers | `(?:)a` → `a` |
+| `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, even if quantified | `(?:)a` → `a` |
 | `unwrapUselessGroups` | Unwrap nonbeneficial noncapturing, atomic, and flag groups | `(?:a)` → `a` |
-| `unwrapUselessClasses` | Unwrap outermost character classes containing a single character or character set | `[a]` → `a` |
-| `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[^[^ab]]` → `[ab]` |
+| `unwrapUselessClasses` | Unwrap outermost character classes containing a single character or character set | `[\s]` → `\s` |
+| `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[^[^a]]` → `[a]` |
 
 Many additional optimizations are possible and will be added in future versions.
 
