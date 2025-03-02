@@ -2,7 +2,7 @@
 
 The optimizer transforms an Oniguruma pattern into an optimized version of itself.
 
-Advantages:
+Benefits:
 
 - Optimized regexes are smaller; good for minification.
 - Optimized regexes may be easier to read.
@@ -58,6 +58,7 @@ The following optimizations are enabled by default, but can be excluded by provi
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, even if quantified | `(?:)a` → `a` |
 | `unwrapUselessGroups` | Unwrap nonbeneficial noncapturing, atomic, and flag groups | `(?:a)` → `a` |
 | `unwrapUselessClasses` | Unwrap outermost character classes containing a single character or character set | `[\s]` → `\s` |
+| `unnestUselessClasses` | Unnest non-negated character classes that don't contain intersection | `[a[b]]` → `[ab]` |
 | `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[^[^a]]` → `[a]` |
 
 Many additional optimizations are possible and will be added in future versions.
