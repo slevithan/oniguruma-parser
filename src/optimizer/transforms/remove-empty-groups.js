@@ -2,12 +2,7 @@ import {AstTypes} from '../../parser/parse.js';
 
 /**
 Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers.
-- `(?:)a` -> `a`
-- `(?:)+a` -> `a`
-- `(?:)+*a` -> `a`
-- `(?>)a` -> `a`
-- `(?i-m:)a` -> `a`
-- `(?:(?>))a` -> `a`
+TODO: Remove groups with with multiple empty alternatives.
 */
 const transform = {
   Group({node, remove}) {

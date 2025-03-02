@@ -34,11 +34,11 @@ describe('optimizer: removeEmptyGroups', () => {
 
   it('should not remove non-empty groups', () => {
     const cases = [
-      ['(?:a)', '(?:a)'],
-      ['(?:a(?:))', '(?:a)'],
+      '(?:a)',
+      '(?:^)',
     ];
-    for (const [input, expected] of cases) {
-      expect(thisOptimization(input)).toBe(expected);
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
     }
   });
 });

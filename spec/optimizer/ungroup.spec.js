@@ -5,28 +5,31 @@ describe('optimizer: ungroup', () => {
     return optimize(pattern, {allow: ['ungroup']}).pattern;
   }
 
-  it('should remove unnecessary nested groups', () => {
+  it('should remove unnecessary groups', () => {
     const cases = [
-      ['(?:(?:a))', '(?:a)'],
-      ['(?:(?:(?:a)))', '(?:a)'],
-      ['(?:(?>a))', '(?>a)'],
-      ['(?>(?:a))', '(?>a)'],
-      ['(?>(?>a))', '(?>a)'],
-      ['(?:(?i:a))', '(?i:a)'],
-      ['(?i:(?:a))', '(?i:a)'],
+      ['(?:a)', 'a'],
+      ['(?:(?:(?:a)))', 'a'],
+      ['(?>a)', 'a'],
+      ['(?x:a)', 'a'],
+      ['(?-x:a)', 'a'],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
     }
   });
 
-  it('should not remove necessary nested groups', () => {
+  it('should not remove necessary groups', () => {
     const cases = [
-      ['(?i:(?>a))', '(?i:(?>a))'],
-      ['(?>(?i:a))', '(?>(?i:a))'],
+      '(a)',
+      '(?:a|b)',
+      '(?:a)*',
+      '(?>a*)',
+      '(?>(?=a*))',
+      '(?>(?~a))',
+      '(?i:a)',
     ];
-    for (const [input, expected] of cases) {
-      expect(thisOptimization(input)).toBe(expected);
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
     }
   });
 });

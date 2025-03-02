@@ -1,31 +1,44 @@
 import {AstTypes} from '../../parser/parse.js';
 
 /**
-Remove unnecessary nested groups.
-
-TODO: Currently this is very basic and only unwraps directly nested groups; not outermost groups.
-This should be rewritten to unwrap group contents directly, if the group isn't needed:
-- Unwrap noncapturing groups if no alternatives and not quantified.
-- Unwrap atomic groups if no alternatives, not quantified, and contents include only certain node types.
-- Unwrap flag groups if no alternatives, not quantified, and contents can't be affected by the flags.
+Remove unnecessary groups.
 */
 const transform = {
-  Group({node, replaceWith}) {
+  Group({node, parent, replaceWithMultiple}) {
     const {alternatives, atomic, flags} = node;
-    const firstAltEls = alternatives[0].elements;
-    if (
-      alternatives.length === 1 &&
-      firstAltEls.length === 1 &&
-      firstAltEls[0].type === AstTypes.Group &&
-      !(atomic && firstAltEls[0].flags) &&
-      !(flags && (firstAltEls[0].atomic || firstAltEls[0].flags))
-    ) {
-      if (atomic) {
-        firstAltEls[0].atomic = true;
-      } else if (flags) {
-        firstAltEls[0].flags = flags;
+    if (alternatives.length > 1 || parent.type === AstTypes.Quantifier) {
+      return;
+    }
+    const els = alternatives[0].elements;
+    let unwrap = false;
+
+    if (atomic) {
+      const atomicTypes = new Set([
+        AstTypes.Assertion,
+        AstTypes.Backreference,
+        AstTypes.Character,
+        AstTypes.CharacterClass,
+        AstTypes.CharacterSet,
+        AstTypes.Directive,
+      ]);
+      if (els.every(({type}) => atomicTypes.has(type))) {
+        unwrap = true;
       }
-      replaceWith(firstAltEls[0], {traverse: true});
+    } else if (flags) {
+      // Unwrap if the flags aren't able to change the behavior of the group
+      const enable = flags.enable ?? {};
+      const disable = flags.disable ?? {};
+      const keysOmitting = (obj, key) => Object.keys(obj).filter(k => k !== key);
+      // Flag x (`extended`) has already been applied during parsing
+      if (!keysOmitting(enable, 'extended').length && !keysOmitting(disable, 'extended').length) {
+        unwrap = true;
+      }
+    } else {
+      unwrap = true;
+    }
+
+    if (unwrap) {
+      replaceWithMultiple(els, {traverse: true});
     }
   },
 };
