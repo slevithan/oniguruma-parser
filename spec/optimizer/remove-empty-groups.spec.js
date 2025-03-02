@@ -1,6 +1,6 @@
 import {optimize} from '../../dist/optimizer/optimize.js';
 
-describe('optimizer: removeEmptyGroups', () => {
+describe('Optimizer: removeEmptyGroups', () => {
   function thisOptimization(pattern) {
     return optimize(pattern, {allow: ['removeEmptyGroups']}).pattern;
   }

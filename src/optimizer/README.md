@@ -58,7 +58,7 @@ The following optimizations are enabled by default, but can be excluded by provi
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers | `(?:)a` → `a` |
 | `unwrapUselessGroups` | Unwrap nonbeneficial noncapturing, atomic, and flag groups | `(?:a)` → `a` |
 | `unwrapUselessClasses` | Unwrap outermost character classes containing a single character or character set | `[a]` → `a` |
-| `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[[^ab]]` → `[^ab]`, `[^[^ab]]` → `[ab]` |
+| `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[^[^ab]]` → `[ab]` |
 
 Many additional optimizations are possible and will be added in future versions.
 

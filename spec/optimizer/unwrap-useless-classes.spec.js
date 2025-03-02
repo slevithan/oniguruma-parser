@@ -1,7 +1,7 @@
 import {optimize} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
 
-describe('optimizer: unwrapUselessClasses', () => {
+describe('Optimizer: unwrapUselessClasses', () => {
   function thisOptimization(pattern) {
     return optimize(pattern, {allow: ['unwrapUselessClasses']}).pattern;
   }

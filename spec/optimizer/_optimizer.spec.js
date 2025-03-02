@@ -1,6 +1,6 @@
 import {optimize} from '../../dist/optimizer/optimize.js';
 
-describe('optimizer', () => {
+describe('Optimizer', () => {
   xit('should apply all optimizations for a list of examples', () => {
     const cases = [
       ['[[^[^a]]&&[b]]', '[a&&b]'],

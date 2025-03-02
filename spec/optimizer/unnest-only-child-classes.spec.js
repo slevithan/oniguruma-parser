@@ -1,6 +1,6 @@
 import {optimize} from '../../dist/optimizer/optimize.js';
 
-describe('optimizer: unnestOnlyChildClasses', () => {
+describe('Optimizer: unnestOnlyChildClasses', () => {
   function thisOptimization(pattern) {
     return optimize(pattern, {allow: ['unnestOnlyChildClasses']}).pattern;
   }
