@@ -29,18 +29,16 @@ function optimize(
 }
 ```
 
-## Transforms
+## Optimizations
 
-### Base
-
-The following transforms are always enabled:
+### Always on
 
 | Description | Example |
 |-|-|
 | Remove comment groups | `(?#comment)a` → `a` |
 | Remove free-spacing and line comments with flag `x` | `(?x) a b` → `ab` |
 
-Currently, the following transforms are always enabled, but future versions will allow excluding them via the `allow` list:
+The following optimizations are currently always enabled, but future versions will allow excluding them via the `allow` list:
 
 | Description | Example |
 |-|-|
@@ -53,15 +51,15 @@ Currently, the following transforms are always enabled, but future versions will
 
 ### On by default
 
-The following transforms are enabled by default, but can be excluded by providing an `allow` list:
+The following optimizations are enabled by default, but can be excluded by providing an `allow` list:
 
 |  Transform name | Description | Example |
 |-|-|-|
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers | `(?:)a` → `a` |
 | `ungroup` | Remove unnecessary groups | `(?:a)` → `a` |
 
-Additional transforms will be added in future versions.
+Additional optimizations will be added in future versions.
 
 ## About
 
-Inspiration for the optimizer included [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
+The optimizer module was partly inspired by [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.

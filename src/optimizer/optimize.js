@@ -1,13 +1,13 @@
 import {toOnigurumaAst} from '../index.js';
 import {generate} from '../generator/generate.js';
 import {traverse} from '../traverser/traverse.js';
-import {transforms} from './transforms.js';
+import {optimizations} from './optimizations.js';
 
 /**
 Returns an optimized Oniguruma pattern and flags.
 @param {string} pattern Oniguruma regex pattern.
 @param {{
-  allow?: Array<import('./transforms.js').OptimizationName>;
+  allow?: Array<import('./optimizations.js').OptimizationName>;
   flags?: string;
   rules?: {
     captureGroup?: boolean;
@@ -24,7 +24,7 @@ function optimize(pattern, options = {}) {
     flags: options.flags ?? '',
     rules: options.rules ?? {},
   });
-  const names = new Set(options.allow ?? transforms.keys());
+  const names = new Set(options.allow ?? optimizations.keys());
   let optimized = {pattern};
   let counter = 0;
   do {
@@ -34,7 +34,7 @@ function optimize(pattern, options = {}) {
     }
     pattern = optimized.pattern;
     for (const name of names) {
-      traverse({node: ast}, null, transforms.get(name));
+      traverse({node: ast}, null, optimizations.get(name));
     }
     optimized = generate(ast);
   } while (pattern !== optimized.pattern);

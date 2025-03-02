@@ -7,11 +7,11 @@ import ungroup from './transforms/ungroup.js';
   'ungroup'
 } OptimizationName
 */
-const transforms = new Map([
+const optimizations = new Map([
   ['removeEmptyGroups', removeEmptyGroups],
   ['ungroup', ungroup],
 ]);
 
 export {
-  transforms,
+  optimizations,
 };
