@@ -32,10 +32,21 @@ describe('optimizer: removeEmptyGroups', () => {
     }
   });
 
+  it('should remove empty noncapturing, atomic, and flag groups with only empty alternatives', () => {
+    const cases = [
+      ['(?:|)a', 'a'],
+      ['(?ix: | | )a', 'a'],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
   it('should not remove non-empty groups', () => {
     const cases = [
       '(?:a)',
       '(?:^)',
+      '(?:| )',
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
