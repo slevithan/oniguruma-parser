@@ -1,18 +1,18 @@
 import removeEmptyGroups from './transforms/remove-empty-groups.js';
-import unclass from './transforms/unclass.js';
-import ungroup from './transforms/ungroup.js';
+import unwrapClasses from './transforms/unwrap-classes.js';
+import unwrapGroups from './transforms/unwrap-groups.js';
 
 /**
 @typedef {
   'removeEmptyGroups' |
-  'unclass' |
-  'ungroup'
+  'unwrapClasses' |
+  'unwrapGroups'
 } OptimizationName
 */
 const optimizations = new Map([
   ['removeEmptyGroups', removeEmptyGroups],
-  ['unclass', unclass],
-  ['ungroup', ungroup],
+  ['unwrapClasses', unwrapClasses],
+  ['unwrapGroups', unwrapGroups],
 ]);
 
 export {
