@@ -39,27 +39,28 @@ The following optimizations result from the nature of the parser, which builds a
 | Remove free-spacing and line comments with flag `x` | `(?x) a b` → `ab` |
 | Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
 | Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
-
-The following optimizations are currently always enabled, but future versions will make them on-by-default but optional.
-
-| Description | Example |
-|-|-|
-| Remove unnecessary escapes | `\![\?]` → `![?]` |
-| Normalize char codes | `\u0061` → `a` |
-| Normalize negation for Unicode properties | `\p{^L}` → `\P{L}` |
-| Normalize quantifier ranges | `a{1,}` → `a+` |
+| Resolve relative backreference/subroutine numbers | `()\k<-1>` → `()\k<1>` |
+| Remove leading zeros from backreference/subroutine numbers | `()\k<01>` → `()\k<1>` |
+| Remove leading zeros from enclosed character escapes | `\x{0061}` → `\x{61}` |
 
 ### On by default
 
-Optimizations are applied in a loop until no further optimization progress is made.
+Some of the following optimizations (related to the representation of tokens) don't have names because they're currently always enabled. They will be optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
 
 |  Optimization name | Description | Example |
 |-|-|-|
+| | Remove unnecessary escapes | `\![\?]` → `![?]` |
+| | Use the simplest character representation | `\u0061` → `a` |
+| | Use outer negation for Unicode properties | `\p{^L}` → `\P{L}` |
+| | Use quantifier symbols for ranges when possible | `a{1,}` → `a+` |
+| | Unenclose numbered backreferences | `()\k<1>` → `()\1` |
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, even if quantified | `(?:)a` → `a` |
 | `unwrapUselessGroups` | Unwrap nonbeneficial noncapturing, atomic, and flag groups | `(?:a)` → `a` |
 | `unwrapUselessClasses` | Unwrap outermost character classes containing a single character or character set | `[\s]` → `\s` |
 | `unnestUselessClasses` | Unnest non-negated character classes that don't contain intersection | `[a[b]]` → `[ab]` |
 | `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[^[^a]]` → `[a]` |
+
+Optimizations are applied in a loop until no further optimization progress is made.
 
 Many additional optimizations are possible and will be added in future versions.
 
@@ -69,7 +70,7 @@ Many additional optimizations are possible and will be added in future versions.
 import {optimize} from 'oniguruma-parser/optimizer';
 
 const pattern = '...';
-optimize(pattern, {
+const optimized = optimize(pattern, {
   override: {
     // Disable specific optimizations by name
     removeEmptyGroups: false,
@@ -83,7 +84,7 @@ optimize(pattern, {
 import {optimize, getAllOptimizations} from 'oniguruma-parser/optimizer';
 
 const pattern = '...';
-optimize(pattern, {
+const optimized = optimize(pattern, {
   override: {
     ...getAllOptimizations({disable: true}),
     // Enable only specific optimizations by name
