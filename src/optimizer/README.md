@@ -14,8 +14,8 @@ The optimizer takes provided flags into account but it doesn't change top-level 
 function optimize(
   pattern: string;
   options?: {
-    allow?: Array<OptimizationName>;
     flags?: string;
+    override?: {[key in OptimizationName]?: boolean};
     rules?: {
       captureGroup?: boolean;
       singleline?: boolean;
@@ -40,7 +40,7 @@ The following optimizations result from the nature of the parser, which builds a
 | Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
 | Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
 
-The following optimizations are currently always enabled, but future versions will allow excluding them by providing an `allow` list.
+The following optimizations are currently always enabled, but future versions will make them on-by-default but optional.
 
 | Description | Example |
 |-|-|
@@ -51,9 +51,9 @@ The following optimizations are currently always enabled, but future versions wi
 
 ### On by default
 
-The following optimizations are enabled by default, but can be excluded by providing an `allow` list. Optimizations are applied in a loop until no further optimization progress is made.
+Optimizations are applied in a loop until no further optimization progress is made.
 
-|  Transform name | Description | Example |
+|  Optimization name | Description | Example |
 |-|-|-|
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, even if quantified | `(?:)a` → `a` |
 | `unwrapUselessGroups` | Unwrap nonbeneficial noncapturing, atomic, and flag groups | `(?:a)` → `a` |
@@ -63,6 +63,39 @@ The following optimizations are enabled by default, but can be excluded by provi
 
 Many additional optimizations are possible and will be added in future versions.
 
+## Disable specific optimizations
+
+```js
+import {optimize} from 'oniguruma-parser/optimizer';
+
+const pattern = '...';
+optimize(pattern, {
+  override: {
+    // Disable specific optimizations by name
+    removeEmptyGroups: false,
+  },
+});
+```
+
+## Enable only specific optimizations
+
+```js
+import {optimize, getAllOptimizations} from 'oniguruma-parser/optimizer';
+
+const pattern = '...';
+optimize(pattern, {
+  override: {
+    ...getAllOptimizations({disable: true}),
+    // Enable only specific optimizations by name
+    removeEmptyGroups: true,
+  },
+});
+```
+
 ## About
 
+Created by [Steven Levithan](https://github.com/slevithan). If you want to support this project, I'd love your help by contributing improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
+
 The optimizer module was partly inspired by [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
+
+MIT License.

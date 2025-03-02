@@ -1,8 +1,13 @@
-import {optimize} from '../../dist/optimizer/optimize.js';
+import {optimize, getAllOptimizations} from '../../dist/optimizer/optimize.js';
 
 describe('Optimizer: unnestOnlyChildClasses', () => {
   function thisOptimization(pattern) {
-    return optimize(pattern, {allow: ['unnestOnlyChildClasses']}).pattern;
+    return optimize(pattern, {
+      override: {
+        ...getAllOptimizations({disable: true}),
+        unnestOnlyChildClasses: true,
+      },
+    }).pattern;
   }
 
   it('should unnest only-child character classes', () => {

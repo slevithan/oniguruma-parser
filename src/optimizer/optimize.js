@@ -7,8 +7,8 @@ import {optimizations} from './optimizations.js';
 Returns an optimized Oniguruma pattern and flags.
 @param {string} pattern Oniguruma regex pattern.
 @param {{
-  allow?: Array<import('./optimizations.js').OptimizationName>;
   flags?: string;
+  override?: {[key in import('./optimizations.js').OptimizationName]?: boolean};
   rules?: {
     captureGroup?: boolean;
     singleline?: boolean;
@@ -19,12 +19,19 @@ Returns an optimized Oniguruma pattern and flags.
   flags: string;
 }}
 */
-function optimize(pattern, options = {}) {
+function optimize(pattern, options) {
+  const opts = getOptions(options);
   const ast = toOnigurumaAst(pattern, {
-    flags: options.flags ?? '',
-    rules: options.rules ?? {},
+    flags: opts.flags,
+    rules: opts.rules,
   });
-  const names = new Set(options.allow ?? optimizations.keys());
+  const active = Object.assign(getAllOptimizations(), opts.override);
+  Object.keys(active).forEach(key => {
+    if (!active[key]) {
+      delete active[key];
+    }
+  });
+  const names = Object.keys(active);
   let optimized = {pattern};
   let counter = 0;
   do {
@@ -36,10 +43,27 @@ function optimize(pattern, options = {}) {
       traverse({node: ast}, null, optimizations.get(name));
     }
     optimized = generate(ast);
+  // Continue until no further optimization progress is made
   } while (pattern !== optimized.pattern);
   return optimized;
 }
 
+function getOptions(options = {}) {
+  return {
+    flags: '',
+    override: {},
+    rules: {},
+    ...options,
+  };
+}
+
+function getAllOptimizations({disable} = {}) {
+  const obj = {};
+  optimizations.keys().forEach(key => obj[key] = !disable);
+  return obj;
+}
+
 export {
+  getAllOptimizations,
   optimize,
 };

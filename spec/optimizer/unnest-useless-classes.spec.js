@@ -1,8 +1,13 @@
-import {optimize} from '../../dist/optimizer/optimize.js';
+import {optimize, getAllOptimizations} from '../../dist/optimizer/optimize.js';
 
 describe('Optimizer: unnestUselessClasses', () => {
   function thisOptimization(pattern) {
-    return optimize(pattern, {allow: ['unnestUselessClasses']}).pattern;
+    return optimize(pattern, {
+      override: {
+        ...getAllOptimizations({disable: true}),
+        unnestUselessClasses: true,
+      },
+    }).pattern;
   }
 
   it('should unnest unnecessary character classes', () => {

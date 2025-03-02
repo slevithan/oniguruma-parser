@@ -1,8 +1,13 @@
-import {optimize} from '../../dist/optimizer/optimize.js';
+import {optimize, getAllOptimizations} from '../../dist/optimizer/optimize.js';
 
 describe('Optimizer: removeEmptyGroups', () => {
   function thisOptimization(pattern) {
-    return optimize(pattern, {allow: ['removeEmptyGroups']}).pattern;
+    return optimize(pattern, {
+      override: {
+        ...getAllOptimizations({disable: true}),
+        removeEmptyGroups: true,
+      },
+    }).pattern;
   }
 
   it('should remove empty noncapturing, atomic, and flag groups', () => {
