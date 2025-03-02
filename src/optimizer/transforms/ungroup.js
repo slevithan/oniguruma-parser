@@ -25,7 +25,7 @@ const transform = {
       } else if (flags) {
         firstAltEls[0].flags = flags;
       }
-      replaceWith(firstAltEls[0]);
+      replaceWith(firstAltEls[0], {traverse: true});
     }
   },
 };

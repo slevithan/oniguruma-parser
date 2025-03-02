@@ -10,6 +10,7 @@ function traverse(path, state, visitor) {
     }
   }
   function traverseNode(node, parent = null, key = null, container = null) {
+    const containerExpected = 'Container expected';
     let keyShift = 0;
     let skipTraversingKidsOfPath = false;
     const path = {
@@ -19,17 +20,17 @@ function traverse(path, state, visitor) {
       container,
       ast,
       remove() {
-        throwIfNot(container, 'Container expected').splice(Math.max(0, key + keyShift), 1);
+        throwIfNot(container, containerExpected).splice(Math.max(0, key + keyShift), 1);
         keyShift--;
         skipTraversingKidsOfPath = true;
       },
       removeAllNextSiblings() {
-        return throwIfNot(container, 'Container expected').splice(key + 1);
+        return throwIfNot(container, containerExpected).splice(key + 1);
       },
       removeAllPrevSiblings() {
         const shifted = key + keyShift;
         keyShift -= shifted;
-        return throwIfNot(container, 'Container expected').splice(0, Math.max(0, shifted));
+        return throwIfNot(container, containerExpected).splice(0, Math.max(0, shifted));
       },
       replaceWith(newNode, options = {}) {
         const traverseNew = !!options.traverse;
@@ -40,6 +41,17 @@ function traverse(path, state, visitor) {
         }
         if (traverseNew) {
           traverseNode(newNode, parent, key, container);
+        }
+        skipTraversingKidsOfPath = true;
+      },
+      replaceWithMultiple(newNodes, options = {}) {
+        const traverseNew = !!options.traverse;
+        throwIfNot(container, containerExpected).splice(Math.max(0, key + keyShift), 1, ...newNodes);
+        keyShift += newNodes.length - 1;
+        if (traverseNew) {
+          for (const newNode of newNodes) {
+            traverseNode(newNode, parent, key, container);
+          }
         }
         skipTraversingKidsOfPath = true;
       },
