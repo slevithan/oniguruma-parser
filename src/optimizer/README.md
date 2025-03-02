@@ -37,17 +37,17 @@ function optimize(
 |-|-|
 | Remove comment groups | `(?#comment)a` → `a` |
 | Remove free-spacing and line comments with flag `x` | `(?x) a b` → `ab` |
+| Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
+| Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
 
-The following optimizations are currently always enabled, but future versions will allow excluding them via the `allow` list:
+The following optimizations are currently always enabled, but future versions will allow excluding them by providing an `allow` list:
 
 | Description | Example |
 |-|-|
-| Normalize char codes | `\u0061` → `a` |
-| Normalize quantifier ranges | `a{1,}` → `a+` |
-| Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
-| Normalize negation for Unicode properties | `\p{^L}` → `\P{L}` |
 | Remove unnecessary escapes | `\![\?]` → `![?]` |
-| Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
+| Normalize char codes | `\u0061` → `a` |
+| Normalize negation for Unicode properties | `\p{^L}` → `\P{L}` |
+| Normalize quantifier ranges | `a{1,}` → `a+` |
 
 ### On by default
 
