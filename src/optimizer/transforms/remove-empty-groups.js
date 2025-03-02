@@ -24,7 +24,7 @@ const transform = {
 function isEmptyGroup(node) {
   return (
     node.type === AstTypes.Group &&
-    node.alternatives.every(alt => alt.elements.length === 0)
+    node.alternatives.every(alt => !alt.elements.length)
   );
 }
 

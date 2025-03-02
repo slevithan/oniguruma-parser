@@ -1,7 +1,7 @@
 import {AstCharacterClassKinds, AstTypes} from '../../parser/parse.js';
 
 /**
-Unwrap unnecessary character classes. Doesn't unwrap nested classes.
+Unwrap unnecessary character classes, not including nested classes.
 */
 const transform = {
   CharacterClass({node, parent, replaceWith}) {
@@ -14,7 +14,7 @@ const transform = {
       elements.length === 1 &&
       (firstEl.type === AstTypes.Character || firstEl.type === AstTypes.CharacterSet)
     ) {
-      replaceWith(firstEl);
+      replaceWith(firstEl, {traverse: true});
     }
   },
 };
