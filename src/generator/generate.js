@@ -11,13 +11,18 @@ Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
 */
 function generate(ast) {
   let lastNode = null;
+  let parent = null;
   const state = {
     inCharClass: false,
     lastNode,
+    parent,
   };
   function gen(node) {
     state.lastNode = lastNode;
     lastNode = node;
+    if (state.lastNode && getFirstChild(state.lastNode) === node) {
+      state.parent = state.lastNode;
+    }
     const fn = generator[node.type];
     if (!fn) {
       throw new Error(`Unexpected node type "${node.type}"`);
@@ -86,9 +91,20 @@ const generator = {
   },
 
   CharacterClass({kind, negate, elements}, state, gen) {
-    const genClass = () => `[${negate ? '^' : ''}${
-      elements.map(gen).join(kind === AstCharacterClassKinds.intersection ? '&&' : '')
-    }]`;
+    function genClass() {
+      if (
+        state.inCharClass &&
+        state.parent.kind === AstCharacterClassKinds.intersection &&
+        kind === AstCharacterClassKinds.union &&
+        !elements.length
+      ) {
+        // Prevent empty intersection like `[&&]` from becoming the invalid `[[]&&[]]`
+        return '';
+      }
+      return `[${negate ? '^' : ''}${
+        elements.map(gen).join(kind === AstCharacterClassKinds.intersection ? '&&' : '')
+      }]`;
+    }
     if (!state.inCharClass) {
       // For the outermost char class, set state
       state.inCharClass = true;
@@ -114,7 +130,9 @@ const generator = {
       return negate ? r`\N` : r`\R`;
     }
     if (kind === AstCharacterSetKinds.posix) {
-      return state.inCharClass ? `[:${value}:]` : r`\p{${value}}`;
+      return state.inCharClass ?
+        `[:${negate ? '^' : ''}${value}:]` :
+        `${negate ? r`\P` : r`\p`}{${value}}`;
     }
     if (kind === AstCharacterSetKinds.property) {
       return `${negate ? r`\P` : r`\p`}{${value}}`;
@@ -214,6 +232,25 @@ function getCharEscape(codePoint, {escDigit, inCharClass}) {
   const escapeChars = inCharClass ? CharClassEscapeChars : BaseEscapeChars;
   const char = cp(codePoint);
   return (escapeChars.has(char) ? '\\' : '') + char;
+}
+
+function getFirstChild(node) {
+  if (node.alternatives) {
+    return node.alternatives[0];
+  }
+  if (node.elements) {
+    return node.elements[0] ?? null;
+  }
+  if (node.element) {
+    return node.element;
+  }
+  if (node.min && node.min.type) {
+    return node.min;
+  }
+  if (node.pattern) {
+    return node.pattern;
+  }
+  return null;
 }
 
 /**

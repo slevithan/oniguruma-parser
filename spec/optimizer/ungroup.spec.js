@@ -5,7 +5,7 @@ describe('optimizer: ungroup', () => {
     return optimize(pattern, {allow: ['ungroup']}).pattern;
   }
 
-  it('should remove unnecessary groups', () => {
+  it('should unwrap unnecessary groups', () => {
     const cases = [
       ['(?:a)', 'a'],
       ['(?:(?:(?:a)))', 'a'],
@@ -18,7 +18,7 @@ describe('optimizer: ungroup', () => {
     }
   });
 
-  it('should not remove necessary groups', () => {
+  it('should not unwrap necessary groups', () => {
     const cases = [
       '(a)',
       '(?:a|b)',

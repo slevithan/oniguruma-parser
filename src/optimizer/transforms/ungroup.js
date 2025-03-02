@@ -1,7 +1,7 @@
 import {AstTypes} from '../../parser/parse.js';
 
 /**
-Remove unnecessary groups.
+Unwrap unnecessary groups.
 */
 const transform = {
   Group({node, parent, replaceWithMultiple}) {

@@ -56,7 +56,8 @@ The following optimizations are enabled by default, but can be excluded by provi
 |  Transform name | Description | Example |
 |-|-|-|
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers | `(?:)a` → `a` |
-| `ungroup` | Remove unnecessary groups | `(?:a)` → `a` |
+| `unclass` | Unwrap unnecessary character classes | `[a]` → `a` |
+| `ungroup` | Unwrap unnecessary groups | `(?:a)` → `a` |
 
 Additional optimizations will be added in future versions.
 
