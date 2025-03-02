@@ -8,8 +8,6 @@ Advantages:
 - Optimized regexes may be easier to read.
 - Some optimizations may improve performance.
 
-Transforms are applied in a loop until no further optimization progress is made.
-
 The optimizer takes provided flags into account but it doesn't change top-level flags so that the optimized pattern can be used in situations where you are not able to change the provided flags. The exception is flag `x`, which is always removed since its effects are always applied to the generated pattern.
 
 ```ts
@@ -33,6 +31,8 @@ function optimize(
 
 ### Always on
 
+The following optimizations result from the nature of the parser, which builds an AST. They can't be disabled.
+
 | Description | Example |
 |-|-|
 | Remove comment groups | `(?#comment)a` → `a` |
@@ -40,7 +40,7 @@ function optimize(
 | Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
 | Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
 
-The following optimizations are currently always enabled, but future versions will allow excluding them by providing an `allow` list:
+The following optimizations are currently always enabled, but future versions will allow excluding them by providing an `allow` list.
 
 | Description | Example |
 |-|-|
@@ -51,15 +51,16 @@ The following optimizations are currently always enabled, but future versions wi
 
 ### On by default
 
-The following optimizations are enabled by default, but can be excluded by providing an `allow` list:
+The following optimizations are enabled by default, but can be excluded by providing an `allow` list. Optimizations are applied in a loop until no further optimization progress is made.
 
 |  Transform name | Description | Example |
 |-|-|-|
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers | `(?:)a` → `a` |
 | `unwrapGroups` | Unwrap unnecessary groups | `(?:a)` → `a` |
 | `unwrapClasses` | Unwrap unnecessary character classes, not including nested classes | `[a]` → `a` |
+| `unnestOnlyChildClasses` | Unnest only-child character classes | `[[^ab]]` → `[^ab]` |
 
-Additional optimizations will be added in future versions.
+Many additional optimizations are possible and will be added in future versions.
 
 ## About
 
