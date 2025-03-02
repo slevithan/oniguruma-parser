@@ -1,10 +1,10 @@
 import {AstCharacterClassKinds, AstTypes} from '../../parser/parse.js';
 
 /**
-Unnest only-child character classes.
+Unnest character classes that are an only-child of a character class.
 */
-const transform = {
-  CharacterClass({node, parent, replaceWith}) {
+const unnestOnlyChildClasses = {
+  CharacterClass({node, replaceWith}) {
     const {kind, negate, elements} = node;
     const firstEl = elements[0];
     if (
@@ -19,4 +19,6 @@ const transform = {
   },
 };
 
-export default transform;
+export {
+  unnestOnlyChildClasses,
+};

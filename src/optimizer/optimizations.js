@@ -1,21 +1,21 @@
-import removeEmptyGroups from './transforms/remove-empty-groups.js';
-import unnestOnlyChildClasses from './transforms/unnest-only-child-classes.js';
-import unwrapClasses from './transforms/unwrap-classes.js';
-import unwrapGroups from './transforms/unwrap-groups.js';
+import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
+import {unnestOnlyChildClasses} from './transforms/unnest-only-child-classes.js';
+import {unwrapUselessClasses} from './transforms/unwrap-useless-classes.js';
+import {unwrapUselessGroups} from './transforms/unwrap-useless-groups.js';
 
 /**
 @typedef {
   'removeEmptyGroups' |
   'unnestOnlyChildClasses' |
-  'unwrapClasses' |
-  'unwrapGroups'
+  'unwrapUselessClasses' |
+  'unwrapUselessGroups'
 } OptimizationName
 */
 const optimizations = new Map([
   ['removeEmptyGroups', removeEmptyGroups],
   ['unnestOnlyChildClasses', unnestOnlyChildClasses],
-  ['unwrapClasses', unwrapClasses],
-  ['unwrapGroups', unwrapGroups],
+  ['unwrapUselessClasses', unwrapUselessClasses],
+  ['unwrapUselessGroups', unwrapUselessGroups],
 ]);
 
 export {

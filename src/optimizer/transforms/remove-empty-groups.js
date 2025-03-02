@@ -3,7 +3,7 @@ import {AstTypes} from '../../parser/parse.js';
 /**
 Remove empty noncapturing, atomic, and flag groups, plus any attached quantifiers.
 */
-const transform = {
+const removeEmptyGroups = {
   Group({node, remove}) {
     if (isEmptyGroup(node)) {
       remove();
@@ -28,4 +28,6 @@ function isEmptyGroup(node) {
   );
 }
 
-export default transform;
+export {
+  removeEmptyGroups,
+};

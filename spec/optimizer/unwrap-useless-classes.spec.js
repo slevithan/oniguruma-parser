@@ -1,9 +1,9 @@
 import {optimize} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
 
-describe('optimizer: unwrapClasses', () => {
+describe('optimizer: unwrapUselessClasses', () => {
   function thisOptimization(pattern) {
-    return optimize(pattern, {allow: ['unwrapClasses']}).pattern;
+    return optimize(pattern, {allow: ['unwrapUselessClasses']}).pattern;
   }
 
   it('should unwrap unnecessary character classes', () => {

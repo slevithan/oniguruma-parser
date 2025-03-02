@@ -1,8 +1,8 @@
 import {optimize} from '../../dist/optimizer/optimize.js';
 
-describe('optimizer: unwrapGroups', () => {
+describe('optimizer: unwrapUselessGroups', () => {
   function thisOptimization(pattern) {
-    return optimize(pattern, {allow: ['unwrapGroups']}).pattern;
+    return optimize(pattern, {allow: ['unwrapUselessGroups']}).pattern;
   }
 
   it('should unwrap unnecessary groups', () => {

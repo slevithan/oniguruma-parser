@@ -1,9 +1,9 @@
 import {AstTypes} from '../../parser/parse.js';
 
 /**
-Unwrap unnecessary groups.
+Unwrap nonbeneficial noncapturing, atomic, and flag groups.
 */
-const transform = {
+const unwrapUselessGroups = {
   Group({node, parent, replaceWithMultiple}) {
     const {alternatives, atomic, flags} = node;
     if (alternatives.length > 1 || parent.type === AstTypes.Quantifier) {
@@ -43,4 +43,6 @@ const transform = {
   },
 };
 
-export default transform;
+export {
+  unwrapUselessGroups,
+};

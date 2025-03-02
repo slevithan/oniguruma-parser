@@ -1,9 +1,9 @@
 import {AstCharacterClassKinds, AstTypes} from '../../parser/parse.js';
 
 /**
-Unwrap unnecessary character classes, not including nested classes.
+Unwrap outermost character classes containing a single character or character set.
 */
-const transform = {
+const unwrapUselessClasses = {
   CharacterClass({node, parent, replaceWith}) {
     const {kind, negate, elements} = node;
     const firstEl = elements[0];
@@ -19,4 +19,6 @@ const transform = {
   },
 };
 
-export default transform;
+export {
+  unwrapUselessClasses,
+};
