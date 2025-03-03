@@ -1,4 +1,4 @@
-import {AstAbsentFunctionKinds, AstAssertionKinds, AstCharacterClassKinds, AstCharacterSetKinds, AstLookaroundAssertionKinds, AstTypes} from '../parser/parse.js';
+import {AstAbsentFunctionKinds, AstAssertionKinds, AstCharacterClassKinds, AstCharacterSetKinds, AstLookaroundAssertionKinds, AstQuantifierKinds, AstTypes} from '../parser/parse.js';
 import {cp, r, throwIfNot} from '../utils.js';
 
 /**
@@ -181,8 +181,32 @@ const generator = {
     return alternatives.map(gen).join('|');
   },
 
-  Quantifier(node, _, gen) {
-    return gen(node.element) + getQuantifierStr(node);
+  Quantifier({min, max, kind, element}, _, gen) {
+    let base;
+    let allowPossessiveSuffix = true;
+    if (!min && max === 1) {
+      base = '?';
+    } else if (!min && max === Infinity) {
+      base = '*';
+    } else if (min === 1 && max === Infinity) {
+      base = '+';
+    } else if (min === max) {
+      base = `{${min}}`;
+      // Don't really need this since it should never be possessive; a following `+` creates a
+      // quantifier chain
+      allowPossessiveSuffix = false;
+    } else {
+      base = kind === AstQuantifierKinds.possessive ?
+        `{${max},${min}}` :
+        `{${min},${max === Infinity ? '' : max}}`;
+      allowPossessiveSuffix = false;
+    }
+    const suffix = {
+      greedy: '',
+      lazy: '?',
+      possessive: allowPossessiveSuffix ? '+' : '',
+    }[kind];
+    return `${gen(element)}${base}${suffix}`;
   },
 
   Subroutine({ref}) {
@@ -289,26 +313,6 @@ function getGroupPrefix(atomic, flagMods) {
     mods = `${getFlagsStr(enable ?? {})}${disable ? '-' : ''}${getFlagsStr(disable ?? {})}`;
   }
   return `${mods}:`;
-}
-
-function getQuantifierStr({min, max, kind}) {
-  let base;
-  if (!min && max === 1) {
-    base = '?';
-  } else if (!min && max === Infinity) {
-    base = '*';
-  } else if (min === 1 && max === Infinity) {
-    base = '+';
-  } else if (min === max) {
-    base = `{${min}}`;
-  } else {
-    base = `{${min},${max === Infinity ? '' : max}}`;
-  }
-  return base + {
-    greedy: '',
-    lazy: '?',
-    possessive: '+',
-  }[kind];
 }
 
 function isDigitCharCode(value) {

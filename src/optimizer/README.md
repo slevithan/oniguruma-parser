@@ -31,7 +31,7 @@ function optimize(
 
 ### Always on
 
-The following optimizations result from the nature of the parser, which builds an AST. They can't be disabled.
+The following optimizations are always enabled. They result from the nature of the parser, which builds an AST.
 
 | Description | Example |
 |-|-|
@@ -42,10 +42,11 @@ The following optimizations result from the nature of the parser, which builds a
 | Resolve relative backreference/subroutine numbers | `()\k<-1>` → `()\k<1>` |
 | Remove leading zeros from backreference/subroutine numbers | `()\k<01>` → `()\k<1>` |
 | Remove leading zeros from enclosed character escapes | `\x{0061}` → `\x{61}` |
+| Remove leading zeros from quantifier ranges | `a{01,03}` → `a{1,3}` |
 
 ### On by default
 
-Some of the following optimizations (related to the representation of tokens) don't have names because they're currently always enabled. They will be optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
+Some of the following optimizations (related to the representation of tokens) don't yet have names because they're currently always enabled. They will be optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
 
 |  Optimization name | Description | Example |
 |-|-|-|
@@ -78,7 +79,7 @@ const optimized = optimize(pattern, {
 });
 ```
 
-## Enable only specific optimizations
+## Enable only specific (optional) optimizations
 
 ```js
 import {optimize, getAllOptimizations} from 'oniguruma-parser/optimizer';
