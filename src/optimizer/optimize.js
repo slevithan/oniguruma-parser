@@ -59,7 +59,9 @@ function getOptions(options = {}) {
 
 function getAllOptimizations({disable} = {}) {
   const obj = {};
-  optimizations.keys().forEach(key => obj[key] = !disable);
+  for (const key of optimizations.keys()) {
+    obj[key] = !disable;
+  }
   return obj;
 }
 

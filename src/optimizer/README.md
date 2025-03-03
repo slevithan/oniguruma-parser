@@ -53,7 +53,7 @@ Some of the following optimizations (related to the representation of tokens) do
 | | Remove unnecessary escapes | `\![\?]` → `![?]` |
 | | Use the simplest character representation | `\u0061` → `a` |
 | | Use outer negation for Unicode properties | `\p{^L}` → `\P{L}` |
-| | Use quantifier symbols for ranges when possible | `a{1,}` → `a+` |
+| | Use symbols for quantifier ranges when possible | `a{1,}` → `a+` |
 | | Unenclose numbered backreferences | `()\k<1>` → `()\1` |
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, even if quantified | `(?:)a` → `a` |
 | `unwrapUselessGroups` | Unwrap nonbeneficial noncapturing, atomic, and flag groups | `(?:a)` → `a` |
