@@ -1,4 +1,4 @@
-import {AstCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
+import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
 Unnest non-negated character classes that don't contain intersection.
@@ -9,10 +9,10 @@ const unnestUselessClasses = {
     if (
       parent.type === NodeTypes.CharacterClass &&
       !negate &&
-      kind === AstCharacterClassKinds.union &&
+      kind === NodeCharacterClassKinds.union &&
       elements.length &&
       // [TODO] After supporting `format: 'implicit'` in the parser, update to flip the format if `'explicit'`
-      (parent.kind === AstCharacterClassKinds.union || elements.length === 1)
+      (parent.kind === NodeCharacterClassKinds.union || elements.length === 1)
     ) {
       replaceWithMultiple(elements, {traverse: true});
     }

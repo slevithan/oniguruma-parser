@@ -1,4 +1,4 @@
-import {AstAbsentFunctionKinds, AstAssertionKinds, AstCharacterClassKinds, AstCharacterSetKinds, AstLookaroundAssertionKinds, AstQuantifierKinds, NodeTypes} from '../parser/parse.js';
+import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes} from '../parser/parse.js';
 import {cp, r, throwIfNot} from '../utils.js';
 
 /**
@@ -42,7 +42,7 @@ const generator = {
   },
 
   AbsentFunction({kind, alternatives}, _, gen) {
-    if (kind !== AstAbsentFunctionKinds.repeater) {
+    if (kind !== NodeAbsentFunctionKinds.repeater) {
       throw new Error(`Unexpected absent function kind "${kind}"`);
     }
     return `(?~${alternatives.map(gen).join('|')})`;
@@ -53,10 +53,10 @@ const generator = {
   },
 
   Assertion({kind, negate}) {
-    if (kind === AstAssertionKinds.grapheme_boundary) {
+    if (kind === NodeAssertionKinds.grapheme_boundary) {
       return negate ? r`\Y` : r`\y`;
     }
-    if (kind === AstAssertionKinds.word_boundary) {
+    if (kind === NodeAssertionKinds.word_boundary) {
       return negate ? r`\B` : r`\b`;
     }
     return throwIfNot({
@@ -94,15 +94,15 @@ const generator = {
     function genClass() {
       if (
         state.inCharClass &&
-        state.parent.kind === AstCharacterClassKinds.intersection &&
-        kind === AstCharacterClassKinds.union &&
+        state.parent.kind === NodeCharacterClassKinds.intersection &&
+        kind === NodeCharacterClassKinds.union &&
         !elements.length
       ) {
         // Prevent empty intersection like `[&&]` from becoming the invalid `[[]&&[]]`
         return '';
       }
       return `[${negate ? '^' : ''}${
-        elements.map(gen).join(kind === AstCharacterClassKinds.intersection ? '&&' : '')
+        elements.map(gen).join(kind === NodeCharacterClassKinds.intersection ? '&&' : '')
       }]`;
     }
     if (!state.inCharClass) {
@@ -120,27 +120,27 @@ const generator = {
   },
 
   CharacterSet({kind, negate, value}, state) {
-    if (kind === AstCharacterSetKinds.digit) {
+    if (kind === NodeCharacterSetKinds.digit) {
       return negate ? r`\D` : r`\d`;
     }
-    if (kind === AstCharacterSetKinds.hex) {
+    if (kind === NodeCharacterSetKinds.hex) {
       return negate ? r`\H` : r`\h`;
     }
-    if (kind === AstCharacterSetKinds.newline) {
+    if (kind === NodeCharacterSetKinds.newline) {
       return negate ? r`\N` : r`\R`;
     }
-    if (kind === AstCharacterSetKinds.posix) {
+    if (kind === NodeCharacterSetKinds.posix) {
       return state.inCharClass ?
         `[:${negate ? '^' : ''}${value}:]` :
         `${negate ? r`\P` : r`\p`}{${value}}`;
     }
-    if (kind === AstCharacterSetKinds.property) {
+    if (kind === NodeCharacterSetKinds.property) {
       return `${negate ? r`\P` : r`\p`}{${value}}`;
     }
-    if (kind === AstCharacterSetKinds.space) {
+    if (kind === NodeCharacterSetKinds.space) {
       return negate ? r`\S` : r`\s`;
     }
-    if (kind === AstCharacterSetKinds.word) {
+    if (kind === NodeCharacterSetKinds.word) {
       return negate ? r`\W` : r`\w`;
     }
     return throwIfNot({
@@ -151,13 +151,13 @@ const generator = {
   },
 
   Directive({kind, flags}) {
-    if (kind === 'flags') {
+    if (kind === NodeDirectiveKinds.flags) {
       const {enable, disable} = flags;
       const enableStr = getFlagsStr(enable ?? {});
       const disableStr = getFlagsStr(disable ?? {});
       return (enableStr || disableStr) ? `(?${enableStr}${disableStr ? `-${disableStr}` : ''})` : '';
     }
-    if (kind === 'keep') {
+    if (kind === NodeDirectiveKinds.keep) {
       return r`\K`;
     }
     throw new Error(`Unexpected directive kind "${kind}"`);
@@ -173,7 +173,7 @@ const generator = {
   },
 
   LookaroundAssertion({kind, negate, alternatives}, _, gen) {
-    const prefix = `${kind === AstLookaroundAssertionKinds.lookahead ? '' : '<'}${negate ? '!' : '='}`;
+    const prefix = `${kind === NodeLookaroundAssertionKinds.lookahead ? '' : '<'}${negate ? '!' : '='}`;
     return `(?${prefix}${alternatives.map(gen).join('|')})`;
   },
 
@@ -196,7 +196,7 @@ const generator = {
       // quantifier chain
       allowPossessiveSuffix = false;
     } else {
-      base = kind === AstQuantifierKinds.possessive ?
+      base = kind === NodeQuantifierKinds.possessive ?
         `{${max},${min}}` :
         `{${min},${max === Infinity ? '' : max}}`;
       allowPossessiveSuffix = false;

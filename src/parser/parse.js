@@ -40,8 +40,8 @@ const NodeTypes = /** @type {const} */ ({
   Quantifier: 'Quantifier',
   Regex: 'Regex',
   Subroutine: 'Subroutine',
-  // Used only by the `oniguruma-to-es` transformer for Regex+ ASTs
-  // [TODO] Refactor to remove this type
+  // Type `Recursion` is used only by the `oniguruma-to-es` transformer for Regex+ ASTs
+  // [TODO] Refactor to remove this type: <github.com/slevithan/oniguruma-parser/issues/3>
   Recursion: 'Recursion',
 });
 
@@ -107,11 +107,11 @@ const NodeTypes = /** @type {const} */ ({
 */
 
 // See <github.com/slevithan/oniguruma-to-es/issues/13>
-const AstAbsentFunctionKinds = /** @type {const} */ ({
+const NodeAbsentFunctionKinds = /** @type {const} */ ({
   repeater: 'repeater',
 });
 
-const AstAssertionKinds = /** @type {const} */ ({
+const NodeAssertionKinds = /** @type {const} */ ({
   grapheme_boundary: 'grapheme_boundary',
   line_end: 'line_end',
   line_start: 'line_start',
@@ -122,17 +122,17 @@ const AstAssertionKinds = /** @type {const} */ ({
   word_boundary: 'word_boundary',
 });
 
-const AstCharacterClassKinds = /** @type {const} */ ({
+const NodeCharacterClassKinds = /** @type {const} */ ({
   union: 'union',
   intersection: 'intersection',
 });
 
 // Identical values
-const AstCharacterSetKinds = TokenCharacterSetKinds;
-const AstDirectiveKinds = TokenDirectiveKinds;
-const AstQuantifierKinds = TokenQuantifierKinds;
+const NodeCharacterSetKinds = TokenCharacterSetKinds;
+const NodeDirectiveKinds = TokenDirectiveKinds;
+const NodeQuantifierKinds = TokenQuantifierKinds;
 
-const AstLookaroundAssertionKinds = /** @type {const} */ ({
+const NodeLookaroundAssertionKinds = /** @type {const} */ ({
   lookahead: 'lookahead',
   lookbehind: 'lookbehind',
 });
@@ -216,7 +216,7 @@ function parse(pattern, options = {}) {
         return parseCharacterSet(context);
       case TokenTypes.Directive:
         return createDirective(
-          throwIfNot(AstDirectiveKinds[token.kind], `Unexpected directive kind "${token.kind}"`),
+          throwIfNot(NodeDirectiveKinds[token.kind], `Unexpected directive kind "${token.kind}"`),
           {flags: token.flags}
         );
       case TokenTypes.GroupOpen:
@@ -372,7 +372,7 @@ function parseCharacterClassOpen(context, state) {
   if (intersections.length === 1) {
     node.elements = intersections[0].elements;
   } else {
-    node.kind = AstCharacterClassKinds.intersection;
+    node.kind = NodeCharacterClassKinds.intersection;
     node.elements = intersections.map(cc => cc.elements.length === 1 ? cc.elements[0] : cc);
   }
   // Skip the closing square bracket
@@ -407,7 +407,7 @@ function parseGroupOpen(context, state) {
   const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context;
   let node = createByGroupKind(token);
   const isAbsentFunction = node.type === NodeTypes.AbsentFunction;
-  const isLookbehind = node.kind === AstLookaroundAssertionKinds.lookbehind;
+  const isLookbehind = node.kind === NodeLookaroundAssertionKinds.lookbehind;
   const isNegLookbehind = isLookbehind && node.negate;
   // Track capturing group details for backrefs and subroutines (before parsing the group's
   // contents so nested groups with the same name are tracked in order)
@@ -447,7 +447,7 @@ function parseGroupOpen(context, state) {
           // - Invalid: `(?=…)`, `(?!…)`, capturing groups
           // - Valid: `(?<=…)`, `(?<!…)`
           if (
-            child.kind === AstLookaroundAssertionKinds.lookahead ||
+            child.kind === NodeLookaroundAssertionKinds.lookahead ||
             child.type === NodeTypes.CapturingGroup
           ) {
             throw new Error(msg);
@@ -456,8 +456,8 @@ function parseGroupOpen(context, state) {
           // - Invalid: `(?=…)`, `(?!…)`, `(?<!…)`
           // - Valid: `(?<=…)`, capturing groups
           if (
-            child.kind === AstLookaroundAssertionKinds.lookahead ||
-            (child.kind === AstLookaroundAssertionKinds.lookbehind && child.negate)
+            child.kind === NodeLookaroundAssertionKinds.lookahead ||
+            (child.kind === NodeLookaroundAssertionKinds.lookbehind && child.negate)
           ) {
             throw new Error(msg);
           }
@@ -486,7 +486,7 @@ function parseQuantifier({token, parent}) {
     quantifiedNode,
     min,
     max,
-    throwIfNot(AstQuantifierKinds[kind], `Unexpected quantifier kind "${kind}"`)
+    throwIfNot(NodeQuantifierKinds[kind], `Unexpected quantifier kind "${kind}"`)
   );
   parent.elements.pop();
   return node;
@@ -548,16 +548,16 @@ function parseSubroutine(context) {
 /**
 @typedef {{
   type: 'AbsentFunction';
-  kind: keyof AstAbsentFunctionKinds;
+  kind: keyof NodeAbsentFunctionKinds;
   alternatives: Array<AlternativeNode>;
 }} AbsentFunctionNode
 */
 /**
-@param {keyof AstAbsentFunctionKinds} kind
+@param {keyof NodeAbsentFunctionKinds} kind
 @returns {AbsentFunctionNode}
 */
 function createAbsentFunction(kind) {
-  if (kind !== AstAbsentFunctionKinds.repeater) {
+  if (kind !== NodeAbsentFunctionKinds.repeater) {
     throw new Error(`Unexpected absent function kind "${kind}"`);
   }
   return {
@@ -586,12 +586,12 @@ function createAlternative() {
 /**
 @typedef {{
   type: 'Assertion';
-  kind: keyof AstAssertionKinds;
+  kind: keyof NodeAssertionKinds;
   negate?: boolean;
 }} AssertionNode
 */
 /**
-@param {keyof AstAssertionKinds} kind
+@param {keyof NodeAssertionKinds} kind
 @param {{
   negate?: boolean;
 }} [options]
@@ -602,7 +602,7 @@ function createAssertion(kind, options) {
     type: NodeTypes.Assertion,
     kind,
   };
-  if (kind === AstAssertionKinds.word_boundary || kind === AstAssertionKinds.grapheme_boundary) {
+  if (kind === NodeAssertionKinds.word_boundary || kind === NodeAssertionKinds.grapheme_boundary) {
     node.negate = !!options?.negate;
   }
   return node;
@@ -611,16 +611,16 @@ function createAssertion(kind, options) {
 function createAssertionFromToken({kind}) {
   return createAssertion(
     throwIfNot({
-      '^': AstAssertionKinds.line_start,
-      '$': AstAssertionKinds.line_end,
-      '\\A': AstAssertionKinds.string_start,
-      '\\b': AstAssertionKinds.word_boundary,
-      '\\B': AstAssertionKinds.word_boundary,
-      '\\G': AstAssertionKinds.search_start,
-      '\\y': AstAssertionKinds.grapheme_boundary,
-      '\\Y': AstAssertionKinds.grapheme_boundary,
-      '\\z': AstAssertionKinds.string_end,
-      '\\Z': AstAssertionKinds.string_end_newline,
+      '^': NodeAssertionKinds.line_start,
+      '$': NodeAssertionKinds.line_end,
+      '\\A': NodeAssertionKinds.string_start,
+      '\\b': NodeAssertionKinds.word_boundary,
+      '\\B': NodeAssertionKinds.word_boundary,
+      '\\G': NodeAssertionKinds.search_start,
+      '\\y': NodeAssertionKinds.grapheme_boundary,
+      '\\Y': NodeAssertionKinds.grapheme_boundary,
+      '\\z': NodeAssertionKinds.string_end,
+      '\\Z': NodeAssertionKinds.string_end_newline,
     }[kind], `Unexpected assertion kind "${kind}"`),
     {negate: kind === r`\B` || kind === r`\Y`}
   );
@@ -652,7 +652,7 @@ function createBackreference(ref, options) {
 function createByGroupKind({flags, kind, name, negate, number}) {
   switch (kind) {
     case TokenGroupKinds.absent_repeater:
-      return createAbsentFunction(AstAbsentFunctionKinds.repeater);
+      return createAbsentFunction(NodeAbsentFunctionKinds.repeater);
     case TokenGroupKinds.atomic:
       return createGroup({atomic: true});
     case TokenGroupKinds.capturing:
@@ -733,21 +733,21 @@ function createCharacter(charCode, options) {
 /**
 @typedef {{
   type: 'CharacterClass';
-  kind: keyof AstCharacterClassKinds;
+  kind: keyof NodeCharacterClassKinds;
   negate: boolean;
   elements: Array<CharacterClassElementNode>;
 }} CharacterClassNode
 */
 /**
 @param {{
-  kind?: keyof AstCharacterClassKinds;
+  kind?: keyof NodeCharacterClassKinds;
   negate?: boolean;
 }} [options]
 @returns {CharacterClassNode}
 */
 function createCharacterClass(options) {
   const opts = {
-    kind: AstCharacterClassKinds.union,
+    kind: NodeCharacterClassKinds.union,
     negate: false,
     ...options,
   };
@@ -785,20 +785,20 @@ function createCharacterClassRange(min, max) {
 /**
 @typedef {{
   type: 'CharacterSet';
-  kind: keyof AstCharacterSetKinds;
+  kind: keyof NodeCharacterSetKinds;
   value?: string;
   negate?: boolean;
   variableLength?: boolean;
 }} CharacterSetNode
 */
 /**
-@param {keyof Omit<AstCharacterSetKinds, 'posix' | 'property'>} kind
+@param {keyof Omit<NodeCharacterSetKinds, 'posix' | 'property'>} kind
 @param {{
   negate?: boolean;
 }} [options]
 @returns {
   Omit<CharacterSetNode, 'value'> & {
-    kind: keyof Omit<AstCharacterSetKinds, 'posix' | 'property'>;
+    kind: keyof Omit<NodeCharacterSetKinds, 'posix' | 'property'>;
   }
 }
 */
@@ -806,7 +806,7 @@ function createCharacterSet(kind, options) {
   const negate = !!options?.negate;
   const node = {
     type: NodeTypes.CharacterSet,
-    kind: throwIfNot(AstCharacterSetKinds[kind], `Unexpected character set kind "${kind}"`),
+    kind: throwIfNot(NodeCharacterSetKinds[kind], `Unexpected character set kind "${kind}"`),
   };
   if (
     kind === TokenCharacterSetKinds.digit ||
@@ -829,12 +829,12 @@ function createCharacterSet(kind, options) {
 /**
 @typedef {{
   type: 'Directive';
-  kind: keyof AstDirectiveKinds;
+  kind: keyof NodeDirectiveKinds;
   flags?: FlagGroupModifiers;
 }} DirectiveNode
 */
 /**
-@param {keyof AstDirectiveKinds} kind
+@param {keyof NodeDirectiveKinds} kind
 @param {{
   flags?: FlagGroupModifiers;
 }} [options]
@@ -848,7 +848,7 @@ function createDirective(kind, options) {
   // Can't optimize by simply creating a `Group` with a `flags` prop and wrapping the remainder of
   // the open group or pattern in it, because the flag modifier's effect might extend across
   // alternation. Ex: `a(?i)b|c` is equivalent to `a(?i:b)|(?i:c)`, not `a(?i:b|c)`
-  if (kind === AstDirectiveKinds.flags) {
+  if (kind === NodeDirectiveKinds.flags) {
     node.flags = options.flags;
   }
   return node;
@@ -903,7 +903,7 @@ function createGroup(options) {
 /**
 @typedef {{
   type: 'LookaroundAssertion';
-  kind: keyof AstLookaroundAssertionKinds;
+  kind: keyof NodeLookaroundAssertionKinds;
   negate: boolean;
   alternatives: Array<AlternativeNode>;
 }} LookaroundAssertionNode
@@ -923,7 +923,7 @@ function createLookaroundAssertion(options) {
   };
   return {
     type: NodeTypes.LookaroundAssertion,
-    kind: opts.behind ? AstLookaroundAssertionKinds.lookbehind : AstLookaroundAssertionKinds.lookahead,
+    kind: opts.behind ? NodeLookaroundAssertionKinds.lookbehind : NodeLookaroundAssertionKinds.lookahead,
     negate: opts.negate,
     alternatives: [createAlternative()],
   };
@@ -965,7 +965,7 @@ function createPosixClass(name, options) {
   }
   return {
     type: NodeTypes.CharacterSet,
-    kind: AstCharacterSetKinds.posix,
+    kind: NodeCharacterSetKinds.posix,
     value: name,
     negate,
   };
@@ -976,7 +976,7 @@ function createPosixClass(name, options) {
   type: 'Quantifier';
   min: number;
   max: number;
-  kind: keyof AstQuantifierKinds;
+  kind: keyof NodeQuantifierKinds;
   element: QuantifiableNode;
 }} QuantifierNode
 */
@@ -984,10 +984,10 @@ function createPosixClass(name, options) {
 @param {QuantifiableNode} element
 @param {number} min
 @param {number} max
-@param {keyof AstQuantifierKinds} [kind]
+@param {keyof NodeQuantifierKinds} [kind]
 @returns {QuantifierNode}
 */
-function createQuantifier(element, min, max, kind = AstQuantifierKinds.greedy) {
+function createQuantifier(element, min, max, kind = NodeQuantifierKinds.greedy) {
   const node = {
     type: NodeTypes.Quantifier,
     min,
@@ -1000,7 +1000,7 @@ function createQuantifier(element, min, max, kind = AstQuantifierKinds.greedy) {
       ...node,
       min: max,
       max: min,
-      kind: AstQuantifierKinds.possessive,
+      kind: NodeQuantifierKinds.possessive,
     };
   }
   return node;
@@ -1078,7 +1078,7 @@ function createUnicodeProperty(name, options) {
   }
   return {
     type: NodeTypes.CharacterSet,
-    kind: AstCharacterSetKinds.property,
+    kind: NodeCharacterSetKinds.property,
     value: normalized ?? name,
     negate: opts.negate,
   }
@@ -1114,14 +1114,14 @@ function throwIfUnclosedGroup(token) {
 }
 
 export {
-  AstAbsentFunctionKinds,
-  AstAssertionKinds,
-  AstCharacterClassKinds,
-  AstCharacterSetKinds,
-  AstDirectiveKinds,
-  AstLookaroundAssertionKinds,
+  NodeAbsentFunctionKinds,
+  NodeAssertionKinds,
+  NodeCharacterClassKinds,
+  NodeCharacterSetKinds,
+  NodeDirectiveKinds,
+  NodeLookaroundAssertionKinds,
   NodeTypes,
-  AstQuantifierKinds,
+  NodeQuantifierKinds,
   createAbsentFunction,
   createAlternative,
   createAssertion,
