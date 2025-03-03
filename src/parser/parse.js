@@ -1,5 +1,6 @@
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
-import {getOrInsert, PosixClassNames, r, slug, throwIfNot} from '../utils.js';
+import {slug} from '../unicode.js';
+import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
 
 /**
 @typedef {

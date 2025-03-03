@@ -1,9 +1,5 @@
-import {generate} from './generator/generate.js';
-import {optimize} from './optimizer/optimize.js';
 import {parse} from './parser/parse.js';
-import {traverse} from './traverser/traverse.js';
-import {OnigUnicodePropertyMap} from './unicode-properties.js';
-import {slug} from './utils.js';
+import {OnigUnicodePropertyMap} from './unicode.js';
 
 /**
 Returns an Oniguruma AST generated from an Oniguruma pattern.
@@ -33,10 +29,5 @@ function toOnigurumaAst(pattern, options = {}) {
 }
 
 export {
-  generate,
-  optimize,
-  parse,
-  slug,
-  traverse,
   toOnigurumaAst,
 };

@@ -1,9 +1,8 @@
-import {slug} from './utils.js';
-
-// All Unicode properties supported by Oniguruma as of v6.9.10 (Unicode v16.0.0)
-// Copied from <github.com/kkos/oniguruma/blob/master/doc/UNICODE_PROPERTIES>
-
-const OnigUnicodePropertyMap = new Map(
+/**
+All Unicode properties supported by Oniguruma as of v6.9.10 (Unicode v16.0.0).
+Copied from <github.com/kkos/oniguruma/blob/master/doc/UNICODE_PROPERTIES>
+*/
+const OnigUnicodePropertyMap = /* @__PURE__ */ new Map(
 `ASCII_Hex_Digit
 Adlam
 Ahom
@@ -879,6 +878,16 @@ In_No_Block`.
   map(p => [slug(p), p])
 );
 
+/**
+Generates a Unicode property lookup name: lowercase, without spaces, hyphens, or underscores.
+@param {string} name Unicode property name.
+@returns {string}
+*/
+function slug(name) {
+  return name.replace(/[- _]+/g, '').toLowerCase();
+}
+
 export {
   OnigUnicodePropertyMap,
+  slug,
 };
