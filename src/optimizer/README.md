@@ -56,18 +56,19 @@ Some of the following optimizations (related to the representation of tokens) do
 |  Optimization name | Description | Example |
 |-|-|-|
 | | Remove unnecessary escapes | `\![\?]` → `![?]` |
-| | Remove leading zeros from backreference/subroutine numbers | `()\k<01>` → `()\k<1>` |
 | | Remove leading zeros from enclosed character escapes | `\x{0061}` → `\x{61}` |
 | | Remove leading zeros from quantifier ranges | `a{01,03}` → `a{1,3}` |
+| | Remove leading zeros from backreference/subroutine numbers | `()\k<01>` → `()\k<1>` |
+| | Unenclose numbered backreferences | `()\k<1>` → `()\1` |
 | | Use the simplest character representation | `\u0061` → `a` |
 | | Use outer negation for Unicode properties | `\p{^L}` → `\P{L}` |
 | | Use symbols for quantifier ranges when possible | `a{1,}` → `a+` |
-| | Unenclose numbered backreferences | `()\k<1>` → `()\1` |
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, even if quantified | `(?:)a` → `a` |
 | `unwrapUselessGroups` | Unwrap nonbeneficial noncapturing, atomic, and flag groups | `(?:a)` → `a` |
 | `unwrapUselessClasses` | Unwrap outermost character classes containing a single character or character set | `[\s]` → `\s` |
 | `unnestUselessClasses` | Unnest non-negated character classes that don't contain intersection | `[a[b]]` → `[ab]` |
 | `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[^[^a]]` → `[a]` |
+| `dedupeClasses` | Remove duplicate characters, character sets, and ranges from character classes | `[a\x61]` → `[a]` |
 
 Optimizations are applied in a loop until no further optimization progress is made.
 
