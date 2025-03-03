@@ -1,5 +1,7 @@
 # oniguruma-parser
 
+[![npm version][npm-version-src]][npm-version-href]
+
 This library can be used to create, traverse, transform, validate, and optimize [Oniguruma](https://github.com/kkos/oniguruma) regular expressions and ASTs.
 
 The core function is `toOnigurumaAst`, which returns an Oniguruma AST generated from an Oniguruma pattern.
@@ -77,3 +79,8 @@ Additional edge case differences will be documented here soon. This library was 
 Created by [Steven Levithan](https://github.com/slevithan), originally as part of [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es). If you want to support this project, I'd love your help by contributing improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
 MIT License.
+
+<!-- Badges -->
+
+[npm-version-src]: https://img.shields.io/npm/v/oniguruma-parser?color=78C372
+[npm-version-href]: https://npmjs.com/package/oniguruma-parser
