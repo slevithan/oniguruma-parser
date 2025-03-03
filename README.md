@@ -21,7 +21,7 @@ function toOnigurumaAst(
 
 An error is thrown if the pattern isn't valid in Oniguruma.
 
-Additional exports are available that provide access to the [Parser](https://github.com/slevithan/oniguruma-parser/tree/main/src/parser), [Traverser](https://github.com/slevithan/oniguruma-parser/tree/main/src/traverser), [Generator](https://github.com/slevithan/oniguruma-parser/tree/main/src/generator), and [Optimizer](https://github.com/slevithan/oniguruma-parser/tree/main/src/optimizer) modules.
+Additional exports are available that provide access to the [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md), [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md), [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md), and [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md) modules.
 
 ## Known differences
 
