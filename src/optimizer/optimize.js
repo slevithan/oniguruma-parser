@@ -57,6 +57,14 @@ function getOptions(options = {}) {
   };
 }
 
+/**
+@param {{
+  disable?: boolean;
+}} [options]
+@returns {
+  {[key in import('./optimizations.js').OptimizationName]: boolean}
+}
+*/
 function getAllOptimizations({disable} = {}) {
   const obj = {};
   for (const key of optimizations.keys()) {
