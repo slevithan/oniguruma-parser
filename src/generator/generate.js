@@ -1,4 +1,4 @@
-import {AstAbsentFunctionKinds, AstAssertionKinds, AstCharacterClassKinds, AstCharacterSetKinds, AstLookaroundAssertionKinds, AstQuantifierKinds, AstTypes} from '../parser/parse.js';
+import {AstAbsentFunctionKinds, AstAssertionKinds, AstCharacterClassKinds, AstCharacterSetKinds, AstLookaroundAssertionKinds, AstQuantifierKinds, NodeTypes} from '../parser/parse.js';
 import {cp, r, throwIfNot} from '../utils.js';
 
 /**
@@ -85,7 +85,7 @@ const generator = {
 
   Character({value}, state) {
     return getCharEscape(value, {
-      escDigit: state.lastNode.type === AstTypes.Backreference,
+      escDigit: state.lastNode.type === NodeTypes.Backreference,
       inCharClass: state.inCharClass,
     });
   },

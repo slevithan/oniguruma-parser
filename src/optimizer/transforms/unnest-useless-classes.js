@@ -1,4 +1,4 @@
-import {AstCharacterClassKinds, AstTypes} from '../../parser/parse.js';
+import {AstCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
 Unnest non-negated character classes that don't contain intersection.
@@ -7,7 +7,7 @@ const unnestUselessClasses = {
   CharacterClass({node, parent, replaceWithMultiple}) {
     const {kind, negate, elements} = node;
     if (
-      parent.type === AstTypes.CharacterClass &&
+      parent.type === NodeTypes.CharacterClass &&
       !negate &&
       kind === AstCharacterClassKinds.union &&
       elements.length &&

@@ -1,4 +1,4 @@
-import {AstTypes} from '../../parser/parse.js';
+import {NodeTypes} from '../../parser/parse.js';
 import {atomicTypes, quantifiableTypes} from '../../parser/node-types.js';
 
 /**
@@ -7,7 +7,7 @@ Unwrap nonbeneficial noncapturing, atomic, and flag groups.
 const unwrapUselessGroups = {
   Group({node, parent, replaceWithMultiple}) {
     const {alternatives, atomic, flags} = node;
-    if (alternatives.length > 1 || parent.type === AstTypes.Quantifier) {
+    if (alternatives.length > 1 || parent.type === NodeTypes.Quantifier) {
       return;
     }
     const els = alternatives[0].elements;
@@ -33,7 +33,7 @@ const unwrapUselessGroups = {
   },
 
   Quantifier({node}) {
-    if (node.element.type !== AstTypes.Group) {
+    if (node.element.type !== NodeTypes.Group) {
       return;
     }
     const quantifiedGroup = node.element;

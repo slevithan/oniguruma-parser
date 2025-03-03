@@ -1,4 +1,4 @@
-import {AstTypes} from '../../parser/parse.js';
+import {NodeTypes} from '../../parser/parse.js';
 
 /**
 Remove empty noncapturing, atomic, and flag groups, even if quantified.
@@ -12,7 +12,7 @@ const removeEmptyGroups = {
 
   Quantifier({node, remove}) {
     let kid = node.element;
-    while (kid.type === AstTypes.Quantifier) {
+    while (kid.type === NodeTypes.Quantifier) {
       kid = kid.element;
     }
     if (isEmptyGroup(kid)) {
@@ -23,7 +23,7 @@ const removeEmptyGroups = {
 
 function isEmptyGroup(node) {
   return (
-    node.type === AstTypes.Group &&
+    node.type === NodeTypes.Group &&
     node.alternatives.every(alt => !alt.elements.length)
   );
 }

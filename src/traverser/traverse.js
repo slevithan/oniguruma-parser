@@ -1,4 +1,4 @@
-import {AstTypes} from '../parser/parse.js';
+import {NodeTypes} from '../parser/parse.js';
 import {throwIfNot} from '../utils.js';
 
 /**
@@ -27,7 +27,7 @@ import {throwIfNot} from '../utils.js';
 /**
 @param {import('../parser/parse.js').OnigurumaAst} ast
 @param {{
-  [key in ('*' | import('../parser/parse.js').AstType)]?: Transformer | {enter?: Transformer, exit?: Transformer};
+  [key in ('*' | import('../parser/parse.js').NodeType)]?: Transformer | {enter?: Transformer, exit?: Transformer};
 }} visitor
 @param {{
   [key: string]: any;
@@ -100,37 +100,37 @@ function traverse(ast, visitor, state = null) {
 
     if (!skipTraversingKidsOfPath) {
       switch (node.type) {
-        case AstTypes.Regex:
+        case NodeTypes.Regex:
           traverseNode(node.pattern, node, 'pattern');
           traverseNode(node.flags, node, 'flags');
           break;
-        case AstTypes.Alternative:
-        case AstTypes.CharacterClass:
+        case NodeTypes.Alternative:
+        case NodeTypes.CharacterClass:
           traverseArray(node.elements, node);
           break;
-        case AstTypes.Assertion:
-        case AstTypes.Backreference:
-        case AstTypes.Character:
-        case AstTypes.CharacterSet:
-        case AstTypes.Directive:
-        case AstTypes.Flags:
-        case AstTypes.Recursion:
-        case AstTypes.Subroutine:
+        case NodeTypes.Assertion:
+        case NodeTypes.Backreference:
+        case NodeTypes.Character:
+        case NodeTypes.CharacterSet:
+        case NodeTypes.Directive:
+        case NodeTypes.Flags:
+        case NodeTypes.Recursion:
+        case NodeTypes.Subroutine:
           break;
-        case AstTypes.AbsentFunction:
-        case AstTypes.CapturingGroup:
-        case AstTypes.Group:
-        case AstTypes.Pattern:
+        case NodeTypes.AbsentFunction:
+        case NodeTypes.CapturingGroup:
+        case NodeTypes.Group:
+        case NodeTypes.Pattern:
           traverseArray(node.alternatives, node);
           break;
-        case AstTypes.CharacterClassRange:
+        case NodeTypes.CharacterClassRange:
           traverseNode(node.min, node, 'min');
           traverseNode(node.max, node, 'max');
           break;
-        case AstTypes.LookaroundAssertion:
+        case NodeTypes.LookaroundAssertion:
           traverseArray(node.alternatives, node);
           break;
-        case AstTypes.Quantifier:
+        case NodeTypes.Quantifier:
           traverseNode(node.element, node, 'element');
           break;
         default:

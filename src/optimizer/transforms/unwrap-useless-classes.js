@@ -1,4 +1,4 @@
-import {AstCharacterClassKinds, AstTypes} from '../../parser/parse.js';
+import {AstCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
 Unwrap outermost character classes containing a single character or character set.
@@ -8,11 +8,11 @@ const unwrapUselessClasses = {
     const {kind, negate, elements} = node;
     const firstEl = elements[0];
     if (
-      parent.type !== AstTypes.CharacterClass &&
+      parent.type !== NodeTypes.CharacterClass &&
       !negate &&
       kind === AstCharacterClassKinds.union &&
       elements.length === 1 &&
-      (firstEl.type === AstTypes.Character || firstEl.type === AstTypes.CharacterSet)
+      (firstEl.type === NodeTypes.Character || firstEl.type === NodeTypes.CharacterSet)
     ) {
       replaceWith(firstEl, {traverse: true});
     }

@@ -1,24 +1,24 @@
-import {AstTypes} from './parse.js';
+import {NodeTypes} from './parse.js';
 
 const atomicTypes = new Set([
-  AstTypes.Assertion,
-  AstTypes.Backreference,
-  AstTypes.Character,
-  AstTypes.CharacterClass,
-  AstTypes.CharacterSet,
-  AstTypes.Directive,
+  NodeTypes.Assertion,
+  NodeTypes.Backreference,
+  NodeTypes.Character,
+  NodeTypes.CharacterClass,
+  NodeTypes.CharacterSet,
+  NodeTypes.Directive,
 ]);
 
 const quantifiableTypes = new Set([
-  AstTypes.AbsentFunction,
-  AstTypes.Backreference,
-  AstTypes.CapturingGroup,
-  AstTypes.Character,
-  AstTypes.CharacterClass,
-  AstTypes.CharacterSet,
-  AstTypes.Group,
-  AstTypes.Quantifier,
-  AstTypes.Subroutine,
+  NodeTypes.AbsentFunction,
+  NodeTypes.Backreference,
+  NodeTypes.CapturingGroup,
+  NodeTypes.Character,
+  NodeTypes.CharacterClass,
+  NodeTypes.CharacterSet,
+  NodeTypes.Group,
+  NodeTypes.Quantifier,
+  NodeTypes.Subroutine,
 ]);
 
 export {

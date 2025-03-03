@@ -1,4 +1,4 @@
-import {AstCharacterClassKinds, AstTypes} from '../../parser/parse.js';
+import {AstCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
 Unnest character classes that are an only-child of a character class.
@@ -10,7 +10,7 @@ const unnestOnlyChildClasses = {
     if (
       kind === AstCharacterClassKinds.union &&
       elements.length === 1 &&
-      firstEl.type === AstTypes.CharacterClass &&
+      firstEl.type === NodeTypes.CharacterClass &&
       firstEl.kind === AstCharacterClassKinds.union
     ) {
       firstEl.negate = negate !== firstEl.negate;

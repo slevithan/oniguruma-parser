@@ -20,9 +20,9 @@ import {getOrInsert, PosixClassNames, r, slug, throwIfNot} from '../utils.js';
   'Quantifier' |
   'Regex' |
   'Subroutine'
-} AstType
+} NodeType
 */
-const AstTypes = /** @type {const} */ ({
+const NodeTypes = /** @type {const} */ ({
   AbsentFunction: 'AbsentFunction',
   Alternative: 'Alternative',
   Assertion: 'Assertion',
@@ -233,7 +233,7 @@ function parse(pattern, options = {}) {
   let top = ast.pattern.alternatives[0];
   while (context.current < tokenized.tokens.length) {
     const node = walk(top, {});
-    if (node.type === AstTypes.Alternative) {
+    if (node.type === NodeTypes.Alternative) {
       ast.pattern.alternatives.push(node);
       top = node;
     } else {
@@ -331,8 +331,8 @@ function parseCharacterClassHyphen(context, state) {
   if (
     !state.isCheckingRangeEnd &&
     prevSiblingNode &&
-    prevSiblingNode.type !== AstTypes.CharacterClass &&
-    prevSiblingNode.type !== AstTypes.CharacterClassRange &&
+    prevSiblingNode.type !== NodeTypes.CharacterClass &&
+    prevSiblingNode.type !== NodeTypes.CharacterClassRange &&
     nextToken &&
     nextToken.type !== TokenTypes.CharacterClassOpen &&
     nextToken.type !== TokenTypes.CharacterClassClose &&
@@ -342,7 +342,7 @@ function parseCharacterClassHyphen(context, state) {
       ...state,
       isCheckingRangeEnd: true,
     });
-    if (prevSiblingNode.type === AstTypes.Character && nextNode.type === AstTypes.Character) {
+    if (prevSiblingNode.type === NodeTypes.Character && nextNode.type === NodeTypes.Character) {
       parent.elements.pop();
       return createCharacterClassRange(prevSiblingNode, nextNode);
     }
@@ -406,12 +406,12 @@ function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNa
 function parseGroupOpen(context, state) {
   const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context;
   let node = createByGroupKind(token);
-  const isAbsentFunction = node.type === AstTypes.AbsentFunction;
+  const isAbsentFunction = node.type === NodeTypes.AbsentFunction;
   const isLookbehind = node.kind === AstLookaroundAssertionKinds.lookbehind;
   const isNegLookbehind = isLookbehind && node.negate;
   // Track capturing group details for backrefs and subroutines (before parsing the group's
   // contents so nested groups with the same name are tracked in order)
-  if (node.type === AstTypes.CapturingGroup) {
+  if (node.type === NodeTypes.CapturingGroup) {
     capturingGroups.push(node);
     if (node.name) {
       getOrInsert(namedGroupsByName, node.name, []).push(node);
@@ -448,7 +448,7 @@ function parseGroupOpen(context, state) {
           // - Valid: `(?<=…)`, `(?<!…)`
           if (
             child.kind === AstLookaroundAssertionKinds.lookahead ||
-            child.type === AstTypes.CapturingGroup
+            child.type === NodeTypes.CapturingGroup
           ) {
             throw new Error(msg);
           }
@@ -476,9 +476,9 @@ function parseQuantifier({token, parent}) {
   const quantifiedNode = parent.elements.at(-1);
   if (
     !quantifiedNode ||
-    quantifiedNode.type === AstTypes.Assertion ||
-    quantifiedNode.type === AstTypes.Directive ||
-    quantifiedNode.type === AstTypes.LookaroundAssertion
+    quantifiedNode.type === NodeTypes.Assertion ||
+    quantifiedNode.type === NodeTypes.Directive ||
+    quantifiedNode.type === NodeTypes.LookaroundAssertion
   ) {
     throw new Error(`Quantifier requires a repeatable token`);
   }
@@ -561,7 +561,7 @@ function createAbsentFunction(kind) {
     throw new Error(`Unexpected absent function kind "${kind}"`);
   }
   return {
-    type: AstTypes.AbsentFunction,
+    type: NodeTypes.AbsentFunction,
     kind,
     alternatives: [createAlternative()],
   };
@@ -578,7 +578,7 @@ function createAbsentFunction(kind) {
 */
 function createAlternative() {
   return {
-    type: AstTypes.Alternative,
+    type: NodeTypes.Alternative,
     elements: [],
   };
 }
@@ -599,7 +599,7 @@ function createAlternative() {
 */
 function createAssertion(kind, options) {
   const node = {
-    type: AstTypes.Assertion,
+    type: NodeTypes.Assertion,
     kind,
   };
   if (kind === AstAssertionKinds.word_boundary || kind === AstAssertionKinds.grapheme_boundary) {
@@ -643,7 +643,7 @@ function createAssertionFromToken({kind}) {
 function createBackreference(ref, options) {
   const orphan = !!options?.orphan;
   return {
-    type: AstTypes.Backreference,
+    type: NodeTypes.Backreference,
     ref,
     ...(orphan && {orphan}),
   };
@@ -689,7 +689,7 @@ function createCapturingGroup(number, name) {
     throw new Error(`Group name "${name}" invalid in Oniguruma`);
   }
   return {
-    type: AstTypes.CapturingGroup,
+    type: NodeTypes.CapturingGroup,
     number,
     ...(hasName && {name}),
     alternatives: [createAlternative()],
@@ -725,7 +725,7 @@ function createCharacter(charCode, options) {
     }
   }
   return {
-    type: AstTypes.Character,
+    type: NodeTypes.Character,
     value: charCode,
   };
 }
@@ -752,7 +752,7 @@ function createCharacterClass(options) {
     ...options,
   };
   return {
-    type: AstTypes.CharacterClass,
+    type: NodeTypes.CharacterClass,
     kind: opts.kind,
     negate: opts.negate,
     elements: [],
@@ -776,7 +776,7 @@ function createCharacterClassRange(min, max) {
     throw new Error('Character class range out of order');
   }
   return {
-    type: AstTypes.CharacterClassRange,
+    type: NodeTypes.CharacterClassRange,
     min,
     max,
   };
@@ -805,7 +805,7 @@ function createCharacterClassRange(min, max) {
 function createCharacterSet(kind, options) {
   const negate = !!options?.negate;
   const node = {
-    type: AstTypes.CharacterSet,
+    type: NodeTypes.CharacterSet,
     kind: throwIfNot(AstCharacterSetKinds[kind], `Unexpected character set kind "${kind}"`),
   };
   if (
@@ -842,7 +842,7 @@ function createCharacterSet(kind, options) {
 */
 function createDirective(kind, options) {
   const node = {
-    type: AstTypes.Directive,
+    type: NodeTypes.Directive,
     kind,
   };
   // Can't optimize by simply creating a `Group` with a `flags` prop and wrapping the remainder of
@@ -865,7 +865,7 @@ function createDirective(kind, options) {
 */
 function createFlags(flags) {
   return {
-    type: AstTypes.Flags,
+    type: NodeTypes.Flags,
     ...flags,
   };
 }
@@ -893,7 +893,7 @@ function createGroup(options) {
   const atomic = options?.atomic;
   const flags = options?.flags;
   return {
-    type: AstTypes.Group,
+    type: NodeTypes.Group,
     ...(atomic && {atomic}),
     ...(flags && {flags}),
     alternatives: [createAlternative()],
@@ -922,7 +922,7 @@ function createLookaroundAssertion(options) {
     ...options,
   };
   return {
-    type: AstTypes.LookaroundAssertion,
+    type: NodeTypes.LookaroundAssertion,
     kind: opts.behind ? AstLookaroundAssertionKinds.lookbehind : AstLookaroundAssertionKinds.lookahead,
     negate: opts.negate,
     alternatives: [createAlternative()],
@@ -940,7 +940,7 @@ function createLookaroundAssertion(options) {
 */
 function createPattern() {
   return {
-    type: AstTypes.Pattern,
+    type: NodeTypes.Pattern,
     alternatives: [createAlternative()],
   };
 }
@@ -964,7 +964,7 @@ function createPosixClass(name, options) {
     throw new Error(`Invalid POSIX class "${name}"`);
   }
   return {
-    type: AstTypes.CharacterSet,
+    type: NodeTypes.CharacterSet,
     kind: AstCharacterSetKinds.posix,
     value: name,
     negate,
@@ -989,7 +989,7 @@ function createPosixClass(name, options) {
 */
 function createQuantifier(element, min, max, kind = AstQuantifierKinds.greedy) {
   const node = {
-    type: AstTypes.Quantifier,
+    type: NodeTypes.Quantifier,
     min,
     max,
     kind,
@@ -1020,7 +1020,7 @@ function createQuantifier(element, min, max, kind = AstQuantifierKinds.greedy) {
 */
 function createRegex(pattern, flags) {
   return {
-    type: AstTypes.Regex,
+    type: NodeTypes.Regex,
     pattern,
     flags,
   };
@@ -1038,7 +1038,7 @@ function createRegex(pattern, flags) {
 */
 function createSubroutine(ref) {
   return {
-    type: AstTypes.Subroutine,
+    type: NodeTypes.Subroutine,
     ref,
   };
 }
@@ -1077,7 +1077,7 @@ function createUnicodeProperty(name, options) {
     }
   }
   return {
-    type: AstTypes.CharacterSet,
+    type: NodeTypes.CharacterSet,
     kind: AstCharacterSetKinds.property,
     value: normalized ?? name,
     negate: opts.negate,
@@ -1120,7 +1120,7 @@ export {
   AstCharacterSetKinds,
   AstDirectiveKinds,
   AstLookaroundAssertionKinds,
-  AstTypes,
+  NodeTypes,
   AstQuantifierKinds,
   createAbsentFunction,
   createAlternative,

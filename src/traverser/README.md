@@ -14,7 +14,7 @@ import {traverse} from 'oniguruma-parser/traverser';
 function traverse(
   ast: OnigurumaAst,
   visitor: {
-    [key in ('*' | AstType)]?: Transformer | {
+    [key in ('*' | NodeType)]?: Transformer | {
       enter?: Transformer;
       exit?: Transformer;
     };
