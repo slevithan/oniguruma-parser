@@ -8,7 +8,7 @@ Benefits:
 - Optimized regexes may be easier to read.
 - Some optimizations may improve performance.
 
-The optimizer takes provided flags into account but it doesn't change top-level flags so that the optimized pattern can be used in situations where you aren't able to change the provided flags. The exception is flag `x`, which is always removed since its effects are always applied to the generated pattern.
+The optimizer takes provided flags into account but it doesn't change top-level flags so that the optimized pattern can be used in situations where you aren't able to change the provided flags. The exception is flag `x`, which is always removed since its effects (if included) are always applied to the generated pattern.
 
 ## Import
 
@@ -48,17 +48,17 @@ The following optimizations are always enabled. They result from the nature of t
 | Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
 | Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
 | Resolve relative backreference/subroutine numbers | `()\k<-1>` → `()\k<1>` |
-| Remove leading zeros from backreference/subroutine numbers | `()\k<01>` → `()\k<1>` |
-| Remove leading zeros from enclosed character escapes | `\x{0061}` → `\x{61}` |
-| Remove leading zeros from quantifier ranges | `a{01,03}` → `a{1,3}` |
 
 ### On by default
 
-Some of the following optimizations (related to the representation of tokens) don't yet have names because they're currently always enabled. They will be optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
+Some of the following optimizations (related to the representation of tokens) don't yet have names because, currently, they're always enabled. They will be optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
 
 |  Optimization name | Description | Example |
 |-|-|-|
 | | Remove unnecessary escapes | `\![\?]` → `![?]` |
+| | Remove leading zeros from backreference/subroutine numbers | `()\k<01>` → `()\k<1>` |
+| | Remove leading zeros from enclosed character escapes | `\x{0061}` → `\x{61}` |
+| | Remove leading zeros from quantifier ranges | `a{01,03}` → `a{1,3}` |
 | | Use the simplest character representation | `\u0061` → `a` |
 | | Use outer negation for Unicode properties | `\p{^L}` → `\P{L}` |
 | | Use symbols for quantifier ranges when possible | `a{1,}` → `a+` |
