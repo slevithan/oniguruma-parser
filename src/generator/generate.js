@@ -93,7 +93,7 @@ const generator = {
   CharacterClass({kind, negate, elements}, state, gen) {
     function genClass() {
       if (
-        state.inCharClass &&
+        state.parent.type === NodeTypes.CharacterClass &&
         state.parent.kind === NodeCharacterClassKinds.intersection &&
         kind === NodeCharacterClassKinds.union &&
         !elements.length
@@ -152,9 +152,9 @@ const generator = {
 
   Directive({kind, flags}) {
     if (kind === NodeDirectiveKinds.flags) {
-      const {enable, disable} = flags;
-      const enableStr = getFlagsStr(enable ?? {});
-      const disableStr = getFlagsStr(disable ?? {});
+      const {enable = {}, disable = {}} = flags;
+      const enableStr = getFlagsStr(enable);
+      const disableStr = getFlagsStr(disable);
       return (enableStr || disableStr) ? `(?${enableStr}${disableStr ? `-${disableStr}` : ''})` : '';
     }
     if (kind === NodeDirectiveKinds.keep) {
@@ -192,7 +192,7 @@ const generator = {
       base = '+';
     } else if (min === max) {
       base = `{${min}}`;
-      // Don't really need this since it should never be possessive; a following `+` creates a
+      // Don't really need this here since it should never be possessive; a following `+` creates a
       // quantifier chain
       allowPossessiveSuffix = false;
     } else {
@@ -309,8 +309,10 @@ function getGroupPrefix(atomic, flagMods) {
   }
   let mods = '';
   if (flagMods) {
-    const {enable, disable} = flagMods;
-    mods = `${getFlagsStr(enable ?? {})}${disable ? '-' : ''}${getFlagsStr(disable ?? {})}`;
+    const {enable = {}, disable = {}} = flagMods;
+    const enableStr = getFlagsStr(enable);
+    const disableStr = getFlagsStr(disable);
+    mods = `${enableStr}${disableStr ? `-${disableStr}` : ''}`;
   }
   return `${mods}:`;
 }
