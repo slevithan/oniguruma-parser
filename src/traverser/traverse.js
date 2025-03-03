@@ -1,7 +1,7 @@
 import {AstTypes} from '../parser/parse.js';
 import {throwIfNot} from '../utils.js';
 
-function traverse(ast, state, visitor) {
+function traverse(ast, visitor, state = null) {
   function traverseArray(array, parent) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);
