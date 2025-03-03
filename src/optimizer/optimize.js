@@ -40,7 +40,7 @@ function optimize(pattern, options) {
     }
     pattern = optimized.pattern;
     for (const name of names) {
-      traverse({node: ast}, null, optimizations.get(name));
+      traverse(ast, null, optimizations.get(name));
     }
     optimized = generate(ast);
   // Continue until no further optimization progress is made
