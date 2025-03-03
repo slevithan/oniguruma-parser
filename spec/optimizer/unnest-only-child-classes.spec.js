@@ -1,10 +1,10 @@
-import {optimize, getAllOptimizations} from '../../dist/optimizer/optimize.js';
+import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 
 describe('Optimizer: unnestOnlyChildClasses', () => {
   function thisOptimization(pattern) {
     return optimize(pattern, {
       override: {
-        ...getAllOptimizations({disable: true}),
+        ...getOptionalOptimizations({disable: true}),
         unnestOnlyChildClasses: true,
       },
     }).pattern;

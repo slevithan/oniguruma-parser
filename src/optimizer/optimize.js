@@ -25,7 +25,7 @@ function optimize(pattern, options) {
     flags: opts.flags,
     rules: opts.rules,
   });
-  const active = Object.assign(getAllOptimizations(), opts.override);
+  const active = Object.assign(getOptionalOptimizations(), opts.override);
   Object.keys(active).forEach(key => {
     if (!active[key]) {
       delete active[key];
@@ -65,7 +65,7 @@ function getOptions(options = {}) {
   {[key in import('./optimizations.js').OptimizationName]: boolean}
 }
 */
-function getAllOptimizations({disable} = {}) {
+function getOptionalOptimizations({disable} = {}) {
   const obj = {};
   for (const key of optimizations.keys()) {
     obj[key] = !disable;
@@ -74,6 +74,6 @@ function getAllOptimizations({disable} = {}) {
 }
 
 export {
-  getAllOptimizations,
+  getOptionalOptimizations,
   optimize,
 };

@@ -1,11 +1,11 @@
-import {optimize, getAllOptimizations} from '../../dist/optimizer/optimize.js';
+import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
 
 describe('Optimizer: dedupeClasses', () => {
   function thisOptimization(pattern) {
     return optimize(pattern, {
       override: {
-        ...getAllOptimizations({disable: true}),
+        ...getOptionalOptimizations({disable: true}),
         dedupeClasses: true,
       },
     }).pattern;

@@ -82,22 +82,22 @@ import {optimize} from 'oniguruma-parser/optimizer';
 const pattern = '...';
 const optimized = optimize(pattern, {
   override: {
-    // Disable specific optimizations by name
+    // Disable specific optimizations
     removeEmptyGroups: false,
   },
 });
 ```
 
-## Enable only specific (optional) optimizations
+## Enable only specific, optional optimizations
 
 ```js
-import {optimize, getAllOptimizations} from 'oniguruma-parser/optimizer';
+import {optimize, getOptionalOptimizations} from 'oniguruma-parser/optimizer';
 
 const pattern = '...';
 const optimized = optimize(pattern, {
   override: {
-    ...getAllOptimizations({disable: true}),
-    // Enable only specific optimizations by name
+    ...getOptionalOptimizations({disable: true}),
+    // Enable specific optimizations
     removeEmptyGroups: true,
   },
 });
