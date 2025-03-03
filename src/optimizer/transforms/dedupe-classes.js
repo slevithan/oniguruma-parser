@@ -15,13 +15,13 @@ const dedupeClasses = {
       if (
         ( el.type === NodeTypes.Character &&
           keep.some(k => (
-            k.type === NodeTypes.Character &&
+            k.type === el.type &&
             k.value === el.value
           ))
         ) ||
         ( el.type === NodeTypes.CharacterSet &&
           keep.some(k => (
-            k.type === NodeTypes.CharacterSet &&
+            k.type === el.type &&
             k.kind === el.kind &&
             k.negate === el.negate &&
             k.value === el.value
@@ -29,7 +29,7 @@ const dedupeClasses = {
         ) ||
         ( el.type === NodeTypes.CharacterClassRange &&
           keep.some(k => (
-            k.type === NodeTypes.CharacterClassRange &&
+            k.type === el.type &&
             k.min.value === el.min.value &&
             k.max.value === el.max.value
           ))
