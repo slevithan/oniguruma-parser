@@ -1,6 +1,38 @@
 import {AstTypes} from '../parser/parse.js';
 import {throwIfNot} from '../utils.js';
 
+/**
+@typedef {{
+  node: import('../parser/parse.js').Node;
+  parent: import('../parser/parse.js').Node?;
+  key: (number | string)?;
+  container: Array<import('../parser/parse.js').Node>?;
+  root: import('../parser/parse.js').RegexNode;
+  remove: () => void;
+  removeAllNextSiblings: () => Array<import('../parser/parse.js').Node>;
+  removeAllPrevSiblings: () => Array<import('../parser/parse.js').Node>;
+  replaceWith: (newNode: import('../parser/parse.js').Node, options?: {traverse?: boolean}) => void;
+  replaceWithMultiple: (newNodes: Array<import('../parser/parse.js').Node>, options?: {traverse?: boolean}) => void;
+  skip: () => void;
+}} Path
+@typedef {
+  ( path: Path,
+    state: {
+      [key: string]: any;
+    }
+  ) => void
+} Transformer
+*/
+
+/**
+@param {import('../parser/parse.js').OnigurumaAst} ast
+@param {{
+  [key in ('*' | import('../parser/parse.js').AstType)]?: Transformer | {enter?: Transformer, exit?: Transformer};
+}} visitor
+@param {{
+  [key: string]: any;
+}} [state]
+*/
 function traverse(ast, visitor, state = null) {
   function traverseArray(array, parent) {
     for (let i = 0; i < array.length; i++) {

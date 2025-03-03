@@ -1,6 +1,27 @@
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, slug, throwIfNot} from '../utils.js';
 
+/**
+@typedef {
+  'AbsentFunction' |
+  'Alternative' |
+  'Assertion' |
+  'Backreference' |
+  'CapturingGroup' |
+  'Character' |
+  'CharacterClass' |
+  'CharacterClassRange' |
+  'CharacterSet' |
+  'Directive' |
+  'Flags' |
+  'Group' |
+  'LookaroundAssertion' |
+  'Pattern' |
+  'Quantifier' |
+  'Regex' |
+  'Subroutine'
+} AstType
+*/
 const AstTypes = /** @type {const} */ ({
   AbsentFunction: 'AbsentFunction',
   Alternative: 'Alternative',
@@ -25,6 +46,26 @@ const AstTypes = /** @type {const} */ ({
 });
 
 /**
+@typedef {RegexNode} OnigurumaAst
+@typedef {
+  AbsentFunctionNode |
+  AlternativeNode |
+  AssertionNode |
+  BackreferenceNode |
+  CapturingGroupNode |
+  CharacterNode |
+  CharacterClassNode |
+  CharacterClassRangeNode |
+  CharacterSetNode |
+  DirectiveNode |
+  FlagsNode |
+  GroupNode |
+  LookaroundAssertionNode |
+  PatternNode |
+  QuantifierNode |
+  RegexNode |
+  SubroutineNode
+} Node
 @typedef {
   AbsentFunctionNode |
   CapturingGroupNode |
@@ -970,12 +1011,12 @@ function createQuantifier(element, min, max, kind = AstQuantifierKinds.greedy) {
   type: 'Regex';
   pattern: PatternNode;
   flags: FlagsNode;
-}} OnigurumaAst
+}} RegexNode
 */
 /**
 @param {PatternNode} pattern
 @param {FlagsNode} flags
-@returns {OnigurumaAst}
+@returns {RegexNode}
 */
 function createRegex(pattern, flags) {
   return {

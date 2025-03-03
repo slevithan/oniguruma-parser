@@ -8,7 +8,15 @@ Benefits:
 - Optimized regexes may be easier to read.
 - Some optimizations may improve performance.
 
-The optimizer takes provided flags into account but it doesn't change top-level flags so that the optimized pattern can be used in situations where you are not able to change the provided flags. The exception is flag `x`, which is always removed since its effects are always applied to the generated pattern.
+The optimizer takes provided flags into account but it doesn't change top-level flags so that the optimized pattern can be used in situations where you aren't able to change the provided flags. The exception is flag `x`, which is always removed since its effects are always applied to the generated pattern.
+
+## Import
+
+```js
+import {optimize} from 'oniguruma-parser/optimizer';
+```
+
+## Type definition
 
 ```ts
 function optimize(

@@ -9,7 +9,7 @@ describe('toOnigurumaAst', () => {
   });
 
   it('should return a tree if given an empty string', () => {
-    const ast = {
+    expect(toOnigurumaAst('')).toEqual({
       type: 'Regex',
       pattern: {
         type: 'Pattern',
@@ -30,7 +30,6 @@ describe('toOnigurumaAst', () => {
         spaceIsAscii: false,
         wordIsAscii: false,
       },
-    };
-    expect(toOnigurumaAst('')).toEqual(ast);
+    });
   });
 });
