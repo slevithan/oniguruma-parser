@@ -48,8 +48,9 @@ Despite these gaps, more than 99.99% of real-world Oniguruma regexes are support
 
 The following don't yet throw errors, but should:
 
-- Special characters (apart from `-`, `+`) that are invalid in backreference names when referencing a valid group with that name.
-  - Named backreferences use a more restricted set of allowed characters than named groups and subroutines.
+- Special characters that are invalid in backreference names when referencing a valid group with that name.
+  - Named backreferences should use a more restricted set of allowed characters than named groups and subroutines.
+  - An error is already thrown for backreference names that include `-` or `+`.
 - Subroutines used in ways that resemble infinite recursion.
   - Such subroutines error at compile time in Oniguruma.
 </details>
@@ -63,16 +64,16 @@ This library currently treats it as an error if numbered backreferences come bef
 - Erroring matches the behavior of named backreferences.
 - For unenclosed backreferences, this affects only `\1`–`\9`. It's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
 
-Additionally, this library doesn't yet support the `\k<+N>`/`\k'+N'` syntax for relative forward backreferences.
+Additionally, this library doesn't yet support the `\k<+N>`/`\k'+N'` syntax for relative *forward* backreferences.
 </details>
 
 <details>
   <summary><b>Unenclosed four-digit backreferences</b></summary>
 
-Although enclosed `\k<…>`/`\k'…'` supports any number of digits (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently support up to three digits (`\999`) only. Oniguruma supports `\1000` and higher when as many capturing groups are defined to the left, but note that Oniguruma regexes with more than 999 captures never actually work, due to an apparent bug (they fail to match anything, with no error). Tested in Oniguruma 6.9.8.
+Although enclosed `\k<…>`/`\k'…'` supports any number of digits (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently support only up to three digits (`\999`). Oniguruma supports `\1000` and higher when as many capturing groups are defined, but note that Oniguruma regexes with more than 999 captures never actually work, due to an apparent bug (they fail to match anything, with no error). Tested in Oniguruma 6.9.8 via `vscode-oniguruma`.
 </details>
 
-Additional edge case differences will be documented here soon. This library was originally built as part of [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw in some edge cases that are buggy in Oniguruma or not emulatable in JavaScript. However, as a standalone parser, in most cases the ideal path is to match Oniguruma's intention, even if the pattern would encounter bugs when used to search.
+Additional edge case differences will be documented here soon. This library was originally built as part of [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw in some edge cases that are buggy in Oniguruma. However, as a standalone parser, in most cases the ideal path is to match Oniguruma's intention, even if the pattern would encounter bugs when used to search.
 
 ## About
 
