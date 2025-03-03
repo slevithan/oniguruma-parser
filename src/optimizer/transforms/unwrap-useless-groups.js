@@ -45,10 +45,8 @@ const unwrapUselessGroups = {
       return;
     }
     const candidate = groupKids[0];
-    if (!quantifiableTypes.has(candidate.type)) {
-      return;
-    }
     if (
+      !quantifiableTypes.has(candidate.type) ||
       (quantifiedGroup.atomic && !atomicTypes.has(candidate.type)) ||
       (quantifiedGroup.flags && !onlyUsesFlagX(quantifiedGroup.flags))
     ) {
