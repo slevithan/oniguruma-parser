@@ -17,7 +17,7 @@ function traverse(ast, visitor, state = null) {
       parent,
       key,
       container,
-      ast,
+      root: ast,
       remove() {
         throwIfNot(container, containerExpected).splice(Math.max(0, key + keyShift), 1);
         keyShift--;
