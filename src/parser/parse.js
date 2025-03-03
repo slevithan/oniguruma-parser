@@ -1114,14 +1114,6 @@ function throwIfUnclosedGroup(token) {
 }
 
 export {
-  NodeAbsentFunctionKinds,
-  NodeAssertionKinds,
-  NodeCharacterClassKinds,
-  NodeCharacterSetKinds,
-  NodeDirectiveKinds,
-  NodeLookaroundAssertionKinds,
-  NodeTypes,
-  NodeQuantifierKinds,
   createAbsentFunction,
   createAlternative,
   createAssertion,
@@ -1141,5 +1133,13 @@ export {
   createRegex,
   createSubroutine,
   createUnicodeProperty,
+  NodeAbsentFunctionKinds,
+  NodeAssertionKinds,
+  NodeCharacterClassKinds,
+  NodeCharacterSetKinds,
+  NodeDirectiveKinds,
+  NodeLookaroundAssertionKinds,
+  NodeTypes,
+  NodeQuantifierKinds,
   parse,
 };
