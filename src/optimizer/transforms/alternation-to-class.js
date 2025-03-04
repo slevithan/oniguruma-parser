@@ -1,4 +1,4 @@
-import {createAlternative, createCharacterClass, NodeTypes} from '../../parser/parse.js';
+import {createAlternative, createCharacterClass, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
 import {alternativeContainerTypes} from '../../parser/node-types.js';
 
 /**
@@ -17,7 +17,7 @@ const alternationToClass = {
         alt.elements.length === 1 &&
         ( kid.type === NodeTypes.Character ||
           kid.type === NodeTypes.CharacterClass ||
-          (kid.type === NodeTypes.CharacterSet && !kid.variableLength)
+          (kid.type === NodeTypes.CharacterSet && classableCharacterSetKinds.has(kid.kind))
         )
       ) {
         ccNodes.push(kid);
@@ -35,6 +35,16 @@ const alternationToClass = {
     node.alternatives = newAlts;
   },
 };
+
+// Some but not all of those excluded use `variableLength: true`
+const classableCharacterSetKinds = new Set([
+  NodeCharacterSetKinds.digit,
+  NodeCharacterSetKinds.hex,
+  NodeCharacterSetKinds.posix,
+  NodeCharacterSetKinds.property,
+  NodeCharacterSetKinds.space,
+  NodeCharacterSetKinds.word,
+]);
 
 function createAlternativeWithCombinedNodes(nodes) {
   const alt = createAlternative();

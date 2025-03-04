@@ -16,6 +16,7 @@ describe('Optimizer: alternationToClass', () => {
       ['a|b', '[ab]'],
       ['a|b|c', '[abc]'],
       [r`a|b|\d`, r`[ab\d]`],
+      [r`\s|\w|\h|\p{L}|\p{word}`, r`[\s\w\h\p{L}[:word:]]`],
       [r`a|b|[c]`, r`[ab[c]]`],
       [r`a|b|[^c]`, r`[ab[^c]]`],
       [r`a|b|[c-d]`, r`[ab[c-d]]`],
@@ -42,7 +43,7 @@ describe('Optimizer: alternationToClass', () => {
     }
   });
 
-  it('should not apply for non-combinable values', () => {
+  it('should not apply to non-combinable values', () => {
     const cases = [
       'a|',
       'a|bc',
@@ -56,9 +57,21 @@ describe('Optimizer: alternationToClass', () => {
     }
   });
 
-  it('should apply with non-combinable separating alternatives', () => {
+  it('should not apply to non-classable character sets', () => {
+    const cases = [
+      'a|.',
+      r`a|\O`,
+      r`a|\N`,
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
+
+  it('should apply to subsets of alternatives', () => {
     const cases = [
       ['a|b|cd|e|f', '[ab]|cd|[ef]'],
+      ['ab|c|d|ef', 'ab|[cd]|ef'],
       [r`^|\s|\W`, r`^|[\s\W]`],
     ];
     for (const [input, expected] of cases) {
