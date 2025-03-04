@@ -71,6 +71,7 @@ const generator = {
 
   Backreference({ref}) {
     if (typeof ref === 'number') {
+      // [TODO] Won't be safe to indiscriminately unenclose when forward backrefs are supported
       return '\\' + ref;
     }
     // Onig doesn't allow chars `>` or `'` in backref names, so this is safe

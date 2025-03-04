@@ -5,6 +5,7 @@ import {unnestOnlyChildClasses} from './transforms/unnest-only-child-classes.js'
 import {unnestUselessClasses} from './transforms/unnest-useless-classes.js';
 import {unwrapUselessClasses} from './transforms/unwrap-useless-classes.js';
 import {unwrapUselessGroups} from './transforms/unwrap-useless-groups.js';
+import {useUnicodeAliases} from './transforms/use-unicode-aliases.js';
 
 /**
 @typedef {
@@ -14,7 +15,8 @@ import {unwrapUselessGroups} from './transforms/unwrap-useless-groups.js';
   'unnestOnlyChildClasses' |
   'unnestUselessClasses' |
   'unwrapUselessClasses' |
-  'unwrapUselessGroups'
+  'unwrapUselessGroups' |
+  'useUnicodeAliases'
 } OptimizationName
 */
 const optimizations = new Map([
@@ -25,6 +27,7 @@ const optimizations = new Map([
   ['unnestUselessClasses', unnestUselessClasses],
   ['unwrapUselessClasses', unwrapUselessClasses],
   ['unwrapUselessGroups', unwrapUselessGroups],
+  ['useUnicodeAliases', useUnicodeAliases],
 ]);
 
 export {

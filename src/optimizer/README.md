@@ -57,23 +57,115 @@ The following optimizations are always enabled. They result from the nature of t
 
 Some of the following optimizations (related to the representation of tokens) don't yet have names because, currently, they're always enabled. They will be optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
 
-|  Optimization name | Description | Example |
-|-|-|-|
-| | Remove unnecessary escapes | `\![\?]` → `![?]` |
-| | Remove leading zeros from enclosed character escapes | `\x{0061}` → `\x{61}` |
-| | Remove leading zeros from quantifier ranges | `a{01,03}` → `a{1,3}` |
-| | Remove leading zeros from backreference/subroutine numbers | `()\k<01>` → `()\k<1>` |
-| | Unenclose numbered backreferences | `()\k<1>` → `()\1` |
-| | Use the simplest character representation | `\u0061` → `a` |
-| | Use outer negation for Unicode properties | `\p{^L}` → `\P{L}` |
-| | Use symbols for quantifier ranges when possible | `a{1,}` → `a+` |
-| `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, even if quantified | `(?:)a` → `a` |
-| `unwrapUselessGroups` | Unwrap nonbeneficial noncapturing, atomic, and flag groups | `(?:a)` → `a` |
-| `unwrapUselessClasses` | Unwrap outermost character classes containing a single character or character set | `[\s]` → `\s` |
-| `unnestUselessClasses` | Unnest non-negated, non-intersection character classes | `[a[b]]` → `[ab]` |
-| `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[^[^a]]` → `[a]` |
-| `dedupeClasses` | Remove duplicate characters, sets, and ranges from character classes | `[a\x61]` → `[a]` |
-| `alternationToClass` 🚀 | Use character classes for adjacent alternatives with single-length values | `a\|b\|\d` → `[ab\d]` |
+<table>
+  <tr>
+    <th></th>
+    <th>Optimization name</th>
+    <th>Description</th>
+    <th>Example</th>
+  </tr>
+  <tr>
+    <th rowspan="3" valign="top">
+      Characters
+    </th>
+    <td><code></code></td>
+    <td>Remove unnecessary escapes</td>
+    <td><code>\![\?]</code> → <code>![?]</code></td>
+  </tr>
+  <tr>
+    <td><code></code></td>
+    <td>Use the simplest character representation</td>
+    <td><code>\u0061</code> → <code>a</code></td>
+  </tr>
+  <tr>
+    <td><code></code></td>
+    <td>Remove leading zeros from enclosed character escapes</td>
+    <td><code>\x{0061}</code> → <code>\x{61}</code></td>
+  </tr>
+  <tr>
+    <th rowspan="2" valign="top">
+      Character sets
+    </th>
+    <td><code>useUnicodeAliases</code></td>
+    <td>Use Unicode property aliases</td>
+    <td><code>\p{ID_Start}</code> → <code>\p{IDS}</code></td>
+  </tr>
+  <tr>
+    <td><code></code></td>
+    <td>Use outer negation for Unicode properties</td>
+    <td><code>\p{^L}</code> → <code>\P{L}</code></td>
+  </tr>
+  <tr>
+    <th rowspan="4" valign="top">
+      Character<br>classes
+    </th>
+    <td><code>unwrapUselessClasses</code></td>
+    <td>Unwrap outermost character classes containing a single character or character set</td>
+    <td><code>[\s]</code> → <code>\s</code></td>
+  </tr>
+  <tr>
+    <td><code>unnestUselessClasses</code></td>
+    <td>Unnest non-negated, non-intersection character classes</td>
+    <td><code>[a[b]]</code> → <code>[ab]</code></td>
+  </tr>
+  <tr>
+    <td><code>unnestOnlyChildClasses</code></td>
+    <td>Unnest character classes that are an only-child of a character class</td>
+    <td><code>[^[^a]]</code> → <code>[a]</code></td>
+  </tr>
+  <tr>
+    <td><code>dedupeClasses</code></td>
+    <td>Remove duplicate characters, sets, and ranges from character classes</td>
+    <td><code>[a\x61]</code> → <code>[a]</code></td>
+  </tr>
+  <tr>
+    <th rowspan="2" valign="top">
+      Groups
+    </th>
+    <td><code>removeEmptyGroups</code></td>
+    <td>Remove empty noncapturing, atomic, and flag groups, even if quantified</td>
+    <td><code>(?:)a</code> → <code>a</code></td>
+  </tr>
+  <tr>
+    <td><code>unwrapUselessGroups</code></td>
+    <td>Unwrap nonbeneficial noncapturing, atomic, and flag groups</td>
+    <td><code>(?:a)</code> → <code>a</code></td>
+  </tr>
+  <tr>
+    <th rowspan="2" valign="top">
+      Quantifiers
+    </th>
+    <td><code></code></td>
+    <td>Use symbols for quantifier ranges when possible</td>
+    <td><code>a{1,}</code> → <code>a+</code></td>
+  </tr>
+  <tr>
+    <td><code></code></td>
+    <td>Remove leading zeros from quantifier ranges</td>
+    <td><code>a{01,03}</code> → <code>a{1,3}</code></td>
+  </tr>
+  <tr>
+    <th rowspan="1" valign="top">
+      Alternation
+    </th>
+    <td><code>alternationToClass</code> 🚀</td>
+    <td>Use character classes for adjacent alternatives with single-length values</td>
+    <td><code>a|b|\d</code> → <code>[ab\d]</code></td>
+  </tr>
+  <tr>
+    <th rowspan="2" valign="top">
+      Backrefs and<br>subroutines
+    </th>
+    <td><code></code></td>
+    <td>Unenclose numbered backreferences</td>
+    <td><code>()\k&lt;1></code> → <code>()\1</code></td>
+  </tr>
+  <tr>
+    <td><code></code></td>
+    <td>Remove leading zeros from backreference/subroutine numbers</td>
+    <td><code>()\k&lt;01></code> → <code>()\k&lt;1></code></td>
+  </tr>
+</table>
 
 🚀 = Can improve performance and reduce risk of ReDoS.
 
