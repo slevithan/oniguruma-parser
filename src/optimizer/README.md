@@ -68,17 +68,17 @@ Some of the following optimizations (related to the representation of tokens) do
     <th rowspan="3" valign="top">
       Characters
     </th>
-    <td><code></code></td>
+    <td></td>
     <td>Remove unnecessary escapes</td>
     <td><code>\![\?]</code> → <code>![?]</code></td>
   </tr>
   <tr>
-    <td><code></code></td>
+    <td></td>
     <td>Use the simplest character representation</td>
     <td><code>\u0061</code> → <code>a</code></td>
   </tr>
   <tr>
-    <td><code></code></td>
+    <td></td>
     <td>Remove leading zeros from enclosed character escapes</td>
     <td><code>\x{0061}</code> → <code>\x{61}</code></td>
   </tr>
@@ -91,7 +91,7 @@ Some of the following optimizations (related to the representation of tokens) do
     <td><code>\p{ID_Start}</code> → <code>\p{IDS}</code></td>
   </tr>
   <tr>
-    <td><code></code></td>
+    <td></td>
     <td>Use outer negation for Unicode properties</td>
     <td><code>\p{^L}</code> → <code>\P{L}</code></td>
   </tr>
@@ -135,12 +135,12 @@ Some of the following optimizations (related to the representation of tokens) do
     <th rowspan="2" valign="top">
       Quantifiers
     </th>
-    <td><code></code></td>
+    <td></td>
     <td>Use symbols for quantifier ranges when possible</td>
     <td><code>a{1,}</code> → <code>a+</code></td>
   </tr>
   <tr>
-    <td><code></code></td>
+    <td></td>
     <td>Remove leading zeros from quantifier ranges</td>
     <td><code>a{01,03}</code> → <code>a{1,3}</code></td>
   </tr>
@@ -156,12 +156,12 @@ Some of the following optimizations (related to the representation of tokens) do
     <th rowspan="2" valign="top">
       Backrefs and<br>subroutines
     </th>
-    <td><code></code></td>
+    <td></td>
     <td>Unenclose numbered backreferences</td>
     <td><code>()\k&lt;1></code> → <code>()\1</code></td>
   </tr>
   <tr>
-    <td><code></code></td>
+    <td></td>
     <td>Remove leading zeros from backreference/subroutine numbers</td>
     <td><code>()\k&lt;01></code> → <code>()\k&lt;1></code></td>
   </tr>
