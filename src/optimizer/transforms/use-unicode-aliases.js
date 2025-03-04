@@ -1,4 +1,4 @@
-import {NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
+import {NodeCharacterSetKinds} from '../../parser/parse.js';
 
 /**
 Use Unicode property aliases.

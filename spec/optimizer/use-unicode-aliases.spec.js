@@ -27,12 +27,8 @@ describe('Optimizer: useUnicodeAliases', () => {
 
   it('should not apply to POSIX classes using Unicode property syntax', () => {
     const cases = [
-      r`\p{alpha}`,
-      r`\p{cntrl}`,
-      r`\p{digit}`,
-      r`\p{lower}`,
-      r`\p{space}`,
-      r`\p{upper}`,
+      r`\p{cntrl}`, // Not `\p{Cc}`
+      r`\p{digit}`, // Not `\p{Nd}`
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);

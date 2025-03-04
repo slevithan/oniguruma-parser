@@ -83,12 +83,17 @@ Some of the following optimizations (related to the representation of tokens) do
     <td><code>\x{0061}</code> → <code>\x{61}</code></td>
   </tr>
   <tr valign="top">
-    <th rowspan="2" align="left">
+    <th rowspan="3" align="left">
       Character sets
     </th>
     <td><code>useUnicodeAliases</code></td>
     <td>Use Unicode property aliases</td>
     <td><code>\p{ID_Start}</code> → <code>\p{IDS}</code></td>
+  </tr>
+  <tr>
+    <td><code>useShorthands</code></td>
+    <td>Use shorthands (<code>\d</code>, <code>\h</code>, <code>\s</code>, <code>\w</code>, etc.) when possible</td>
+    <td><code>[[:space:]\p{Nd}]</code> → <code>[\s\d]</code></td>
   </tr>
   <tr>
     <td></td>
