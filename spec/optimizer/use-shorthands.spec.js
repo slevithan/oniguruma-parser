@@ -106,28 +106,24 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
-  it(`should use \w when possible`, () => {
+  it(`should use \p{Cc} when possible`, () => {
     const cases = [
-      [r`\p{word}`, r`\w`],
-      [r`\P{word}`, r`\W`],
-      ['[[:word:]]', r`[\w]`],
-      ['[[:^word:]]', r`[\W]`],
+      [r`\p{cntrl}`, r`\p{Cc}`],
+      [r`\P{cntrl}`, r`\P{Cc}`],
+      ['[[:cntrl:]]', r`[\p{Cc}]`],
+      ['[[:^cntrl:]]', r`[\P{Cc}]`],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
     }
   });
 
-  it(`should switch POSIX forms with \w when using flag W or P`, () => {
+  it(`should not switch POSIX forms to \p{Cc} when using flag P`, () => {
     const cases = [
-      [r`\p{word}`, r`\w`],
-      ['[[:word:]]', r`[\w]`],
+      [r`\p{cntrl}`, r`\p{cntrl}`],
+      ['[[:cntrl:]]', r`[[:cntrl:]]`],
     ];
     for (const [input, expected] of cases) {
-      expect(optimize(input, {
-        flags: 'W',
-        override: thisOverride,
-      }).pattern).toBe(expected);
       expect(optimize(input, {
         flags: 'P',
         override: thisOverride,

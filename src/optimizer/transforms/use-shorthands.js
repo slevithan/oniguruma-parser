@@ -1,19 +1,19 @@
-import {createCharacterSet, NodeCharacterSetKinds} from '../../parser/parse.js';
+import {createCharacterSet, createUnicodeProperty, NodeCharacterSetKinds} from '../../parser/parse.js';
 
 /**
-Use shorthands (`\d`, `\h`, `\s`, `\w`, etc.) when possible.
+Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 - `\d` from `\p{Decimal_Number}`, `\p{Nd}`, `\p{digit}`, `[[:digit:]]`
 - `\h` from `\p{ASCII_Hex_Digit}`, `\p{AHex}`, `\p{xdigit}`, `[[:xdigit:]]`
 - `\s` from `\p{White_Space}`, `\p{WSpace}`, `\p{space}`, `[[:space:]]`
-- `\w` from `\p{word}`, `[[:word:]]`
+- `\p{Cc}` from `\p{cntrl}`, `[[:cntrl:]]`
 See also the optimization `useUnicodeAliases`.
 
 [TODO] Add the following shorthands (these can improve performance):
-- `\w` from `[\p{alpha}\p{M}\p{Nd}\p{Pc}]`
+- `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]`
+- `\p{word}` from `[\p{alpha}\p{M}\p{Nd}\p{Pc}]`
 - `\N` (not in class) from `[^\n]`
 - `\O` (not in class) from `\p{Any}`, `[\d\D]`, `[\h\H]`, `[\s\S]`, `[\w\W]`, `[\0-\x{10FFFF}]`
   - `\p{Any} (only in class) from `[\0-\x{10FFFF}]`
-- `\p{Cc}` from `\p{cntrl}`, `[[:cntrl:]]`
 - `\p{alnum}` from `[\p{alpha}\p{Nd}]`
 - `\p{blank}` from `[\p{Zs}\t]`
 - `\p{graph}` from `[\S&&\P{Cc}&&\P{Cn}&&\P{Cs}]`
@@ -23,7 +23,7 @@ See also the optimization `useUnicodeAliases`.
 const useShorthands = {
   CharacterSet({node, root, replaceWith}) {
     const {kind, negate, value} = node;
-    let newNodeKind;
+    let newNode;
     if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'Decimal_Number' || value === 'Nd') &&
@@ -36,7 +36,7 @@ const useShorthands = {
         value === 'digit'
       )
     ) {
-      newNodeKind = NodeCharacterSetKinds.digit;
+      newNode = createCharacterSet(NodeCharacterSetKinds.digit, {negate});
     } else if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'ASCII_Hex_Digit' || value === 'AHex')
@@ -45,7 +45,7 @@ const useShorthands = {
         value === 'xdigit'
       )
     ) {
-      newNodeKind = NodeCharacterSetKinds.hex;
+      newNode = createCharacterSet(NodeCharacterSetKinds.hex, {negate});
     } else if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'White_Space' || value === 'WSpace') &&
@@ -58,16 +58,19 @@ const useShorthands = {
         value === 'space'
       )
     ) {
-      newNodeKind = NodeCharacterSetKinds.space;
+      newNode = createCharacterSet(NodeCharacterSetKinds.space, {negate});
     } else if (
       kind === NodeCharacterSetKinds.posix &&
-      value === 'word'
+      value === 'cntrl' &&
+      // [TODO] Also need to check whether this flag is set in local context, when the parser
+      // supports this flag on mode modifiers
+      !root.flags.posixIsAscii
     ) {
-      newNodeKind = NodeCharacterSetKinds.word;
+      newNode = createUnicodeProperty('Cc', {negate});
     }
 
-    if (newNodeKind) {
-      replaceWith(createCharacterSet(newNodeKind, {negate}));
+    if (newNode) {
+      replaceWith(newNode);
     }
   },
 };

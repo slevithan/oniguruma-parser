@@ -148,7 +148,7 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
   <tr>
     <td><code>useShorthands</code></td>
-    <td>Use shorthands (<code>\d</code>, <code>\h</code>, <code>\s</code>, <code>\w</code>, etc.) when possible</td>
+    <td>Use shorthands (<code>\d</code>, <code>\h</code>, <code>\s</code>, etc.) when possible</td>
     <td><code>[[:space:]\p{Nd}]</code> → <code>[\s\d]</code></td>
   </tr>
   <tr>
