@@ -4,11 +4,11 @@ The optimizer transforms an Oniguruma pattern into an optimized version of itsel
 
 Benefits:
 
-- Optimized regexes are smaller; good for minification.
+- Optimized regexes are shorter; good for minification.
 - Optimized regexes may be easier to read.
-- Some optimizations may improve performance.
+- Some optimizations may improve performance and reduce the risk of ReDoS.
 
-The optimizer isn't singly focused on minification, although that is its primary purpose. It attempts to optimize both pattern length and the performance of resulting regexes, while avoiding changes that might reduce the pattern length in some contexts but be problematic in others (e.g. by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
+The optimizer isn't solely concerned with minification, although that's its primary purpose. It attempts to optimize both pattern length and performance, while avoiding transformations that might shorten the pattern in some contexts but be problematic in others (e.g., by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
 
 ## Import
 
@@ -37,7 +37,7 @@ function optimize(
 
 ### Flags
 
-Although the optimizer takes provided flags into account and includes a `flags` property on the returned object, it never changes top-level flags in ways that would change the meaning of the regex if you didn't provide the updated flags to Oniguruma. This is so that the optimized pattern can be used in situations where you aren't able to change the provided flags. So, for example, it removes `x` from top-level flags (since its effects are always applied), but it doesn't add flags.
+Although the optimizer takes provided flags into account and includes a `flags` property on the returned object, it never changes top-level flags in ways that would change the meaning of the regex if you didn't provide the updated flags to Oniguruma. As a result, the optimized pattern can be used in situations when you aren't able to change the provided flags. For example, the optimizer removes `x` from the returned flags (since its effects are always applied), but it doesn't add flags.
 
 ## Optimizations
 
@@ -55,9 +55,7 @@ The following optimizations are always enabled. They result from the nature of t
 
 ### On by default
 
-Some of the following optimizations (related to the representation of tokens) don't yet have names because, currently, they're always enabled. They will be optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
-
-🚀 = Can improve performance and reduce risk of ReDoS.
+Some of the following optimizations (related to the representation of tokens) don't yet have names listed because, currently, they're always enabled. They'll become optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
 
 <table>
   <tr>
@@ -71,7 +69,7 @@ Some of the following optimizations (related to the representation of tokens) do
     <th rowspan="1" valign="top" align="left">
       Alternation
     </th>
-    <td><code>alternationToClass</code> 🚀</td>
+    <td><code>alternationToClass</code></td>
     <td>Use character classes for adjacent alternatives with single-length values</td>
     <td><code>a|b|\d</code> → <code>[ab\d]</code></td>
   </tr>
