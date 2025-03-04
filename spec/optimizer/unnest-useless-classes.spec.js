@@ -29,7 +29,7 @@ describe('Optimizer: unnestUselessClasses', () => {
     }
   });
 
-  it('should not unwrap necessary character classes', () => {
+  it('should not unnest necessary character classes', () => {
     const cases = [
       '[[^b]]',
       '[[&&]]',

@@ -70,7 +70,7 @@ Some of the following optimizations (related to the representation of tokens) do
 | `removeEmptyGroups` | Remove empty noncapturing, atomic, and flag groups, even if quantified | `(?:)a` → `a` |
 | `unwrapUselessGroups` | Unwrap nonbeneficial noncapturing, atomic, and flag groups | `(?:a)` → `a` |
 | `unwrapUselessClasses` | Unwrap outermost character classes containing a single character or character set | `[\s]` → `\s` |
-| `unnestUselessClasses` | Unnest non-negated character classes that don't contain intersection | `[a[b]]` → `[ab]` |
+| `unnestUselessClasses` | Unnest non-negated, non-intersection character classes | `[a[b]]` → `[ab]` |
 | `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[^[^a]]` → `[a]` |
 | `dedupeClasses` | Remove duplicate characters, sets, and ranges from character classes | `[a\x61]` → `[a]` |
 | `alternationToClass` 🚀 | Use character classes for adjacent alternatives with single-length values | `a\|b\|\d` → `[ab\d]` |

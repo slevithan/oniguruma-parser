@@ -1,7 +1,7 @@
 import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
-Unnest non-negated character classes that don't contain intersection.
+Unnest non-negated, non-intersection character classes.
 */
 const unnestUselessClasses = {
   CharacterClass({node, parent, replaceWithMultiple}) {
