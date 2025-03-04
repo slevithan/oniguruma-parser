@@ -8,35 +8,35 @@ Use shorthands (`\d`, `\h`, `\s`, `\w`, etc.) when possible.
 - `\w` from `\p{word}`, `[[:word:]]`
 See also the optimization `useUnicodeAliases`.
 
-[TODO] Add the following shorthands:
-- `\w` from `[\p{Alpha}\p{M}\p{Nd}\p{Pc}]`
-- `\N` (not in class) from `[^\n]` and other representations of `\n`
+[TODO] Add the following shorthands (these can improve performance):
+- `\w` from `[\p{alpha}\p{M}\p{Nd}\p{Pc}]`
+- `\N` (not in class) from `[^\n]`
 - `\O` (not in class) from `\p{Any}`, `[\d\D]`, `[\h\H]`, `[\s\S]`, `[\w\W]`, `[\0-\x{10FFFF}]`
-- `\p{Any} (only in class) from `[\0-\x{10FFFF}]`
+  - `\p{Any} (only in class) from `[\0-\x{10FFFF}]`
 - `\p{Cc}` from `\p{cntrl}`, `[[:cntrl:]]`
-- `\p{alnum}` from `[\p{Alpha}\p{Nd}]`
+- `\p{alnum}` from `[\p{alpha}\p{Nd}]`
 - `\p{blank}` from `[\p{Zs}\t]`
 - `\p{graph}` from `[\S&&\P{Cc}&&\P{Cn}&&\P{Cs}]`
 - `\p{print}` from `[[\S&&\P{Cc}&&\P{Cn}&&\P{Cs}]\p{Zs}]`
-- `[[:punct:]]` from `[\p{P}\p{S}]` - Not the same as `\p{punct}`
+- `[[:punct:]]` from `[\p{P}\p{S}]` - Not the same as `\p{punct}`!
 */
 const useShorthands = {
   CharacterSet({node, root, replaceWith}) {
     const {kind, negate, value} = node;
-    let newKind;
+    let newNodeKind;
     if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'Decimal_Number' || value === 'Nd') &&
-        !root.flags.digitIsAscii &&
-        !root.flags.posixIsAscii
         // [TODO] Also need to check whether these flags are set in local context, when the parser
         // supports these flags on mode modifiers
+        !root.flags.digitIsAscii &&
+        !root.flags.posixIsAscii
       ) ||
       ( kind === NodeCharacterSetKinds.posix &&
         value === 'digit'
       )
     ) {
-      newKind = NodeCharacterSetKinds.digit;
+      newNodeKind = NodeCharacterSetKinds.digit;
     } else if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'ASCII_Hex_Digit' || value === 'AHex')
@@ -45,29 +45,29 @@ const useShorthands = {
         value === 'xdigit'
       )
     ) {
-      newKind = NodeCharacterSetKinds.hex;
+      newNodeKind = NodeCharacterSetKinds.hex;
     } else if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'White_Space' || value === 'WSpace') &&
-        !root.flags.spaceIsAscii &&
-        !root.flags.posixIsAscii
         // [TODO] Also need to check whether these flags are set in local context, when the parser
         // supports these flags on mode modifiers
+        !root.flags.spaceIsAscii &&
+        !root.flags.posixIsAscii
       ) ||
       ( kind === NodeCharacterSetKinds.posix &&
         value === 'space'
       )
     ) {
-      newKind = NodeCharacterSetKinds.space;
+      newNodeKind = NodeCharacterSetKinds.space;
     } else if (
       kind === NodeCharacterSetKinds.posix &&
       value === 'word'
     ) {
-      newKind = NodeCharacterSetKinds.word;
+      newNodeKind = NodeCharacterSetKinds.word;
     }
 
-    if (newKind) {
-      replaceWith(createCharacterSet(newKind, {negate}));
+    if (newNodeKind) {
+      replaceWith(createCharacterSet(newNodeKind, {negate}));
     }
   },
 };

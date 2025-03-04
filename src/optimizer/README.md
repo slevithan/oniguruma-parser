@@ -5,8 +5,8 @@ The optimizer transforms an Oniguruma pattern into an optimized version of itsel
 Benefits:
 
 - Optimized regexes are shorter; good for minification.
-- Optimized regexes may be easier to read.
-- Some optimizations may improve performance and reduce the risk of ReDoS.
+- Optimized regexes are typically easier to read, unless the original used free-spacing.
+- Some optimizations can improve performance and reduce the risk of ReDoS.
 
 The optimizer isn't solely concerned with minification, although that's its primary purpose. It attempts to optimize both pattern length and performance, while avoiding transformations that might shorten the pattern in some contexts but be problematic in others (e.g., by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
 
@@ -57,6 +57,8 @@ The following optimizations are always enabled. They result from the nature of t
 
 Some of the following optimizations (related to the representation of tokens) don't yet have names listed because, currently, they're always enabled. They'll become optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
 
+🚀 = Can improve performance.
+
 <table>
   <tr>
     <th></th>
@@ -66,12 +68,17 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="1" valign="top" align="left">
+    <th rowspan="2" valign="top" align="left">
       Alternation
     </th>
-    <td><code>alternationToClass</code></td>
+    <td><code>alternationToClass</code> 🚀</td>
     <td>Use character classes for adjacent alternatives with single-length values</td>
     <td><code>a|b|\d</code> → <code>[ab\d]</code></td>
+  </tr>
+  <tr>
+    <td><code>extractPrefix</code> 🚀</td>
+    <td>Extract nodes at the start of every alternative into a prefix</td>
+    <td><code>^aa|^abb|^ac</code> → <code>^a(?:a|bb|c)</code></td>
   </tr>
 
   <tr>

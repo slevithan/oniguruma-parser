@@ -1,5 +1,6 @@
 import {alternationToClass} from './transforms/alternation-to-class.js';
 import {dedupeClasses} from './transforms/dedupe-classes.js';
+import {extractPrefix} from './transforms/extract-prefix.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
 import {unnestOnlyChildClasses} from './transforms/unnest-only-child-classes.js';
 import {unnestUselessClasses} from './transforms/unnest-useless-classes.js';
@@ -12,6 +13,7 @@ import {useUnicodeAliases} from './transforms/use-unicode-aliases.js';
 @typedef {
   'alternationToClass' |
   'dedupeClasses' |
+  'extractPrefix' |
   'removeEmptyGroups' |
   'unnestOnlyChildClasses' |
   'unnestUselessClasses' |
@@ -24,6 +26,7 @@ import {useUnicodeAliases} from './transforms/use-unicode-aliases.js';
 const optimizations = new Map([
   ['alternationToClass', alternationToClass],
   ['dedupeClasses', dedupeClasses],
+  ['extractPrefix', extractPrefix],
   ['removeEmptyGroups', removeEmptyGroups],
   ['unnestOnlyChildClasses', unnestOnlyChildClasses],
   ['unnestUselessClasses', unnestUselessClasses],
