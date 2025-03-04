@@ -64,8 +64,8 @@ Some of the following optimizations (related to the representation of tokens) do
     <th>Description</th>
     <th>Example</th>
   </tr>
-  <tr>
-    <th rowspan="3" valign="top">
+  <tr valign="top">
+    <th rowspan="3" align="left">
       Characters
     </th>
     <td></td>
@@ -82,8 +82,8 @@ Some of the following optimizations (related to the representation of tokens) do
     <td>Remove leading zeros from enclosed character escapes</td>
     <td><code>\x{0061}</code> → <code>\x{61}</code></td>
   </tr>
-  <tr>
-    <th rowspan="2" valign="top">
+  <tr valign="top">
+    <th rowspan="2" align="left">
       Character sets
     </th>
     <td><code>useUnicodeAliases</code></td>
@@ -95,8 +95,8 @@ Some of the following optimizations (related to the representation of tokens) do
     <td>Use outer negation for Unicode properties</td>
     <td><code>\p{^L}</code> → <code>\P{L}</code></td>
   </tr>
-  <tr>
-    <th rowspan="4" valign="top">
+  <tr valign="top">
+    <th rowspan="4" align="left">
       Character<br>classes
     </th>
     <td><code>unwrapUselessClasses</code></td>
@@ -118,8 +118,8 @@ Some of the following optimizations (related to the representation of tokens) do
     <td>Remove duplicate characters, sets, and ranges from character classes</td>
     <td><code>[a\x61]</code> → <code>[a]</code></td>
   </tr>
-  <tr>
-    <th rowspan="2" valign="top">
+  <tr valign="top">
+    <th rowspan="2" align="left">
       Groups
     </th>
     <td><code>removeEmptyGroups</code></td>
@@ -131,8 +131,8 @@ Some of the following optimizations (related to the representation of tokens) do
     <td>Unwrap nonbeneficial noncapturing, atomic, and flag groups</td>
     <td><code>(?:a)</code> → <code>a</code></td>
   </tr>
-  <tr>
-    <th rowspan="2" valign="top">
+  <tr valign="top">
+    <th rowspan="2" align="left">
       Quantifiers
     </th>
     <td></td>
@@ -144,16 +144,16 @@ Some of the following optimizations (related to the representation of tokens) do
     <td>Remove leading zeros from quantifier ranges</td>
     <td><code>a{01,03}</code> → <code>a{1,3}</code></td>
   </tr>
-  <tr>
-    <th rowspan="1" valign="top">
+  <tr valign="top">
+    <th rowspan="1" align="left">
       Alternation
     </th>
     <td><code>alternationToClass</code> 🚀</td>
     <td>Use character classes for adjacent alternatives with single-length values</td>
     <td><code>a|b|\d</code> → <code>[ab\d]</code></td>
   </tr>
-  <tr>
-    <th rowspan="2" valign="top">
+  <tr valign="top">
+    <th rowspan="2" align="left">
       Backrefs and<br>subroutines
     </th>
     <td></td>
