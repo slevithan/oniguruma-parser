@@ -8,7 +8,7 @@ Benefits:
 - Optimized regexes may be easier to read.
 - Some optimizations may improve performance.
 
-The optimizer takes provided flags into account but it doesn't change top-level flags so that the optimized pattern can be used in situations where you aren't able to change the provided flags. The exception is flag `x`, which is always removed since its effects (if included) are always applied to the generated pattern.
+The optimizer isn't singly focused on minification, although that is its primary purpose. It attempts to optimize both pattern length and the performance of resulting regexes, while avoiding changes that might reduce the pattern length in some contexts but be problematic in others (e.g. by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
 
 ## Import
 
@@ -34,6 +34,10 @@ function optimize(
   flags: string;
 };
 ```
+
+### Flags
+
+Although the optimizer takes provided flags into account and includes a `flags` property on the returned object, it never changes top-level flags in ways that would change the meaning of the regex if you didn't provide the updated flags to Oniguruma. This is so that the optimized pattern can be used in situations where you aren't able to change the provided flags. So, for example, it removes `x` from top-level flags (since its effects are always applied), but it doesn't add flags.
 
 ## Optimizations
 
@@ -107,6 +111,6 @@ const optimized = optimize(pattern, {
 
 Created by [Steven Levithan](https://github.com/slevithan). If you want to support this project, I'd love your help by contributing improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
-The optimizer module was partly inspired by [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
+Inspiration for the optimizer module included [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
 
 MIT License.
