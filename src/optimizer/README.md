@@ -72,9 +72,12 @@ Some of the following optimizations (related to the representation of tokens) do
 | `unwrapUselessClasses` | Unwrap outermost character classes containing a single character or character set | `[\s]` → `\s` |
 | `unnestUselessClasses` | Unnest non-negated character classes that don't contain intersection | `[a[b]]` → `[ab]` |
 | `unnestOnlyChildClasses` | Unnest character classes that are an only-child of a character class | `[^[^a]]` → `[a]` |
-| `dedupeClasses` | Remove duplicate characters, character sets, and ranges from character classes | `[a\x61]` → `[a]` |
+| `dedupeClasses` | Remove duplicate characters, sets, and ranges from character classes | `[a\x61]` → `[a]` |
+| `alternationToClass` 🚀 | Use character classes for adjacent alternatives with single-length values | `a\|b\|\d` → `[ab\d]` |
 
-Optimizations are applied in a loop until no further optimization progress is made.
+🚀 = Can improve performance and reduce risk of ReDoS.
+
+Optimizations are applied in a loop until no further optimization progress is made. Individual optimization transforms are typically narrow and work best when combined with other optimizations.
 
 Many additional optimizations are possible and will be added in future versions.
 

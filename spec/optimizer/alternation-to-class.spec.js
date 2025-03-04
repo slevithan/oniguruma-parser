@@ -1,0 +1,68 @@
+import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
+import {r} from '../../dist/utils.js';
+
+describe('Optimizer: alternationToClass', () => {
+  function thisOptimization(pattern) {
+    return optimize(pattern, {
+      override: {
+        ...getOptionalOptimizations({disable: true}),
+        alternationToClass: true,
+      },
+    }).pattern;
+  }
+
+  it('should use classes for adjacent alternatives with single-length values', () => {
+    const cases = [
+      ['a|b', '[ab]'],
+      ['a|b|c', '[abc]'],
+      [r`a|b|\d`, r`[ab\d]`],
+      [r`a|b|[c]`, r`[ab[c]]`],
+      [r`a|b|[^c]`, r`[ab[^c]]`],
+      [r`a|b|[c-d]`, r`[ab[c-d]]`],
+      [r`a|b|[c&&d]`, r`[ab[c&&d]]`],
+      [r`a|b|[c]|[d]`, r`[ab[c][d]]`],
+      [r`a|b|[^c]|[^d]`, r`[ab[^c][^d]]`],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
+  it('should apply within groups', () => {
+    const cases = [
+      ['(a|b)', '([ab])'],
+      ['(?:a|b)', '(?:[ab])'],
+      ['(?>a|b)', '(?>[ab])'],
+      ['(?<n>a|b)', '(?<n>[ab])'],
+      ['(?~a|b)', '(?~[ab])'],
+      ['(?=a|b)', '(?=[ab])'],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
+  it('should not apply for non-combinable values', () => {
+    const cases = [
+      'a|',
+      'a|bc',
+      r`a|\R`,
+      r`a|\X`,
+      'a|(b)',
+      'a|^',
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
+
+  it('should apply with non-combinable separating alternatives', () => {
+    const cases = [
+      ['a|b|cd|e|f', '[ab]|cd|[ef]'],
+      [r`^|\s|\W`, r`^|[\s\W]`],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+});

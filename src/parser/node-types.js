@@ -1,5 +1,13 @@
 import {NodeTypes} from './parse.js';
 
+const alternativeContainerTypes = new Set([
+  NodeTypes.AbsentFunction,
+  NodeTypes.CapturingGroup,
+  NodeTypes.Group,
+  NodeTypes.LookaroundAssertion,
+  NodeTypes.Pattern,
+]);
+
 const atomicTypes = new Set([
   NodeTypes.Assertion,
   NodeTypes.Backreference,
@@ -22,6 +30,7 @@ const quantifiableTypes = new Set([
 ]);
 
 export {
+  alternativeContainerTypes,
   atomicTypes,
   quantifiableTypes,
 };

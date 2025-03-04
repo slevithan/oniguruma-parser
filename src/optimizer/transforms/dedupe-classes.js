@@ -1,7 +1,7 @@
 import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
-Remove duplicate characters, character sets, and ranges from character classes.
+Remove duplicate characters, sets, and ranges from character classes.
 */
 const dedupeClasses = {
   CharacterClass({node}) {
@@ -37,6 +37,7 @@ const dedupeClasses = {
       ) {
         continue;
       }
+      // Keep non-duplicate nodes (first instance) and any `CharacterClass` nodes
       keep.push(el);
     }
     node.elements = keep;

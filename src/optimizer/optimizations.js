@@ -1,3 +1,4 @@
+import {alternationToClass} from './transforms/alternation-to-class.js';
 import {dedupeClasses} from './transforms/dedupe-classes.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
 import {unnestOnlyChildClasses} from './transforms/unnest-only-child-classes.js';
@@ -7,6 +8,7 @@ import {unwrapUselessGroups} from './transforms/unwrap-useless-groups.js';
 
 /**
 @typedef {
+  'alternationToClass' |
   'dedupeClasses' |
   'removeEmptyGroups' |
   'unnestOnlyChildClasses' |
@@ -16,6 +18,7 @@ import {unwrapUselessGroups} from './transforms/unwrap-useless-groups.js';
 } OptimizationName
 */
 const optimizations = new Map([
+  ['alternationToClass', alternationToClass],
   ['dedupeClasses', dedupeClasses],
   ['removeEmptyGroups', removeEmptyGroups],
   ['unnestOnlyChildClasses', unnestOnlyChildClasses],
