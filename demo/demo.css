@@ -1,0 +1,205 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html, body {height: 100%}
+
+body {
+  font-family: Calibri, "Helvetica Neue", sans-serif;
+  color: #000;
+  background-color: #c9e4ff;
+  background: repeating-linear-gradient(45deg, #d6ebff, #d6ebff 3px, #c9e4ff 3px, #c9e4ff 10px);
+}
+
+main {
+  background-color: rgba(255, 255, 255, 0.9);
+  max-width: 65rem;
+  padding: 4vh 4.5vw 3vw 4.5vw;
+  margin: 0 auto;
+  box-shadow: 0 0 0 10px #80c0ff;
+  border-radius: 0 0 15px 15px;
+}
+
+hr {
+  border: 1px solid #c9e4ff;
+}
+
+h1, h2, ul, p, pre, summary {
+  margin-bottom: 12px;
+}
+
+h1, h2 {
+  font-family: Cambria, Cochin, Georgia;
+}
+
+h2 {
+  margin-top: 18px;
+}
+
+code {
+  padding: 0 3px;
+  background-color: #f0f0f0;
+}
+
+kbd {
+  padding: 0 3px;
+}
+
+small {
+  font-size: 0.8em;
+}
+
+.hidden {
+  display: none;
+}
+
+summary {
+  cursor: pointer;
+}
+
+label {
+  margin-right: 0.5em;
+  position: relative;
+  display: inline-block;
+}
+
+label img {
+  vertical-align: middle;
+}
+
+label .tip {
+  visibility: hidden;
+  text-align: center;
+  padding: 4px 8px;
+  background-color: #c9e4ff;
+  border-radius: 6px;
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  z-index: 1;
+}
+
+label:hover .tip {
+  visibility: visible;
+}
+
+label .tip:hover {
+  visibility: hidden;
+}
+
+label .tip::after {
+  content: " ";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #c9e4ff transparent transparent transparent;
+}
+
+label .tip-sm {
+  width: 140px;
+  margin-left: -70px;
+}
+
+label .tip-md {
+  width: 170px;
+  margin-left: -85px;
+}
+
+label .tip-lg {
+  width: 220px;
+  margin-left: -110px;
+}
+
+label .tip-xl {
+  width: 300px;
+  margin-left: -150px;
+}
+
+label .tip :is(code, kbd) {
+  background-color: #dceeff;
+}
+
+input[type='checkbox'] {
+  width: 1.25em;
+  height: 1.25em;
+  border-radius: 6px;
+  vertical-align: middle;
+  accent-color: #80c0ff;
+}
+
+input[type='number'] {
+  width: 3.5em;
+  padding: 3px;
+  font-size: 0.9em;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+}
+
+select {
+  padding: 3px;
+  font-size: 0.9em;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 80px;
+  max-height: 250px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.2s ease;
+  background-color: #fcfcfc;
+}
+
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 8px #80c0ff;
+}
+
+pre, code, kbd, textarea {
+  font-family: Consolas, "Source Code Pro", Monospace;
+  font-size: 0.9em;
+  border-radius: 0.375em;
+}
+
+#more-options-cols {
+  display: flex;
+}
+
+#more-options-cols div {
+  margin-right: 3%;
+}
+
+#output, textarea {
+  padding: 0.6em;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+#output {
+  border: 1px dotted #80c0ff;
+  width: 100%;
+  min-height: 2.5em;
+  max-height: 150px;
+  overflow: auto;
+  background-color: #d6ebff;
+  background: repeating-linear-gradient(45deg, #d6ebff, #d6ebff 3px, #c9e4ff 3px, #c9e4ff 10px);
+}
+
+#output.error {
+  border-color: pink;
+  background-color: pink;
+  color: #a9004f;
+  background: repeating-linear-gradient(45deg, #fee6ff, #fee6ff 3px, #ffe0f8 3px, #ffe0f8 10px);
+}
+
+#bench {
+  float: right;
+  font-size: 0.9em;
+  color: #333;
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oniguruma-parser demo</title>
+  <link href="https://cdn.jsdelivr.net/gh/slevithan/oniguruma-parser/demo/demo.css" rel="stylesheet">
+  <!-- If running in development, replace with local copy -->
+  <link href="./demo.css" rel="stylesheet">
+</head>
+<body>
+  <main>
+    <h1>
+      Oniguruma optimizer
+      <a href="https://github.com/slevithan/oniguruma-parser">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c2/GitHub_Invertocat_Logo.svg" width="25" height="25" alt="GitHub">
+      </a>
+    </h1>
+    <p>Test the output of <a href="https://github.com/slevithan/oniguruma-parser">oniguruma-parser</a>'s <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">Optimizer</a> module.</p>
+
+    <h2>Try it</h2>
+    <p><textarea id="input" spellcheck="false" oninput="autoGrow(); showGenerated()"></textarea></p>
+    <p id="bench" class="hidden"><span id="runtime"></span> <button onclick="showGenerated()">⟳</button></p>
+    <p>
+      <label><code>flags</code></label>
+      <label>
+        <input type="checkbox" id="flag-i" onchange="setFlag('i', this.checked)">
+        <kbd>i</kbd>
+        <span class="tip tip-sm"><code>ignoreCase</code></span>
+      </label>
+      <label>
+        <input type="checkbox" id="flag-m" onchange="setFlag('m', this.checked)">
+        <kbd>m</kbd>
+        <span class="tip tip-md"><code>dotAll</code> (JS flag <kbd>s</kbd>)</span>
+      </label>
+      <label>
+        <input type="checkbox" id="flag-x" onchange="setFlag('x', this.checked)">
+        <kbd>x</kbd>
+        <span class="tip tip-lg"><code>extended</code> (insignificant whitespace and comments)</span>
+      </label>
+      <label>
+        <input type="checkbox" id="flag-D" onchange="setFlag('D', this.checked)">
+        <kbd>D</kbd>
+        <span class="tip tip-sm"><code>digitIsAscii</code></span>
+      </label>
+      <label>
+        <input type="checkbox" id="flag-P" onchange="setFlag('P', this.checked)">
+        <kbd>P</kbd>
+        <span class="tip tip-sm"><code>posixIsAscii</code></span>
+      </label>
+      <label>
+        <input type="checkbox" id="flag-S" onchange="setFlag('S', this.checked)">
+        <kbd>S</kbd>
+        <span class="tip tip-sm"><code>spaceIsAscii</code></span>
+      </label>
+      <label>
+        <input type="checkbox" id="flag-W" onchange="setFlag('W', this.checked)">
+        <kbd>W</kbd>
+        <span class="tip tip-sm"><code>wordIsAscii</code></span>
+      </label>
+    </p>
+    <details>
+      <summary>More options</summary>
+      <section>
+        <div id="more-options-cols">
+          <div>
+            <p>
+              <label>
+                <input type="checkbox" id="option-captureGroup" onchange="setRule('captureGroup', this.checked)">
+                <code>captureGroup</code>
+                <span class="tip tip-xl">Unnamed captures and numbered calls allowed when using named capture; on by default in <code>vscode-oniguruma</code></span>
+              </label>
+            </p>
+          </div>
+          <div>
+            <p>
+              <label>
+                <input type="checkbox" id="option-singleline" onchange="setRule('singleline', this.checked)">
+                <code>singleline</code>
+                <span class="tip tip-md"><code>^</code> as <code>\A</code>; <code>$</code> as <code>\Z</code></span>
+              </label>
+            </p>
+          </div>
+        </div>
+      </section>
+    </details>
+    <pre id="output"></pre>
+    <p>See the <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">readme</a> for more details. The output shows only the <code>pattern</code> property from the result of calling <code>optimize</code>. <code>toOnigurumaAst</code> and other oniguruma-parser functions can be run from the console on this page. Pretty-print ASTs by passing them to <code>printAst</code>.</p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/oniguruma-parser/dist/oniguruma-parser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/slevithan/oniguruma-parser/demo/demo.js"></script>
+  <!-- If running in development, replace with local copies -->
+  <script src="../dist/oniguruma-parser.min.js"></script>
+  <script src="./demo.js"></script>
+  <script>
+    // For testing in the console
+    Object.assign(globalThis, OnigurumaParser);
+    const r = String.raw;
+    const cp = String.fromCodePoint;
+    function printAst(ast) {
+      if (ast?.type !== 'Regex') {
+        throw new Error('Unexpected AST format');
+      }
+      console.log(JSON.stringify(ast, function (key, value) {
+        if (key === 'max' && value === Infinity) {
+          return '[Infinity]';
+        }
+        return value;
+      }, '│ '));
+    }
+  </script>
+</body>
+</html>
