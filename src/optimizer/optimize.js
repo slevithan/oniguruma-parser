@@ -36,7 +36,7 @@ function optimize(pattern, options) {
   let counter = 0;
   do {
     if (++counter > 200) {
-      throw new Error('Optimization loop exceeded maximum iterations');
+      throw new Error('Optimization exceeded maximum iterations; possible infinite loop');
     }
     pattern = optimized.pattern;
     for (const name of names) {

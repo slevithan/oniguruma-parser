@@ -188,8 +188,6 @@ Some of the following optimizations (related to the representation of tokens) do
 
 Optimizations are applied in a loop until no further optimization progress is made. Individual optimization transforms are typically narrow and work best when combined with other optimizations.
 
-Many additional optimizations are possible and will be added in future versions.
-
 ## Disable specific optimizations
 
 ```js
@@ -218,6 +216,17 @@ const optimized = optimize(pattern, {
   },
 });
 ```
+
+## Contributing
+
+Adding new optimization transforms is straightforward:
+
+- Add your optimizer in a new file, e.g. `src/optimizer/transforms/foo.js`.
+- Import and list it in `src/optimizer/optimizations.js`.
+- Add tests in `spec/optimizer/foo.spec.js`; run them via `pnpm test`.
+- List it above with a simple example, in this readme file.
+
+Optimizations should be independently useful and compliment each other; you don’t need to do too much in one.
 
 ## About
 
