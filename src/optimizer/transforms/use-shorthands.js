@@ -6,12 +6,11 @@ Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 - `\d` from `\p{Decimal_Number}`, `\p{Nd}`, `\p{digit}`, `[[:digit:]]`
 - `\h` from `\p{ASCII_Hex_Digit}`, `\p{AHex}`, `\p{xdigit}`, `[[:xdigit:]]`, `[0-9A-Fa-f]`
 - `\s` from `\p{White_Space}`, `\p{WSpace}`, `\p{space}`, `[[:space:]]`
+- `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]`
 - `\p{Cc}` from `\p{cntrl}`, `[[:cntrl:]]`
 See also the optimization `useUnicodeAliases`.
 
 [TODO] Add the following shorthands:
-- `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]`
-- `\p{word}` from `[\p{alpha}\p{M}\p{Nd}\p{Pc}]`
 - `\N` (not in class) from `[^\n]`
 - `\O` (not in class) from `\p{Any}`, `[\d\D]`, `[\h\H]`, `[\s\S]`, `[\w\W]`, `[\0-\x{10FFFF}]`
   - `\p{Any} (only in class) from `[\0-\x{10FFFF}]`
@@ -19,6 +18,7 @@ See also the optimization `useUnicodeAliases`.
 - `\p{blank}` from `[\p{Zs}\t]`
 - `\p{graph}` from `[\S&&\P{Cc}&&\P{Cn}&&\P{Cs}]`
 - `\p{print}` from `[[\S&&\P{Cc}&&\P{Cn}&&\P{Cs}]\p{Zs}]`
+- `\p{word}` from `[\p{alpha}\p{M}\p{Nd}\p{Pc}]` - Not the same as `\w`!
 - `[[:punct:]]` from `[\p{P}\p{S}]` - Not the same as `\p{punct}`!
 */
 const useShorthands = {
@@ -75,28 +75,43 @@ const useShorthands = {
     }
   },
 
-  CharacterClass({node}) {
+  CharacterClass({node, root}) {
     const has = {
       range0To9: false,
-      rangeAToFUpper: false,
       rangeAToFLower: false,
+      rangeAToFUpper: false,
+      unicodeL: false,
+      unicodeM: false,
+      unicodeN: false,
+      unicodePc: false,
     }
     for (const kid of node.elements) {
-      if (isRange(kid, '0', '9')) {
-        has.range0To9 = true;
-      } else if (isRange(kid, 'A', 'F')) {
-        has.rangeAToFUpper = true;
-      } else if (isRange(kid, 'a', 'f')) {
-        has.rangeAToFLower = true;
+      if (kid.type === NodeTypes.CharacterClassRange) {
+        has.range0To9 ||= isRange(kid, '0', '9');
+        has.rangeAToFLower ||= isRange(kid, 'a', 'f');
+        has.rangeAToFUpper ||= isRange(kid, 'A', 'F');
+      } else if (kid.type === NodeTypes.CharacterSet) {
+        has.unicodeL ||= isPositiveUnicode(kid, 'L');
+        has.unicodeM ||= isPositiveUnicode(kid, 'M');
+        has.unicodeN ||= isPositiveUnicode(kid, 'N');
+        has.unicodePc ||= isPositiveUnicode(kid, 'Pc');
       }
     }
     if (has.range0To9 && has.rangeAToFUpper && has.rangeAToFLower) {
-      node.elements = node.elements.filter(kid => (
-        !isRange(kid, '0', '9') &&
-        !isRange(kid, 'A', 'F') &&
-        !isRange(kid, 'a', 'f')
+      node.elements = node.elements.filter(kid => !(
+        isRange(kid, '0', '9') || isRange(kid, 'a', 'f') || isRange(kid, 'A', 'F')
       ));
       node.elements.push(createCharacterSet(NodeCharacterSetKinds.hex));
+    }
+    if (
+      (has.unicodeL && has.unicodeM && has.unicodeN && has.unicodePc) &&
+      // [TODO] Also need to check whether these flags are set in local context, when the parser
+      // supports these flags on mode modifiers
+      !root.flags.wordIsAscii &&
+      !root.flags.posixIsAscii
+    ) {
+      node.elements = node.elements.filter(kid => !isPositiveUnicode(kid, ['L', 'M', 'N', 'Pc']));
+      node.elements.push(createCharacterSet(NodeCharacterSetKinds.word));
     }
   },
 };
@@ -106,6 +121,15 @@ function isRange(node, min, max) {
     node.type === NodeTypes.CharacterClassRange &&
     cp(node.min.value) === min &&
     cp(node.max.value) === max
+  );
+}
+
+function isPositiveUnicode(node, value) {
+  return (
+    node.type === NodeTypes.CharacterSet &&
+    node.kind === NodeCharacterSetKinds.property &&
+    !node.negate &&
+    (Array.isArray(value) ? value.includes(node.value) : node.value === value)
   );
 }
 

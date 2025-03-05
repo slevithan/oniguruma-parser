@@ -10,7 +10,7 @@ describe('Optimizer: useShorthands', () => {
     return optimize(pattern, {override: thisOverride}).pattern;
   }
 
-  it(`should use \d when possible`, () => {
+  it(r`should use \d when possible`, () => {
     const cases = [
       [r`\p{Decimal_Number}`, r`\d`],
       [r`\P{Decimal_Number}`, r`\D`],
@@ -24,7 +24,7 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
-  it(`should switch only POSIX forms to \d when using flag D or P`, () => {
+  it(r`should switch only POSIX forms to \d when using flag D or P`, () => {
     const cases = [
       [r`\p{Decimal_Number}`, r`\p{Decimal_Number}`],
       [r`\p{Nd}`, r`\p{Nd}`],
@@ -43,7 +43,7 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
-  it(`should use \h when possible`, () => {
+  it(r`should use \h when possible`, () => {
     const cases = [
       [r`\p{ASCII_Hex_Digit}`, r`\h`],
       [r`\P{ASCII_Hex_Digit}`, r`\H`],
@@ -60,7 +60,7 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
-  it(`should switch all forms to \h when using flag P`, () => {
+  it(r`should switch all forms to \h when using flag P`, () => {
     // `\h` only has an ASCII form
     const cases = [
       [r`\p{ASCII_Hex_Digit}`, r`\h`],
@@ -77,7 +77,7 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
-  it(`should use \s when possible`, () => {
+  it(r`should use \s when possible`, () => {
     const cases = [
       [r`\p{White_Space}`, r`\s`],
       [r`\P{White_Space}`, r`\S`],
@@ -91,7 +91,7 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
-  it(`should switch only POSIX forms to \s when using flag S or P`, () => {
+  it(r`should switch only POSIX forms to \s when using flag S or P`, () => {
     const cases = [
       [r`\p{White_Space}`, r`\p{White_Space}`],
       [r`\p{WSpace}`, r`\p{WSpace}`],
@@ -110,7 +110,33 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
-  it(`should use \p{Cc} when possible`, () => {
+  it(r`should use \w when possible`, () => {
+    const cases = [
+      [r`[\p{L}\p{M}\p{N}\p{Pc}]`, r`[\w]`],
+      [r`[^\p{L}\p{M}\p{N}\p{Pc}]`, r`[^\w]`],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
+  it(r`should not switch to \w when using flag W or P`, () => {
+    const cases = [
+      r`[\p{L}\p{M}\p{N}\p{Pc}]`,
+    ];
+    for (const input of cases) {
+      expect(optimize(input, {
+        flags: 'W',
+        override: thisOverride,
+      }).pattern).toBe(input);
+      expect(optimize(input, {
+        flags: 'P',
+        override: thisOverride,
+      }).pattern).toBe(input);
+    }
+  });
+
+  it(r`should use \p{Cc} when possible`, () => {
     const cases = [
       [r`\p{cntrl}`, r`\p{Cc}`],
       [r`\P{cntrl}`, r`\P{Cc}`],
@@ -122,17 +148,17 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
-  it(`should not switch POSIX forms to \p{Cc} when using flag P`, () => {
+  it(r`should not switch to \p{Cc} when using flag P`, () => {
     // `cntrl` only has a POSIX form
     const cases = [
-      [r`\p{cntrl}`, r`\p{cntrl}`],
-      ['[[:cntrl:]]', r`[[:cntrl:]]`],
+      r`\p{cntrl}`,
+      '[[:cntrl:]]',
     ];
-    for (const [input, expected] of cases) {
+    for (const input of cases) {
       expect(optimize(input, {
         flags: 'P',
         override: thisOverride,
-      }).pattern).toBe(expected);
+      }).pattern).toBe(input);
     }
   });
 });
