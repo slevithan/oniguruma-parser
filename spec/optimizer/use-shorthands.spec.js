@@ -53,7 +53,7 @@ describe('Optimizer: useShorthands', () => {
       ['[[:^xdigit:]]', r`[\H]`],
       ['[0-9A-Fa-f]', r`[\h]`],
       ['[^0-9A-Fa-f]', r`[^\h]`],
-      ['[A-F=0-9*a-f]', r`[=*\h]`],
+      ['[A-FA-F=0-9*a-f]', r`[=*\h]`],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
@@ -114,6 +114,7 @@ describe('Optimizer: useShorthands', () => {
     const cases = [
       [r`[\p{L}\p{M}\p{N}\p{Pc}]`, r`[\w]`],
       [r`[^\p{L}\p{M}\p{N}\p{Pc}]`, r`[^\w]`],
+      [r`[\p{Pc}\p{Pc}=\p{L}*\p{M}_\p{N}]`, r`[=*_\w]`],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
