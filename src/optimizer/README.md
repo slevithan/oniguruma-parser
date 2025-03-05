@@ -5,8 +5,8 @@ The optimizer transforms an Oniguruma pattern into an optimized version of itsel
 Benefits:
 
 - Optimized regexes are shorter; good for minification.
-- Optimized regexes are typically easier to read, unless the original used free-spacing.
-- Some optimizations can improve performance and reduce the risk of ReDoS.
+- Optimized regexes are typically easier to read, unless the original used flag `x` for free-spacing (which gets stripped out during optimization).
+- Some optimizations can improve performance and reduce the risk of runaway backtracking.
 
 The optimizer isn't solely concerned with minification, although that's its primary purpose. It attempts to optimize both pattern length and performance, while avoiding transformations that might shorten the pattern in some contexts but be problematic in others (e.g., by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
 
