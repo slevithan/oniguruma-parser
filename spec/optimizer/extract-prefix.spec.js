@@ -38,14 +38,20 @@ describe('Optimizer: extractPrefix', () => {
     }
   });
 
-  it('should not consider non-Assertion/Character/CharacterSet nodes for the prefix', () => {
+  // Just documenting current behavior
+  it('should not consider non-simple nodes for the prefix', () => {
     const cases = [
-      ['(a)a|(a)b', '(a)a|(a)b'],
-      ['[a]a|[a]b', '[a]a|[a]b'],
-      [r`\Ka|\Kb`, r`\Ka|\Kb`],
+      '(a)a|(a)b',
+      '[a]a|[a]b',
+      r`\Ka|\Kb`,
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+    const changes = [
       ['^[a]a|^[a]a', '^(?:[a]a|[a]a)'],
     ];
-    for (const [input, expected] of cases) {
+    for (const [input, expected] of changes) {
       expect(thisOptimization(input)).toBe(expected);
     }
   });

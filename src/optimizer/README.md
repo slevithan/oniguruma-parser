@@ -68,7 +68,7 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="2" valign="top" align="left">
+    <th rowspan="3" valign="top" align="left">
       Alternation
     </th>
     <td><code>alternationToClass</code> 🚀</td>
@@ -79,6 +79,11 @@ Some of the following optimizations (related to the representation of tokens) do
     <td><code>extractPrefix</code> 🚀</td>
     <td>Extract nodes at the start of every alternative into a prefix</td>
     <td><code>^aa|^abb|^ac</code> → <code>^a(?:a|bb|c)</code></td>
+  </tr>
+  <tr>
+    <td><code>extractPrefix2</code> 🚀</td>
+    <td>Extract alternating prefixes if patterns are repeated for each prefix</td>
+    <td><code>^a|!a|^bb|!bb|^c|!c</code> → <code>(?:^|!)(?:a|bb|c)</code></td>
   </tr>
 
   <tr>

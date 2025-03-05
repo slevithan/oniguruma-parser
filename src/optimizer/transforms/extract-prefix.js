@@ -3,6 +3,10 @@ import {alternativeContainerTypes} from '../../parser/node-types.js';
 
 /**
 Extract nodes at the start of every alternative into a prefix.
+Also works within groups.
+- `^aa|^abb|^ac` -> `^a(?:a|bb|c)`
+- `aa|aa|aa` -> `aa`
+- `a|b|c` -> `a|b|c` (no common prefix)
 */
 const extractPrefix = {
   '*'({node}) {
@@ -16,14 +20,7 @@ const extractPrefix = {
       prefixNodes[i] = node.alternatives[0].elements[i];
       for (const alt of node.alternatives) {
         const kid = alt.elements[i];
-        if (
-          !kid ||
-          ( kid.type !== NodeTypes.Assertion &&
-            kid.type !== NodeTypes.Character &&
-            kid.type !== NodeTypes.CharacterSet
-          ) ||
-          !isNodeEqual(kid, prefixNodes[i])
-        ) {
+        if (!kid || !isAllowedSimpleType(kid.type) || !isNodeEqual(kid, prefixNodes[i])) {
           passedSharedPrefix = true;
           break;
         }
@@ -48,6 +45,15 @@ const extractPrefix = {
   },
 };
 
+function isAllowedSimpleType(type) {
+  return (
+    type === NodeTypes.Assertion ||
+    type === NodeTypes.Character ||
+    type === NodeTypes.CharacterSet
+  );
+}
+
+// [TODO] Add support for more node types and move to `src/parser/`
 function isNodeEqual(a, b) {
   if (a.type !== b.type) {
     return false;
@@ -58,9 +64,12 @@ function isNodeEqual(a, b) {
   if (a.type === NodeTypes.Character) {
     return a.value === b.value;
   }
+  // Only supports types from `isAllowedSimpleType`
   throw new Error(`Unexpected node type "${a.type}"`);
 }
 
 export {
   extractPrefix,
+  isAllowedSimpleType,
+  isNodeEqual,
 };
