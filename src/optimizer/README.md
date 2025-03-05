@@ -233,7 +233,7 @@ Adding new optimization transforms is straightforward:
 - Add tests in `spec/optimizer/foo.spec.js`; run them via `pnpm test`.
 - List it above with a simple example, in this readme file.
 
-Optimizations should be independently useful and compliment each other; you don’t need to do too much in one.
+Optimizations should be independently useful and can compliment each other; you don’t need to do too much in one. Ideas for new optimizations are listed [here](https://github.com/slevithan/oniguruma-parser/issues/7).
 
 ## About
 
