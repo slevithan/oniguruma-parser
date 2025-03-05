@@ -103,7 +103,7 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="3" valign="top" align="left">
+    <th rowspan="4" valign="top" align="left">
       Characters
     </th>
     <td></td>
@@ -114,6 +114,11 @@ Some of the following optimizations (related to the representation of tokens) do
     <td></td>
     <td>Use the simplest character representation</td>
     <td><code>\u0061</code> → <code>a</code></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Encoded bytes to code points</td>
+    <td><code>\xE2\x82\xAC</code> (U+20AC) → <code>€</code></td>
   </tr>
   <tr>
     <td></td>
