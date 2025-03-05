@@ -1,15 +1,15 @@
-import {createCharacterSet, createUnicodeProperty, NodeCharacterSetKinds} from '../../parser/parse.js';
+import {createCharacterSet, createUnicodeProperty, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
+import {cp} from '../../utils.js';
 
 /**
 Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 - `\d` from `\p{Decimal_Number}`, `\p{Nd}`, `\p{digit}`, `[[:digit:]]`
-- `\h` from `\p{ASCII_Hex_Digit}`, `\p{AHex}`, `\p{xdigit}`, `[[:xdigit:]]`
+- `\h` from `\p{ASCII_Hex_Digit}`, `\p{AHex}`, `\p{xdigit}`, `[[:xdigit:]]`, `[0-9A-Fa-f]`
 - `\s` from `\p{White_Space}`, `\p{WSpace}`, `\p{space}`, `[[:space:]]`
 - `\p{Cc}` from `\p{cntrl}`, `[[:cntrl:]]`
 See also the optimization `useUnicodeAliases`.
 
-[TODO] Add the following shorthands (these can improve performance):
-- `\h` from `[0-9A-Fa-f]`
+[TODO] Add the following shorthands:
 - `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]`
 - `\p{word}` from `[\p{alpha}\p{M}\p{Nd}\p{Pc}]`
 - `\N` (not in class) from `[^\n]`
@@ -74,7 +74,40 @@ const useShorthands = {
       replaceWith(newNode);
     }
   },
+
+  CharacterClass({node}) {
+    const has = {
+      range0To9: false,
+      rangeAToFUpper: false,
+      rangeAToFLower: false,
+    }
+    for (const kid of node.elements) {
+      if (isRange(kid, '0', '9')) {
+        has.range0To9 = true;
+      } else if (isRange(kid, 'A', 'F')) {
+        has.rangeAToFUpper = true;
+      } else if (isRange(kid, 'a', 'f')) {
+        has.rangeAToFLower = true;
+      }
+    }
+    if (has.range0To9 && has.rangeAToFUpper && has.rangeAToFLower) {
+      node.elements = node.elements.filter(kid => (
+        !isRange(kid, '0', '9') &&
+        !isRange(kid, 'A', 'F') &&
+        !isRange(kid, 'a', 'f')
+      ));
+      node.elements.push(createCharacterSet(NodeCharacterSetKinds.hex));
+    }
+  },
 };
+
+function isRange(node, min, max) {
+  return (
+    node.type === NodeTypes.CharacterClassRange &&
+    cp(node.min.value) === min &&
+    cp(node.max.value) === max
+  );
+}
 
 export {
   useShorthands,
