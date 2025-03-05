@@ -9,6 +9,7 @@ Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 See also the optimization `useUnicodeAliases`.
 
 [TODO] Add the following shorthands (these can improve performance):
+- `\h` from `[0-9A-Fa-f]`
 - `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]`
 - `\p{word}` from `[\p{alpha}\p{M}\p{Nd}\p{Pc}]`
 - `\N` (not in class) from `[^\n]`
