@@ -1,6 +1,7 @@
 const ui = {
   input: document.getElementById('input'),
-  output: document.getElementById('output'),
+  outputPattern: document.getElementById('outputPattern'),
+  outputFlags: document.getElementById('outputFlags'),
   runtime: document.getElementById('runtime'),
   bench: document.getElementById('bench'),
 };
@@ -20,8 +21,9 @@ const state = {
       singleline: getValue('option-singleline'),
     },
   },
-  useGenerator: getValue('useGenerator'),
   bench: !!(new URL(location).searchParams.get('bench')),
+  showFlags: getValue('showFlags'),
+  useGenerator: getValue('useGenerator'),
 };
 
 autoGrow();
@@ -37,7 +39,7 @@ function autoGrow() {
 }
 
 function showGenerated() {
-  ui.output.classList.remove('error', 'subclass');
+  ui.outputPattern.classList.remove('error', 'subclass');
   const options = {
     ...state.opts,
     flags: `${
@@ -56,22 +58,26 @@ function showGenerated() {
       state.flags.W ? 'W' : ''
     }`,
   };
-  let result = '';
+  let outputPattern = '';
+  let outputFlags = '';
   let runtime = 0;
   try {
     const startTime = performance.now();
-    const output = state.useGenerator ?
+    const result = state.useGenerator ?
       OnigurumaParser.generate(OnigurumaParser.toOnigurumaAst(ui.input.value, options)) :
       OnigurumaParser.optimize(ui.input.value, options);
     const endTime = performance.now();
     runtime = endTime - startTime;
-    result = output.pattern;
+    outputPattern = result.pattern;
+    outputFlags = result.flags;
   } catch (err) {
     runtime = NaN;
-    result = `Error: ${err.message}`;
-    ui.output.classList.add('error');
+    outputPattern = `Error: ${err.message}`;
+    outputFlags = '';
+    ui.outputPattern.classList.add('error');
   }
-  ui.output.innerHTML = escapeHtml(result);
+  ui.outputPattern.innerHTML = escapeHtml(outputPattern);
+  ui.outputFlags.innerHTML = outputFlags;
   if (state.bench) {
     ui.runtime.innerHTML = Number.isNaN(runtime) ? '' : `${Math.round((runtime + Number.EPSILON) * 10) / 10}ms`;
   }
@@ -105,4 +111,9 @@ function setRule(rule, value) {
 function setUseGenerator(value) {
   state.useGenerator = value;
   showGenerated();
+}
+
+function setShowFlags(value) {
+  state.showFlags = value;
+  ui.outputFlags.classList.toggle('hidden', !value);
 }

@@ -3,6 +3,7 @@ import {dedupeClasses} from './transforms/dedupe-classes.js';
 import {extractPrefix} from './transforms/extract-prefix.js';
 import {extractPrefix2} from './transforms/extract-prefix-2.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
+import {removeUselessFlags} from './transforms/remove-useless-flags.js';
 import {unnestOnlyChildClasses} from './transforms/unnest-only-child-classes.js';
 import {unnestUselessClasses} from './transforms/unnest-useless-classes.js';
 import {unwrapUselessClasses} from './transforms/unwrap-useless-classes.js';
@@ -17,6 +18,7 @@ import {useUnicodeAliases} from './transforms/use-unicode-aliases.js';
   'extractPrefix' |
   'extractPrefix2' |
   'removeEmptyGroups' |
+  'removeUselessFlags' |
   'unnestOnlyChildClasses' |
   'unnestUselessClasses' |
   'unwrapUselessClasses' |
@@ -31,6 +33,7 @@ const optimizations = new Map([
   ['extractPrefix', extractPrefix],
   ['extractPrefix2', extractPrefix2],
   ['removeEmptyGroups', removeEmptyGroups],
+  ['removeUselessFlags', removeUselessFlags],
   ['unnestOnlyChildClasses', unnestOnlyChildClasses],
   ['unnestUselessClasses', unnestUselessClasses],
   ['unwrapUselessClasses', unwrapUselessClasses],

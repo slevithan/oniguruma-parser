@@ -282,12 +282,13 @@ function getFirstChild(node) {
 @param {import('../tokenizer/tokenize.js').RegexFlags} node
 @returns {string}
 */
-function getFlagsStr({ignoreCase, dotAll, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}) {
-  // Leave out `extended` (flag x) since free-spacing and comments aren't included in the AST
+function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}) {
   return `${
     ignoreCase ? 'i' : ''
   }${
     dotAll ? 'm' : ''
+  }${
+    extended ? 'x' : ''
   }${
     digitIsAscii ? 'D' : ''
   }${

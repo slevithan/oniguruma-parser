@@ -2,7 +2,7 @@ import {NodeTypes} from '../../parser/parse.js';
 import {atomicTypes, quantifiableTypes} from '../../parser/node-types.js';
 
 /**
-Unwrap nonbeneficial noncapturing, atomic, and flag groups.
+Unwrap nonbeneficial noncapturing and atomic groups.
 */
 const unwrapUselessGroups = {
   Group({node, parent, replaceWithMultiple}) {
@@ -18,11 +18,7 @@ const unwrapUselessGroups = {
         unwrap = true;
       }
     } else if (flags) {
-      // Unwrap if the flags aren't able to change the behavior of the group
-      // Flag x (`extended`) has already been applied during parsing
-      if (onlyUsesFlagX(flags)) {
-        unwrap = true;
-      }
+      // Rely on `removeUselessFlags`, then the group can be unwrapped in a subsequent pass
     } else {
       unwrap = true;
     }
@@ -48,7 +44,7 @@ const unwrapUselessGroups = {
     if (
       !quantifiableTypes.has(candidate.type) ||
       (quantifiedGroup.atomic && !atomicTypes.has(candidate.type)) ||
-      (quantifiedGroup.flags && !onlyUsesFlagX(quantifiedGroup.flags))
+      quantifiedGroup.flags
     ) {
       return;
     }
@@ -56,12 +52,6 @@ const unwrapUselessGroups = {
     node.element = candidate;
   },
 };
-
-function onlyUsesFlagX(flagMods) {
-  const {enable = {}, disable = {}} = flagMods;
-  const keysOmitting = (obj, key) => Object.keys(obj).filter(k => k !== key);
-  return !keysOmitting(enable, 'extended').length && !keysOmitting(disable, 'extended').length;
-}
 
 export {
   unwrapUselessGroups,

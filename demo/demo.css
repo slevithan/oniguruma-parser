@@ -174,14 +174,14 @@ pre, code, kbd, textarea {
   margin-right: 3%;
 }
 
-#output, textarea {
+.output, textarea {
   padding: 0.6em;
   white-space: pre-wrap;
   word-break: break-all;
   overflow-wrap: anywhere;
 }
 
-#output {
+.output {
   border: 1px dotted #80c0ff;
   width: 100%;
   min-height: 2.5em;
@@ -191,7 +191,7 @@ pre, code, kbd, textarea {
   background: repeating-linear-gradient(45deg, #d6ebff, #d6ebff 3px, #c9e4ff 3px, #c9e4ff 10px);
 }
 
-#output.error {
+.output.error {
   border-color: pink;
   background-color: pink;
   color: #a9004f;

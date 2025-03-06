@@ -50,7 +50,7 @@ The following optimizations are always enabled. They result from the nature of t
 | Description | Example |
 |-|-|
 | Remove comment groups | `(?#comment)a` → `a` |
-| Remove free-spacing and line comments with flag `x` | `(?x) a b` → `ab` |
+| Remove free-spacing and line comments with flag `x` | `(?x) a b` → `(?x)ab` |
 | Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
 | Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
 | Resolve relative backreference/subroutine numbers | `()\k<-1>` → `()\k<1>` |
@@ -170,6 +170,15 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
+    <th rowspan="1" valign="top" align="left">
+      Flags
+    </th>
+    <td><code>removeUselessFlags</code></td>
+    <td>Remove flags that have no effect on the given pattern</td>
+    <td><code>(?x)a</code> → <code>a</code></td>
+  </tr>
+
+  <tr>
     <th rowspan="2" valign="top" align="left">
       Groups
     </th>
@@ -179,7 +188,7 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
   <tr>
     <td><code>unwrapUselessGroups</code></td>
-    <td>Unwrap nonbeneficial noncapturing, atomic, and flag groups</td>
+    <td>Unwrap nonbeneficial noncapturing and atomic groups</td>
     <td><code>(?:a)</code> → <code>a</code></td>
   </tr>
 
