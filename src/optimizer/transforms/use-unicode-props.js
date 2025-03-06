@@ -1,4 +1,4 @@
-import {createUnicodeProperty, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
+import {createUnicodeProperty, NodeCharacterSetKinds} from '../../parser/parse.js';
 import {isRange} from './use-shorthands.js';
 
 /**
@@ -26,21 +26,9 @@ const useUnicodeProps = {
     }
   },
 
-  CharacterClass({node}) {
-    if (node.kind !== NodeCharacterClassKinds.union) {
-      return;
-    }
-    const has = {
-      range0To10FFFF: false,
-    }
-    for (const kid of node.elements) {
-      if (kid.type === NodeTypes.CharacterClassRange) {
-        has.range0To10FFFF ||= isRange(kid, 0, 0x10FFFF);
-      }
-    }
-    if (has.range0To10FFFF) {
-      node.elements = node.elements.filter(kid => !isRange(kid, 0, 0x10FFFF));
-      node.elements.push(createUnicodeProperty('Any'));
+  CharacterClassRange({node, replaceWith}) {
+    if (isRange(node, 0, 0x10FFFF)) {
+      replaceWith(createUnicodeProperty('Any'));
     }
   },
 };

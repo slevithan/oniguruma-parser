@@ -13,13 +13,13 @@ The optimizer isn't solely concerned with minification, although that's its prim
 Example:
 
 ```
-(?x) (?:\!{1,}) (^aa|^ab|^az) [[^0-9A-Fa-f]\p{ Letter }] [\0-\x{10FFFF}] [\p{L}\p{M}\p{N}\p{Pc}]
+(?x) (?:\!{1,}) (\p{Nd}aa|\p{Nd}ab|\p{Nd}az) [[^0-9A-Fa-f]\p{ Letter }] [\0-\x{10FFFF}] [\p{L}\p{M}\p{N}\p{Pc}]
 ```
 
 Becomes:
 
 ```
-!+(^a[abz])[\H\p{L}]\O\w
+!+(\da[abz])[\H\p{L}]\O\w
 ```
 
 ## [Try the Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/)
