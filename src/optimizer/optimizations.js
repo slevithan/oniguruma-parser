@@ -10,6 +10,7 @@ import {unwrapUselessClasses} from './transforms/unwrap-useless-classes.js';
 import {unwrapUselessGroups} from './transforms/unwrap-useless-groups.js';
 import {useShorthands} from './transforms/use-shorthands.js';
 import {useUnicodeAliases} from './transforms/use-unicode-aliases.js';
+import {useUnicodeProps} from './transforms/use-unicode-props.js';
 
 /**
 @typedef {
@@ -24,7 +25,8 @@ import {useUnicodeAliases} from './transforms/use-unicode-aliases.js';
   'unwrapUselessClasses' |
   'unwrapUselessGroups' |
   'useShorthands' |
-  'useUnicodeAliases'
+  'useUnicodeAliases' |
+  'useUnicodeProps'
 } OptimizationName
 */
 const optimizations = new Map([
@@ -40,6 +42,7 @@ const optimizations = new Map([
   ['unwrapUselessGroups', unwrapUselessGroups],
   ['useShorthands', useShorthands],
   ['useUnicodeAliases', useUnicodeAliases],
+  ['useUnicodeProps', useUnicodeProps],
 ]);
 
 export {

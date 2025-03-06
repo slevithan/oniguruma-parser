@@ -1,14 +1,12 @@
-import {createCharacterSet, createUnicodeProperty, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
+import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
 Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 - `\d` from `\p{Decimal_Number}`, `\p{Nd}`, `\p{digit}`, `[[:digit:]]`
 - `\h` from `\p{ASCII_Hex_Digit}`, `\p{AHex}`, `\p{xdigit}`, `[[:xdigit:]]`, `[0-9A-Fa-f]`
 - `\s` from `\p{White_Space}`, `\p{WSpace}`, `\p{space}`, `[[:space:]]`
-- `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]` - Not the same as `\p{word}`!
-- `\p{Any}` from `[0-\x{10FFFF}]`
-- `\p{Cc}` from `\p{cntrl}`, `[[:cntrl:]]`
-See also `useUnicodeAliases`.
+- `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]` - Not the same as POSIX `\p{word}`, `[[:word:]]`!
+See also `useUnicodeProps`.
 */
 const useShorthands = {
   CharacterSet({node, root, replaceWith}) {
@@ -49,14 +47,6 @@ const useShorthands = {
       )
     ) {
       newNode = createCharacterSet(NodeCharacterSetKinds.space, {negate});
-    } else if (
-      kind === NodeCharacterSetKinds.posix &&
-      value === 'cntrl' &&
-      // [TODO] Also need to check whether this flag is set in local context, when the parser
-      // supports this flag on mode modifiers
-      !root.flags.posixIsAscii
-    ) {
-      newNode = createUnicodeProperty('Cc', {negate});
     }
 
     if (newNode) {
@@ -69,7 +59,6 @@ const useShorthands = {
       return;
     }
     const has = {
-      range0To10FFFF: false,
       rangeDigit0To9: false,
       rangeAToFLower: false,
       rangeAToFUpper: false,
@@ -80,7 +69,6 @@ const useShorthands = {
     }
     for (const kid of node.elements) {
       if (kid.type === NodeTypes.CharacterClassRange) {
-        has.range0To10FFFF ||= isRange(kid, 0, 0x10FFFF);
         has.rangeDigit0To9 ||= isRange(kid, 48, 57); // '0' to '9'
         has.rangeAToFLower ||= isRange(kid, 97, 102); // 'a' to 'f'
         has.rangeAToFUpper ||= isRange(kid, 65, 70); // 'A' to 'F'
@@ -96,10 +84,6 @@ const useShorthands = {
         isRange(kid, 48, 57) || isRange(kid, 97, 102) || isRange(kid, 65, 70)
       ));
       node.elements.push(createCharacterSet(NodeCharacterSetKinds.hex));
-    }
-    if (has.range0To10FFFF) {
-      node.elements = node.elements.filter(kid => !isRange(kid, 0, 0x10FFFF));
-      node.elements.push(createUnicodeProperty('Any'));
     }
     if (
       (has.unicodeL && has.unicodeM && has.unicodeN && has.unicodePc) &&
@@ -168,5 +152,6 @@ const subcategories = {
 };
 
 export {
+  isRange,
   useShorthands,
 };

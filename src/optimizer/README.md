@@ -39,7 +39,7 @@ function optimize(
 
 ### Flags
 
-Although the optimizer takes provided flags into account and includes a `flags` property on the returned object, it never changes top-level flags in ways that would change the meaning of the regex if you didn't provide the updated flags to Oniguruma. As a result, the optimized pattern can be used in situations when you aren't able to change the provided flags. For example, the optimizer removes `x` from the returned flags (since its effects are always applied), but it doesn't add flags.
+Although the optimizer takes provided flags into account and includes a `flags` property on the returned object, it never changes top-level flags in ways that would change the meaning of the regex if you didn't provide the updated flags to Oniguruma. As a result, the optimized pattern can be used in situations when you aren't able to change flags. For example, the optimizer removes `x` from the returned flags (since its effects are always applied), but it doesn't add flags.
 
 ## Optimizations
 
@@ -151,7 +151,7 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="3" valign="top" align="left">
+    <th rowspan="4" valign="top" align="left">
       Character sets
     </th>
     <td><code>useUnicodeAliases</code></td>
@@ -164,6 +164,11 @@ Some of the following optimizations (related to the representation of tokens) do
     <td><code>[[:space:]\p{Nd}]</code> → <code>[\s\d]</code></td>
   </tr>
   <tr>
+    <td><code>useUnicodeProps</code></td>
+    <td>Use Unicode properties when possible</td>
+    <td><code>[\0-\x{10FFFF}]</code> → <code>[\p{Any}]</code></td>
+  </tr>
+  <tr>
     <td></td>
     <td>Use outer negation for Unicode properties</td>
     <td><code>\p{^L}</code> → <code>\P{L}</code></td>
@@ -174,7 +179,7 @@ Some of the following optimizations (related to the representation of tokens) do
       Flags
     </th>
     <td><code>removeUselessFlags</code></td>
-    <td>Remove flags that have no effect on the given pattern</td>
+    <td>Remove flags (from top-level and modifiers) that have no effect</td>
     <td><code>(?x)a</code> → <code>a</code></td>
   </tr>
 

@@ -1,8 +1,8 @@
 import {NodeDirectiveKinds} from '../../parser/parse.js';
 
 /**
-Remove flags that have no effect on the given pattern.
-[TODO] Support removing additional flags besides `extended`.
+Remove flags (from top-level and modifiers) that have no effect.
+[TODO] Support removing additional flags besides `x`.
 */
 const removeUselessFlags = {
   Flags({node}) {
