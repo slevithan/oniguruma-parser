@@ -11,12 +11,12 @@
 <body>
   <main>
     <h1>
-      Oniguruma optimizer
+      Oniguruma regex optimizer
       <a href="https://github.com/slevithan/oniguruma-parser">
         <img src="https://upload.wikimedia.org/wikipedia/commons/c/c2/GitHub_Invertocat_Logo.svg" width="25" height="25" alt="GitHub">
       </a>
     </h1>
-    <p>Test the output of <a href="https://github.com/slevithan/oniguruma-parser">oniguruma-parser</a>'s <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">Optimizer</a> module.</p>
+    <p>Test the output of <a href="https://github.com/slevithan/oniguruma-parser">oniguruma-parser</a>'s <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">Optimizer</a> module, which minifies Oniguruma regexes and improves their performance.</p>
 
     <h2>Try it</h2>
     <p><textarea id="input" spellcheck="false" oninput="autoGrow(); showGenerated()"></textarea></p>
@@ -91,7 +91,7 @@
       <label>
         <input type="checkbox" id="useGenerator" onchange="setUseGenerator(this.checked)">
         Use the generator (don't optimize)
-        <span class="tip tip-xl">Uses <code>generate(toOnigurumaAst(…))</code></span>
+        <span class="tip tip-xl">Calls <code>generate(toOnigurumaAst(…))</code></span>
       </label>
       <label>
         <input type="checkbox" id="showFlags" onchange="setShowFlags(this.checked)">
