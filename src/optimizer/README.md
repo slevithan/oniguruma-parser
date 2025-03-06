@@ -136,8 +136,8 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
   <tr>
     <td></td>
-    <td>Remove leading zeros from enclosed character escapes</td>
-    <td><code>\x{0061}</code> → <code>\x{61}</code></td>
+    <td>Remove leading zeros from enclosed code point escapes</td>
+    <td><code>\x{000ABCDE}</code> → <code>\x{ABCDE}</code></td>
   </tr>
 
   <tr>
@@ -153,8 +153,7 @@ Some of the following optimizations (related to the representation of tokens) do
     <td>Unnest character classes when possible</td>
     <td>
       <code>[a[b]]</code> → <code>[ab]</code>,<br>
-      <code>[^[^a]]</code> → <code>[a]</code>,<br>
-      <code>[a[^\w]]</code> → <code>[a\W]</code>
+      <code>[^[^a]]</code> → <code>[a]</code>
     </td>
   </tr>
   <tr>
