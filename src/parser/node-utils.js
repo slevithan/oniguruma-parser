@@ -40,9 +40,28 @@ const universalCharacterSetKinds = new Set([
   NodeCharacterSetKinds.word,
 ]);
 
+function hasOnlyChild(node, properties = {}) {
+  // [TODO] Add support for nodes with `alternatives`, looking for `elements` within the first
+  // alternative after checking that there's only one alternative
+  if (!node.elements) {
+    throw new Error('Expected node with elements');
+  }
+  if (node.elements.length !== 1) {
+    return false;
+  }
+  const kid = node.elements[0];
+  for (const key of Object.keys(properties)) {
+    if (kid[key] !== properties[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export {
   alternativeContainerTypes,
   atomicTypes,
+  hasOnlyChild,
   quantifiableTypes,
   universalCharacterSetKinds,
 };

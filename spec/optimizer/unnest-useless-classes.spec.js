@@ -11,18 +11,44 @@ describe('Optimizer: unnestUselessClasses', () => {
     }).pattern;
   }
 
-  it('should unnest unnecessary character classes', () => {
+  it('should unnest unnecessary classes', () => {
     const cases = [
-      ['[[a]]', '[a]'],
-      ['[^[a]]', '[^a]'],
-      ['[[[a]]]', '[a]'],
-      ['[[a][b]]', '[ab]'],
-      ['[a[b]]', '[ab]'],
-      ['[[a]b]', '[ab]'],
-      ['[a[bc]d]', '[abcd]'],
-      [r`[[^\w]]`, r`[\W]`],
-      ['[a[[bc]d]]', '[abcd]'],
-      ['[[a]&&[b-c]]', '[a&&b-c]'],
+      [ '[[a]]',   '[a]'],
+      [r`[[\w]]`, r`[\w]`],
+      [ '[^[a]]',   '[^a]'],
+      [r`[^[\w]]`, r`[^\w]`],
+      [ '[[^a]]',   '[^a]'],
+      [r`[[^\w]]`, r`[^\w]`],
+      [ '[^[^a]]',   '[a]'],
+      [r`[^[^\w]]`, r`[\w]`],
+      [ '[[[a]]]',   '[a]'],
+      [r`[[[\w]]]`, r`[\w]`],
+      [ '[^[^[a]]]',   '[a]'],
+      [r`[^[^[\w]]]`, r`[\w]`],
+      [ '[^[^[^a]]]',   '[^a]'],
+      [r`[^[^[^\w]]]`, r`[^\w]`],
+      [ '[[ab]]',   '[ab]'],
+      [r`[[\wb]]`, r`[\wb]`],
+      [ '[[^ab]]',   '[^ab]'],
+      [r`[[^\wb]]`, r`[^\wb]`],
+      [ '[^[ab]]',   '[^ab]'],
+      [r`[^[\wb]]`, r`[^\wb]`],
+      [ '[^[^ab]]',   '[ab]'],
+      [r`[^[^\wb]]`, r`[\wb]`],
+      [ '[[a][b]]',   '[ab]'],
+      [r`[[a][\w]]`, r`[a\w]`],
+      [ '[a[b]]',   '[ab]'],
+      [r`[a[\w]]`, r`[a\w]`],
+      // '[a[^b]]', // Can't unnest necessary classes
+      [r`[a[^\w]]`, r`[a\W]`], // Special case; `\W` is invertable
+      [ '[a[ab]]',   '[aab]'],
+      [r`[a[\wb]]`, r`[a\wb]`],
+      //  '[a[^ab]]', // Can't unnest necessary classes
+      // r`[a[^\wb]]`, // Can't unnest necessary classes
+      [ '[[a]b]', '[ab]'],
+      [ '[a[bc]d]', '[abcd]'],
+      [ '[a[[bc]d]]', '[abcd]'],
+      [ '[[a]&&[b-c]]', '[a&&b-c]'],
       // [TODO] Enable after supporting `format: 'implicit'` in the generator
       // ['[[ab]&&[cd-e]]', '[ab&&cd-e]'],
     ];
@@ -31,16 +57,30 @@ describe('Optimizer: unnestUselessClasses', () => {
     }
   });
 
-  it('should not unnest necessary character classes', () => {
+  it('should not unnest necessary classes', () => {
     const cases = [
-      '[[^a]]',
-      r`[[^\w!]]`,
+      '[a[^b]]',
+      '[a[^ab]]',
+      r`[a[^\wb]]`,
       '[[&&]]',
       '[[a&&b]]',
+      '[[:alpha:]]', // POSIX class is a character set; not a nested class
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
     }
+  });
+
+  it('should not unwrap outermost classes', () => {
+    const cases = [
+      '[a]',
+      r`[\w]`,
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+    // Unsupported Onig syntax; classes can only be empty if they're implicit in an intersection;
+    // ex: on the left side of `[&&a]`
     expect(() => thisOptimization('[]')).toThrow();
   });
 });

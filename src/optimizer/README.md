@@ -139,7 +139,7 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="4" valign="top" align="left">
+    <th rowspan="3" valign="top" align="left">
       Character<br>classes
     </th>
     <td><code>unwrapUselessClasses</code></td>
@@ -149,12 +149,11 @@ Some of the following optimizations (related to the representation of tokens) do
   <tr>
     <td><code>unnestUselessClasses</code></td>
     <td>Unnest character classes when possible</td>
-    <td><code>[a[b]]</code> → <code>[ab]</code></td>
-  </tr>
-  <tr>
-    <td><code>unnestOnlyChildClasses</code></td>
-    <td>Unnest character classes that are an only-child of a character class</td>
-    <td><code>[^[^a]]</code> → <code>[a]</code></td>
+    <td>
+      <code>[a[b]]</code> → <code>[ab]</code>,<br>
+      <code>[^[^a]]</code> → <code>[a]</code>,<br>
+      <code>[a[^\w]]</code> → <code>[a\W]</code>
+    </td>
   </tr>
   <tr>
     <td><code>dedupeClasses</code></td>
