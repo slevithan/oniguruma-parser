@@ -77,6 +77,15 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
+  it(r`should not switch to \h when using intersection`, () => {
+    const cases = [
+      '[0-9&&A-F&&a-f]',
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
+
   it(r`should use \s when possible`, () => {
     const cases = [
       [r`\p{White_Space}`, r`\s`],
@@ -152,6 +161,16 @@ describe('Optimizer: useShorthands', () => {
         flags: 'P',
         override: thisOverride,
       }).pattern).toBe(input);
+    }
+  });
+
+  it(r`should use \p{Any} in place of range U+0 to U+10FFFF`, () => {
+    const cases = [
+      [r`[\0-\x{10FFFF}]`, r`[\p{Any}]`],
+      [r`[a\u0000-\x{10FFFF}]`, r`[a\p{Any}]`],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
     }
   });
 

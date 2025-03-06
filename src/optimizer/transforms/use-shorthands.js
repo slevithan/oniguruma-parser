@@ -1,25 +1,14 @@
-import {createCharacterSet, createUnicodeProperty, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
-import {cp} from '../../utils.js';
+import {createCharacterSet, createUnicodeProperty, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
 Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 - `\d` from `\p{Decimal_Number}`, `\p{Nd}`, `\p{digit}`, `[[:digit:]]`
 - `\h` from `\p{ASCII_Hex_Digit}`, `\p{AHex}`, `\p{xdigit}`, `[[:xdigit:]]`, `[0-9A-Fa-f]`
 - `\s` from `\p{White_Space}`, `\p{WSpace}`, `\p{space}`, `[[:space:]]`
-- `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]`
+- `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]` - Not the same as `\p{word}`!
+- `\p{Any}` from `[0-\x{10FFFF}]`
 - `\p{Cc}` from `\p{cntrl}`, `[[:cntrl:]]`
-See also the optimization `useUnicodeAliases`.
-
-[TODO] Add the following shorthands:
-- `\N` (not in class) from `[^\n]`
-- `\O` (not in class) from `\p{Any}`, `[\d\D]`, `[\h\H]`, `[\s\S]`, `[\w\W]`, `[\0-\x{10FFFF}]`
-  - `\p{Any} (only in class) from `[\0-\x{10FFFF}]`
-- `\p{alnum}` from `[\p{alpha}\p{Nd}]`
-- `\p{blank}` from `[\p{Zs}\t]`
-- `\p{graph}` from `[\S&&\P{Cc}&&\P{Cn}&&\P{Cs}]`
-- `\p{print}` from `[[\S&&\P{Cc}&&\P{Cn}&&\P{Cs}]\p{Zs}]`
-- `\p{word}` from `[\p{alpha}\p{M}\p{Nd}\p{Pc}]` - Not the same as `\w`!
-- `[[:punct:]]` from `[\p{P}\p{S}]` - Not the same as `\p{punct}`!
+See also `useUnicodeAliases`.
 */
 const useShorthands = {
   CharacterSet({node, root, replaceWith}) {
@@ -76,8 +65,12 @@ const useShorthands = {
   },
 
   CharacterClass({node, root}) {
+    if (node.kind !== NodeCharacterClassKinds.union) {
+      return;
+    }
     const has = {
-      range0To9: false,
+      range0To10FFFF: false,
+      rangeDigit0To9: false,
       rangeAToFLower: false,
       rangeAToFUpper: false,
       unicodeL: false,
@@ -87,9 +80,10 @@ const useShorthands = {
     }
     for (const kid of node.elements) {
       if (kid.type === NodeTypes.CharacterClassRange) {
-        has.range0To9 ||= isRange(kid, '0', '9');
-        has.rangeAToFLower ||= isRange(kid, 'a', 'f');
-        has.rangeAToFUpper ||= isRange(kid, 'A', 'F');
+        has.range0To10FFFF ||= isRange(kid, 0, 0x10FFFF);
+        has.rangeDigit0To9 ||= isRange(kid, 48, 57); // '0' to '9'
+        has.rangeAToFLower ||= isRange(kid, 97, 102); // 'a' to 'f'
+        has.rangeAToFUpper ||= isRange(kid, 65, 70); // 'A' to 'F'
       } else if (kid.type === NodeTypes.CharacterSet) {
         has.unicodeL ||= isUnicode(kid, 'L');
         has.unicodeM ||= isUnicode(kid, 'M');
@@ -97,11 +91,15 @@ const useShorthands = {
         has.unicodePc ||= isUnicode(kid, 'Pc', {supercategories: true});
       }
     }
-    if (has.range0To9 && has.rangeAToFUpper && has.rangeAToFLower) {
+    if (has.rangeDigit0To9 && has.rangeAToFUpper && has.rangeAToFLower) {
       node.elements = node.elements.filter(kid => !(
-        isRange(kid, '0', '9') || isRange(kid, 'a', 'f') || isRange(kid, 'A', 'F')
+        isRange(kid, 48, 57) || isRange(kid, 97, 102) || isRange(kid, 65, 70)
       ));
       node.elements.push(createCharacterSet(NodeCharacterSetKinds.hex));
+    }
+    if (has.range0To10FFFF) {
+      node.elements = node.elements.filter(kid => !isRange(kid, 0, 0x10FFFF));
+      node.elements.push(createUnicodeProperty('Any'));
     }
     if (
       (has.unicodeL && has.unicodeM && has.unicodeN && has.unicodePc) &&
@@ -121,8 +119,8 @@ const useShorthands = {
 function isRange(node, min, max) {
   return (
     node.type === NodeTypes.CharacterClassRange &&
-    cp(node.min.value) === min &&
-    cp(node.max.value) === max
+    node.min.value === min &&
+    node.max.value === max
   );
 }
 
