@@ -10,6 +10,18 @@ Benefits:
 
 The optimizer isn't solely concerned with minification, although that's its primary purpose. It attempts to optimize both pattern length and performance, while avoiding transformations that might shorten the pattern in some contexts but be problematic in others (e.g., by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
 
+Example:
+
+```regexp
+(?x) (?:\!{1,}) (^aa|^ab|^az) \p{ Letter } [\0-\x{10FFFF}] [^0-9A-Fa-f] [\p{L}\p{M}\p{N}\p{Pc}]
+```
+
+Becomes:
+
+```regexp
+!+(^a[abz])\p{L}\O\H\w
+```
+
 ## [Try the Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/)
 
 ## Import
