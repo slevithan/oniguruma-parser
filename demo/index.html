@@ -86,11 +86,11 @@
     </details>
     <pre class="output" id="outputPattern"></pre>
     <pre class="output hidden" id="outputFlags"></pre>
-    <p>See the <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">readme</a> for more details. The output shows only the <code>pattern</code> property from the <code>optimize</code> function's result. Other oniguruma-parser functions can be run from the console on this page. Pretty-print ASTs by passing them to <code>printAst</code>.</p>
+    <p>See the <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">Optimizer readme</a> for more details. The output shows the <code>pattern</code> property from the <code>optimize</code> function's result. Library functions including <code>toOnigurumaAst</code>, <code>parse</code>, <code>traverse</code>, <code>generate</code>, and <code>optimize</code> can be run from the console on this page. Pretty-print ASTs by passing them to <code>printAst</code>.</p>
     <p>
       <label>
         <input type="checkbox" id="useGenerator" onchange="setUseGenerator(this.checked)">
-        Use generator (don't optimize)
+        Use the generator (don't optimize)
         <span class="tip tip-xl">Uses <code>generate(toOnigurumaAst(…))</code></span>
       </label>
       <label>
