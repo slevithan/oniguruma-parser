@@ -23,6 +23,9 @@ An error is thrown if the pattern isn't valid in Oniguruma.
 
 Additional exports are available that provide access to the [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md), [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md), [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md), and [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md) modules.
 
+> [!TIP]
+> Try the [optimizer/generator demo](https://slevithan.github.io/oniguruma-parser/demo/)
+
 ## Known differences
 
 Known differences will be resolved in future versions. Contributions are welcome.

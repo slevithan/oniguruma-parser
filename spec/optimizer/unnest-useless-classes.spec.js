@@ -40,7 +40,7 @@ describe('Optimizer: unnestUselessClasses', () => {
       [ '[a[b]]',   '[ab]'],
       [r`[a[\w]]`, r`[a\w]`],
       // '[a[^b]]', // Can't unnest necessary classes
-      [r`[a[^\w]]`, r`[a\W]`], // Special case; `\W` is invertable
+      [r`[a[^\w]]`, r`[a\W]`], // Special case; `\W` is invertible
       [ '[a[ab]]',   '[aab]'],
       [r`[a[\wb]]`, r`[a\wb]`],
       //  '[a[^ab]]', // Can't unnest necessary classes

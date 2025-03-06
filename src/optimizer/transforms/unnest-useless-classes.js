@@ -25,9 +25,9 @@ const unnestUselessClasses = {
     })) {
       parent.negate = parent.negate !== negate;
       replaceWithMultiple(elements, {traverse: true});
-    // Negated classes can't be unnested unless they contain invertable contents
+    // Negated classes can't be unnested unless they contain invertible contents
     } else if (negate) {
-      // Unnest only-kid contents of negated classes if the kid is invertable; ex: `[^\d]` -> `\D`.
+      // Unnest only-kid contents of negated classes if the kid is invertible; ex: `[^\d]` -> `\D`.
       // Don't need to check if `kind` is in `universalCharacterSetKinds` because all character
       // sets valid in classes are in that set
       if (hasOnlyChild(node, {
