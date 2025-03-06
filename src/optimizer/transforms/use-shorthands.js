@@ -91,10 +91,10 @@ const useShorthands = {
         has.rangeAToFLower ||= isRange(kid, 'a', 'f');
         has.rangeAToFUpper ||= isRange(kid, 'A', 'F');
       } else if (kid.type === NodeTypes.CharacterSet) {
-        has.unicodeL ||= isPositiveUnicode(kid, 'L');
-        has.unicodeM ||= isPositiveUnicode(kid, 'M');
-        has.unicodeN ||= isPositiveUnicode(kid, 'N');
-        has.unicodePc ||= isPositiveUnicode(kid, 'Pc');
+        has.unicodeL ||= isUnicode(kid, 'L');
+        has.unicodeM ||= isUnicode(kid, 'M');
+        has.unicodeN ||= isUnicode(kid, 'N');
+        has.unicodePc ||= isUnicode(kid, 'Pc', {supercategories: true});
       }
     }
     if (has.range0To9 && has.rangeAToFUpper && has.rangeAToFLower) {
@@ -110,7 +110,9 @@ const useShorthands = {
       !root.flags.wordIsAscii &&
       !root.flags.posixIsAscii
     ) {
-      node.elements = node.elements.filter(kid => !isPositiveUnicode(kid, ['L', 'M', 'N', 'Pc']));
+      node.elements = node.elements.filter(kid => !isUnicode(kid, ['L', 'M', 'N', 'Pc'], {
+        subcategories: true,
+      }));
       node.elements.push(createCharacterSet(NodeCharacterSetKinds.word));
     }
   },
@@ -124,14 +126,48 @@ function isRange(node, min, max) {
   );
 }
 
-function isPositiveUnicode(node, value) {
+function isUnicode(node, value, options = {}) {
+  const names = Array.isArray(value) ? value : [value];
+  const expanded = [];
+  for (const v of names) {
+    expanded.push(v);
+    if (fullNames[v]) {
+      expanded.push(fullNames[v]);
+    }
+    if (options.supercategories && supercategories[v]) {
+      expanded.push(supercategories[v]);
+      if (fullNames[supercategories[v]]) {
+        expanded.push(fullNames[supercategories[v]]);
+      }
+    }
+    if (options.subcategories && subcategories[v]) {
+      expanded.push(...subcategories[v]);
+    }
+  }
   return (
     node.type === NodeTypes.CharacterSet &&
     node.kind === NodeCharacterSetKinds.property &&
     !node.negate &&
-    (Array.isArray(value) ? value.includes(node.value) : node.value === value)
+    expanded.includes(node.value)
   );
 }
+
+const fullNames = {
+  L: 'Letter',
+  M: 'Mark',
+  N: 'Number',
+  P: 'Punctuation',
+};
+
+const supercategories = {
+  Pc: 'P',
+};
+
+const subcategories = {
+  L: ['Ll', 'Lm', 'Lo', 'Lt', 'Lu'],
+  M: ['Mc', 'Me', 'Mn'],
+  N: ['Nd', 'Nl', 'No'],
+};
 
 export {
   useShorthands,

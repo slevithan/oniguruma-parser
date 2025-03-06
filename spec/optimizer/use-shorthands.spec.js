@@ -121,6 +121,24 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
+  it(r`should handle Unicode name variations for \w`, () => {
+    const cases = [
+      // Full names of supercategories are supported
+      [r`[\p{Letter}\p{Mark}\p{Number}\p{Pc}]`, r`[\w]`],
+      // Supercategories of required subcategories are supported and not stripped
+      [r`[\p{L}\p{M}\p{N}\p{P}]`, r`[\p{P}\w]`],
+      // Only including a subcategory of a required supercategory is not enough
+      [r`[\p{Ll}\p{M}\p{N}\p{Pc}]`, r`[\p{Ll}\p{M}\p{N}\p{Pc}]`],
+      // Negated categories don't count
+      [r`[\P{L}\p{M}\p{N}\p{Pc}]`, r`[\P{L}\p{M}\p{N}\p{Pc}]`],
+      // If a supercategory is stripped, also strip its subcategories
+      [r`[\p{L}\p{Ll}\p{M}\p{Mn}\p{Me}\p{N}\p{Pc}]`, r`[\w]`],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
   it(r`should not switch to \w when using flag W or P`, () => {
     const cases = [
       r`[\p{L}\p{M}\p{N}\p{Pc}]`,
