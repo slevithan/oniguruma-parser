@@ -1,4 +1,4 @@
-import {NodeTypes} from './parse.js';
+import {NodeCharacterSetKinds, NodeTypes} from './parse.js';
 
 const alternativeContainerTypes = new Set([
   NodeTypes.AbsentFunction,
@@ -29,8 +29,20 @@ const quantifiableTypes = new Set([
   NodeTypes.Subroutine,
 ]);
 
+// Character set kinds that can appear inside and outside of character classes, and can be inverted
+// by setting `negate`. Some but not all of those excluded use `variableLength: true`
+const universalCharacterSetKinds = new Set([
+  NodeCharacterSetKinds.digit,
+  NodeCharacterSetKinds.hex,
+  NodeCharacterSetKinds.posix,
+  NodeCharacterSetKinds.property,
+  NodeCharacterSetKinds.space,
+  NodeCharacterSetKinds.word,
+]);
+
 export {
   alternativeContainerTypes,
   atomicTypes,
   quantifiableTypes,
+  universalCharacterSetKinds,
 };

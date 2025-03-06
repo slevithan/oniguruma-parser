@@ -1,5 +1,5 @@
+import {alternativeContainerTypes} from '../../parser/node-utils.js';
 import {createAlternative, createGroup, NodeTypes} from '../../parser/parse.js';
-import {alternativeContainerTypes} from '../../parser/node-types.js';
 
 /**
 Extract nodes at the start of every alternative into a prefix.

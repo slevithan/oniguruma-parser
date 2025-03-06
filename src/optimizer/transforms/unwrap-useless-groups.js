@@ -1,5 +1,5 @@
+import {atomicTypes, quantifiableTypes} from '../../parser/node-utils.js';
 import {NodeTypes} from '../../parser/parse.js';
-import {atomicTypes, quantifiableTypes} from '../../parser/node-types.js';
 
 /**
 Unwrap nonbeneficial noncapturing and atomic groups.

@@ -1,6 +1,6 @@
 import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
+import {alternativeContainerTypes} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
-import {alternativeContainerTypes} from '../../parser/node-types.js';
 
 /**
 Extract alternating prefixes if patterns are repeated for each prefix.
