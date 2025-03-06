@@ -163,4 +163,22 @@ describe('Optimizer: useShorthands', () => {
       }).pattern).toBe(input);
     }
   });
+
+  it(r`should use \O when possible`, () => {
+    const cases = [
+      [r`\p{Any}`, r`\O`],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
+  it(r`should not switch to \O when in class`, () => {
+    const cases = [
+      r`[\p{Any}]`,
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
 });

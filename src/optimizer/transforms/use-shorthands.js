@@ -6,10 +6,11 @@ Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 - `\h` from `\p{ASCII_Hex_Digit}`, `\p{AHex}`, `\p{xdigit}`, `[[:xdigit:]]`, `[0-9A-Fa-f]`
 - `\s` from `\p{White_Space}`, `\p{WSpace}`, `\p{space}`, `[[:space:]]`
 - `\w` from `[\p{L}\p{M}\p{N}\p{Pc}]` - Not the same as POSIX `\p{word}`, `[[:word:]]`!
+- `\O` from `\p{Any}` if not in class
 See also `useUnicodeProps`.
 */
 const useShorthands = {
-  CharacterSet({node, root, replaceWith}) {
+  CharacterSet({node, parent, root, replaceWith}) {
     const {kind, negate, value} = node;
     let newNode;
     if (
@@ -47,6 +48,13 @@ const useShorthands = {
       )
     ) {
       newNode = createCharacterSet(NodeCharacterSetKinds.space, {negate});
+    } else if (
+      parent.type !== NodeTypes.CharacterClass &&
+      kind === NodeCharacterSetKinds.property &&
+      !negate &&
+      value === 'Any'
+    ) {
+      newNode = createCharacterSet(NodeCharacterSetKinds.any);
     }
 
     if (newNode) {

@@ -132,7 +132,7 @@ Some of the following optimizations (related to the representation of tokens) do
     </th>
     <td><code>unwrapUselessClasses</code></td>
     <td>Unwrap outermost character classes containing a single character or character set</td>
-    <td><code>[\s]</code> → <code>\s</code></td>
+    <td><code>[^\s]</code> → <code>\S</code></td>
   </tr>
   <tr>
     <td><code>unnestUselessClasses</code></td>
