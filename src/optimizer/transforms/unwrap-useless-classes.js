@@ -1,4 +1,3 @@
-import {universalCharacterSetKinds} from '../../parser/node-utils.js';
 import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
@@ -16,7 +15,9 @@ const unwrapUselessClasses = {
     }
     const firstEl = elements[0];
     if (negate) {
-      if (firstEl.type === NodeTypes.CharacterSet && universalCharacterSetKinds.has(firstEl.kind)) {
+      // Don't need to check if `kind` is in `universalCharacterSetKinds` because all character
+      // sets valid in character classes are in that set
+      if (firstEl.type === NodeTypes.CharacterSet) {
         firstEl.negate = !firstEl.negate;
         replaceWith(firstEl, {traverse: true});
       }
