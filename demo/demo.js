@@ -20,6 +20,7 @@ const state = {
       singleline: getValue('option-singleline'),
     },
   },
+  useGenerator: getValue('useGenerator'),
   bench: !!(new URL(location).searchParams.get('bench')),
 };
 
@@ -59,10 +60,12 @@ function showGenerated() {
   let runtime = 0;
   try {
     const startTime = performance.now();
-    const optimized = OnigurumaParser.optimize(ui.input.value, options);
+    const output = state.useGenerator ?
+      OnigurumaParser.generate(OnigurumaParser.toOnigurumaAst(ui.input.value, options)) :
+      OnigurumaParser.optimize(ui.input.value, options);
     const endTime = performance.now();
     runtime = endTime - startTime;
-    result = optimized.pattern;
+    result = output.pattern;
   } catch (err) {
     runtime = NaN;
     result = `Error: ${err.message}`;
@@ -96,5 +99,10 @@ function setFlag(flag, value) {
 
 function setRule(rule, value) {
   state.opts.rules[rule] = value;
+  showGenerated();
+}
+
+function setUseGenerator(value) {
+  state.useGenerator = value;
   showGenerated();
 }
