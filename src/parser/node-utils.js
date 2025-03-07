@@ -40,9 +40,9 @@ const universalCharacterSetKinds = new Set([
   NodeCharacterSetKinds.word,
 ]);
 
-function hasOnlyChild(node, properties = {}) {
-  // [TODO] Add support for nodes with `alternatives`, looking for `elements` within the first
-  // alternative after checking that there's only one alternative
+function hasOnlyChild(node, props) {
+  // [TODO] Add support for nodes with `alternatives`; look for `elements` within the first alt
+  // after checking that there's only one alt
   if (!node.elements) {
     throw new Error('Expected node with elements');
   }
@@ -50,12 +50,7 @@ function hasOnlyChild(node, properties = {}) {
     return false;
   }
   const kid = node.elements[0];
-  for (const key of Object.keys(properties)) {
-    if (kid[key] !== properties[key]) {
-      return false;
-    }
-  }
-  return true;
+  return !props || Object.keys(props).every(key => props[key] === kid[key]);
 }
 
 export {
