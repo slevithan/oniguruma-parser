@@ -149,6 +149,14 @@ Some of the following optimizations (related to the representation of tokens) do
     <td><code>[a\x61]</code> → <code>[a]</code></td>
   </tr>
   <tr>
+    <td><code>unnestUselessClasses</code></td>
+    <td>Unnest character classes when possible</td>
+    <td>
+      <code>[a[b]]</code> → <code>[ab]</code>,<br>
+      <code>[^[^a]]</code> → <code>[a]</code>
+    </td>
+  </tr>
+  <tr>
     <td><code>unwrapNegationWrappers</code></td>
     <td>Unwrap negated classes used to negate an individual character set</td>
     <td><code>[^\d]</code> → <code>\D</code></td>
@@ -158,27 +166,19 @@ Some of the following optimizations (related to the representation of tokens) do
     <td>Unwrap outermost non-negated character classes containing a single character or character set</td>
     <td><code>[a]</code> → <code>a</code></td>
   </tr>
-  <tr>
-    <td><code>unnestUselessClasses</code></td>
-    <td>Unnest character classes when possible</td>
-    <td>
-      <code>[a[b]]</code> → <code>[ab]</code>,<br>
-      <code>[^[^a]]</code> → <code>[a]</code>
-    </td>
-  </tr>
 
   <tr>
     <th rowspan="4" valign="top" align="left">
       Character sets
     </th>
-    <td><code>useUnicodeAliases</code></td>
-    <td>Use Unicode property aliases</td>
-    <td><code>\p{ID_Start}</code> → <code>\p{IDS}</code></td>
-  </tr>
-  <tr>
     <td><code>useShorthands</code></td>
     <td>Use shorthands (<code>\d</code>, <code>\h</code>, <code>\s</code>, etc.) when possible</td>
     <td><code>[[:space:]\p{Nd}]</code> → <code>[\s\d]</code></td>
+  </tr>
+  <tr>
+    <td><code>useUnicodeAliases</code></td>
+    <td>Use Unicode property aliases</td>
+    <td><code>\p{ID_Start}</code> → <code>\p{IDS}</code></td>
   </tr>
   <tr>
     <td><code>useUnicodeProps</code></td>
