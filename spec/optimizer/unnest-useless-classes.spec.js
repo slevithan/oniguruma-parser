@@ -39,12 +39,8 @@ describe('Optimizer: unnestUselessClasses', () => {
       [r`[[a][\w]]`, r`[a\w]`],
       [ '[a[b]]',   '[ab]'],
       [r`[a[\w]]`, r`[a\w]`],
-      // '[a[^b]]', // Can't unnest necessary classes
-      [r`[a[^\w]]`, r`[a\W]`], // Special case; `\W` is invertible
       [ '[a[ab]]',   '[aab]'],
       [r`[a[\wb]]`, r`[a\wb]`],
-      //  '[a[^ab]]', // Can't unnest necessary classes
-      // r`[a[^\wb]]`, // Can't unnest necessary classes
       [ '[[a]b]', '[ab]'],
       [ '[a[bc]d]', '[abcd]'],
       [ '[a[[bc]d]]', '[abcd]'],
@@ -60,6 +56,7 @@ describe('Optimizer: unnestUselessClasses', () => {
   it('should not unnest necessary classes', () => {
     const cases = [
       '[a[^b]]',
+      r`[a[^\w]]`, // `\w` can be inverted; handled by `unwrapNegationWrappers`
       '[a[^ab]]',
       r`[a[^\wb]]`,
       '[[&&]]',
@@ -81,6 +78,6 @@ describe('Optimizer: unnestUselessClasses', () => {
     }
     // Unsupported Onig syntax; classes can only be empty if they're implicit in an intersection;
     // ex: on the left side of `[&&a]`
-    expect(() => thisOptimization('[]')).toThrow();
+    expect(() => thisOptimization('[[]]')).toThrow();
   });
 });

@@ -141,12 +141,17 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="3" valign="top" align="left">
+    <th rowspan="4" valign="top" align="left">
       Character<br>classes
     </th>
+    <td><code>unwrapNegationWrappers</code></td>
+    <td>Unwrap negated classes used to negate an individual character set</td>
+    <td><code>[^\d]</code> → <code>\D</code></td>
+  </tr>
+  <tr>
     <td><code>unwrapUselessClasses</code></td>
-    <td>Unwrap outermost character classes containing a single character or character set</td>
-    <td><code>[^\s]</code> → <code>\S</code></td>
+    <td>Unwrap outermost non-negated character classes containing a single character or character set</td>
+    <td><code>[a]</code> → <code>a</code></td>
   </tr>
   <tr>
     <td><code>unnestUselessClasses</code></td>

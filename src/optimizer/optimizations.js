@@ -5,6 +5,7 @@ import {extractPrefix2} from './transforms/extract-prefix-2.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
 import {removeUselessFlags} from './transforms/remove-useless-flags.js';
 import {unnestUselessClasses} from './transforms/unnest-useless-classes.js';
+import {unwrapNegationWrappers} from './transforms/unwrap-negation-wrappers.js';
 import {unwrapUselessClasses} from './transforms/unwrap-useless-classes.js';
 import {unwrapUselessGroups} from './transforms/unwrap-useless-groups.js';
 import {useShorthands} from './transforms/use-shorthands.js';
@@ -20,6 +21,7 @@ import {useUnicodeProps} from './transforms/use-unicode-props.js';
   'removeEmptyGroups' |
   'removeUselessFlags' |
   'unnestUselessClasses' |
+  'unwrapNegationWrappers' |
   'unwrapUselessClasses' |
   'unwrapUselessGroups' |
   'useShorthands' |
@@ -35,6 +37,7 @@ const optimizations = new Map([
   ['removeEmptyGroups', removeEmptyGroups],
   ['removeUselessFlags', removeUselessFlags],
   ['unnestUselessClasses', unnestUselessClasses],
+  ['unwrapNegationWrappers', unwrapNegationWrappers],
   ['unwrapUselessClasses', unwrapUselessClasses],
   ['unwrapUselessGroups', unwrapUselessGroups],
   ['useShorthands', useShorthands],

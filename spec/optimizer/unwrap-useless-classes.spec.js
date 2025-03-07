@@ -17,6 +17,7 @@ describe('Optimizer: unwrapUselessClasses', () => {
       ['[a]*', 'a*'],
       [r`[\u0061]`, 'a'],
       [r`[\s]`, r`\s`],
+      [r`[\S]`, r`\S`],
       ['[.]', r`\.`],
     ];
     for (const [input, expected] of cases) {
@@ -24,26 +25,7 @@ describe('Optimizer: unwrapUselessClasses', () => {
     }
   });
 
-  it('should flip negation of sets when unwrapping negated classes', () => {
-    const cases = [
-      [r`[^\d]`, r`\D`],
-      [r`[^\D]`, r`\d`],
-      [r`[^\h]`, r`\H`],
-      [r`[^\H]`, r`\h`],
-      [r`[^\s]`, r`\S`],
-      [r`[^\S]`, r`\s`],
-      [r`[^\w]`, r`\W`],
-      [r`[^\W]`, r`\w`],
-      [r`[^\p{L}]`, r`\P{L}`],
-      [r`[^\P{L}]`, r`\p{L}`],
-      [r`[^[:word:]]`, r`\P{word}`],
-      [r`[^[:^word:]]`, r`\p{word}`],
-    ];
-    for (const [input, expected] of cases) {
-      expect(thisOptimization(input)).toBe(expected);
-    }
-  });
-
+  // Handled by `unnestUselessClasses`
   it('should not unwrap nested classes', () => {
     const cases = [
       '[[a]]',
@@ -53,17 +35,32 @@ describe('Optimizer: unwrapUselessClasses', () => {
     }
   });
 
+  // Handled by `unwrapNegationWrappers`
+  it('should not unwrap negated classes containing an individual set', () => {
+    const cases = [
+      r`[^\s]`,
+      r`[^\S]`,
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
+
   it('should not unwrap necessary classes', () => {
     const cases = [
       '[^a]',
-      '[ab]',
       '[a-z]',
+      '[ab]',
+      '[^ab]',
+      r`[^\sb]`,
       '[a&&a]',
       '[&&]',
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
     }
+    // Unsupported Onig syntax; classes can only be empty if they're implicit in an intersection;
+    // ex: on the left side of `[&&a]`
     expect(() => thisOptimization('[]')).toThrow();
   });
 });

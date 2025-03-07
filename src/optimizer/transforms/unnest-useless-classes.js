@@ -3,6 +3,7 @@ import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
 Unnest character classes when possible.
+See also `unwrapNegationWrappers`.
 */
 const unnestUselessClasses = {
   CharacterClass({node, parent, replaceWith, replaceWithMultiple}) {
@@ -25,20 +26,14 @@ const unnestUselessClasses = {
     })) {
       parent.negate = parent.negate !== negate;
       replaceWithMultiple(elements, {traverse: true});
-    // Negated classes can't be unnested unless they contain invertible contents
-    } else if (negate) {
-      // Unnest only-kid contents of negated classes if the kid is invertible; ex: `[^\d]` -> `\D`.
-      // Don't need to check if `kind` is in `universalCharacterSetKinds` because all character
-      // sets valid in classes are in that set
-      if (hasOnlyChild(node, {
-        type: NodeTypes.CharacterSet,
-      })) {
-        firstEl.negate = !firstEl.negate;
-        replaceWith(firstEl, {traverse: true});
-      }
-    // ## Remainder of options apply only if the class is non-negated
+      return;
+    }
+    // Remainder of options apply only if the class is non-negated
+    if (negate) {
+      return;
+    }
     // Unnest all kids into a union class
-    } else if (parent.kind === NodeCharacterClassKinds.union) {
+    if (parent.kind === NodeCharacterClassKinds.union) {
       replaceWithMultiple(elements, {traverse: true});
     // Can unnest any one kid into an intersection class
     // [TODO] After supporting `format` for classes in the parser, can "unnest" any number of kids
