@@ -25,6 +25,7 @@ describe('Optimizer: unwrapNegationWrappers', () => {
       [r`[^\P{L}]`, r`\p{L}`],
       [r`[^[:word:]]`, r`\P{word}`],
       [r`[^[:^word:]]`, r`\p{word}`],
+      [r`[^\n]`, r`\N`],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
@@ -45,10 +46,21 @@ describe('Optimizer: unwrapNegationWrappers', () => {
       [r`[[^\P{L}]]`, r`[\p{L}]`],
       [r`[[^[:word:]]]`, r`[[:^word:]]`],
       [r`[[^[:^word:]]]`, r`[[:word:]]`],
-      [r`[a[^\w]]`, r`[a\W]`],
+      [r`[a[^\d]]`, r`[a\D]`],
+      [r`[a[^\D]]`, r`[a\d]`],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
+  it(r`should not unnest negated \n`, () => {
+    const cases = [
+      r`[[^\n]]`, // Since the class is an only-kid, will be unnested by `unnestUselessClasses`, and can then be unwrapped to `\N`
+      r`[a[^\n]]`, // Negated wrapper is required
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
     }
   });
 });

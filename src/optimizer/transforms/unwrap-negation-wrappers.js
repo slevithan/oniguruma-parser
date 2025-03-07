@@ -1,5 +1,4 @@
-import { hasOnlyChild } from '../../parser/node-utils.js';
-import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
+import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
 Unwrap negated classes used to negate an individual character set.
@@ -13,17 +12,24 @@ const unwrapNegationWrappers = {
     if (
       !negate ||
       kind !== NodeCharacterClassKinds.union ||
-      !hasOnlyChild(node) ||
-      // Don't need to check if `kind` is in `universalCharacterSetKinds` because all character
-      // sets valid in classes are in that set
-      kid.type !== NodeTypes.CharacterSet
-      // [TODO] Support `[^\n]` -> `\N`
+      elements.length !== 1
     ) {
       return;
     }
-    kid.negate = !kid.negate;
-    // Might unnest into a class or unwrap if this is already an outermost class
-    replaceWith(kid, {traverse: true});
+    // Don't need to check if `kind` is in `universalCharacterSetKinds` because all character
+    // sets valid in classes are in that set
+    if (kid.type === NodeTypes.CharacterSet) {
+      kid.negate = !kid.negate;
+      // Might unnest into a class or unwrap into a non-class
+      replaceWith(kid);
+    } else if (
+      parent.type !== NodeTypes.CharacterClass &&
+      kid.type === NodeTypes.Character &&
+      kid.value === 10 // '\n'
+    ) {
+      // `[^\n]` -> `\N`; can only use `\N` if not in a class
+      replaceWith(createCharacterSet(NodeCharacterSetKinds.newline, {negate: true}));
+    }
   },
 };
 
