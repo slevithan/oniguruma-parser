@@ -301,12 +301,13 @@ function getTokenWithDetails(context, pattern, m, lastIndex) {
       throw new Error(`Unsupported callout "${m}"`);
     }
     // Comment group
-    if (m === '(?#') {
-      // The closing unescaped `)` isn't included in the match
+    if (m.startsWith('(?#')) {
+      // Everything except the closing unescaped `)` is included in the match
       if (pattern[lastIndex] !== ')') {
         throw new Error('Unclosed comment group "(?#"');
       }
       return {
+        // Jump forward to after the closing paren
         lastIndex: lastIndex + 1,
       };
     }
