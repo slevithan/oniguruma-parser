@@ -1,6 +1,6 @@
 {
   "name": "oniguruma-parser",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Parse Oniguruma regular expressions",
   "author": "Steven Levithan",
   "license": "MIT",
@@ -62,5 +62,5 @@
     "jasmine": "^5.6.0",
     "typescript": "^5.8.2"
   },
-  "packageManager": "pnpm@10.6.0"
+  "packageManager": "pnpm@10.6.1"
 }
