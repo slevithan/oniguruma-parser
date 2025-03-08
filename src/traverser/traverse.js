@@ -81,8 +81,7 @@ function traverse(ast, visitor, state = null) {
         keyShift += newNodes.length - 1;
         if (traverseNew) {
           for (let i = 0; i < newNodes.length; i++) {
-            const newNode = newNodes[i];
-            traverseNode(newNode, parent, key + i, container);
+            traverseNode(newNodes[i], parent, key + i, container);
           }
         }
         skipTraversingKidsOfPath = true;
