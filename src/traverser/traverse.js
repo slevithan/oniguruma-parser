@@ -80,8 +80,9 @@ function traverse(ast, visitor, state = null) {
         throwIfNot(container, containerExpected).splice(Math.max(0, key + keyShift), 1, ...newNodes);
         keyShift += newNodes.length - 1;
         if (traverseNew) {
-          for (const newNode of newNodes) {
-            traverseNode(newNode, parent, key, container);
+          for (let i = 0; i < newNodes.length; i++) {
+            const newNode = newNodes[i];
+            traverseNode(newNode, parent, key + i, container);
           }
         }
         skipTraversingKidsOfPath = true;
