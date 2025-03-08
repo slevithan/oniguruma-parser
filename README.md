@@ -2,7 +2,7 @@
 
 [![npm version][npm-version-src]][npm-version-href]
 
-Create, traverse, transform, validate, and optimize [Oniguruma](https://github.com/kkos/oniguruma) regular expressions and ASTs.
+Create, traverse, validate, transform, and optimize [Oniguruma](https://github.com/kkos/oniguruma) regular expressions and ASTs.
 
 This library's core function is `toOnigurumaAst`, which returns an Oniguruma AST generated from an Oniguruma pattern.
 
@@ -25,6 +25,8 @@ Additional exports are available that provide access to the [Parser](https://git
 
 > [!TIP]
 > Try the [optimizer/generator demo](https://slevithan.github.io/oniguruma-parser/demo/).
+
+This library has been battle-tested by [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es), which is used to transpile tens of thousands of real-world Oniguruma regexes.
 
 ## Known differences
 
