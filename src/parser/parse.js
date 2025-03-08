@@ -1,5 +1,4 @@
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
-import {slug} from '../unicode.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
 
 /**
@@ -1102,6 +1101,15 @@ function normalizeUnicodePropertyName(name) {
     replace(/[A-Za-z]+/g, m => m[0].toUpperCase() + m.slice(1).toLowerCase());
 }
 
+/**
+Generates a Unicode property lookup name: lowercase, without spaces, hyphens, or underscores.
+@param {string} name Unicode property name.
+@returns {string}
+*/
+function slug(name) {
+  return name.replace(/[- _]+/g, '').toLowerCase();
+}
+
 function throwIfUnclosedCharacterClass(token, firstClassToken) {
   return throwIfNot(
     token,
@@ -1143,4 +1151,5 @@ export {
   NodeTypes,
   NodeQuantifierKinds,
   parse,
+  slug,
 };
