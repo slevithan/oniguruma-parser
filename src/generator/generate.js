@@ -219,7 +219,7 @@ const generator = {
 };
 
 const BaseEscapeChars = new Set([
-  '$', '(', ')', '*', '+', '.', '?', '[', '\\', '^', '{', '|', '}',
+  '$', '(', ')', '*', '+', '.', '?', '[', '\\', '^', '{', '|',
 ]);
 const CharClassEscapeChars = new Set([
   '&', '-', '[', '\\', ']', '^',
