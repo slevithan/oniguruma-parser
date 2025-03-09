@@ -22,8 +22,6 @@ Becomes:
 !+(\da[abz])[\H\p{L}]\w
 ```
 
-Note that the `\O` (uppercase letter o) in the output is Oniguruma syntax for matching any character including newlines, regardless of flags.
-
 ## [Try the Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/)
 
 ## Import
