@@ -13,13 +13,13 @@ The optimizer isn't solely concerned with minification, although that's its prim
 Example:
 
 ```
-(?x) (?:\!{1,}) (\p{Nd}aa|\p{Nd}ab|\p{Nd}az) [[^0-9A-Fa-f]\p{ Letter }] [\x00-\x{10FFFF}] [\p{L}\p{M}\p{N}\p{Pc}]
+(?x) (?:\!{1,}) (\p{Nd}aa|\p{Nd}ab|\p{Nd}az) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
 ```
 
 Becomes:
 
 ```
-!+(\da[abz])[\H\p{L}]\O\w
+!+(\da[abz])[\H\p{L}]\w
 ```
 
 Note that the `\O` (uppercase letter o) in the output is Oniguruma syntax for matching any character including newlines, regardless of flags.
