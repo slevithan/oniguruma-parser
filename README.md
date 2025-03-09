@@ -26,7 +26,7 @@ Additional exports are available that provide access to the [Parser](https://git
 > [!TIP]
 > Try the [optimizer/generator demo](https://slevithan.github.io/oniguruma-parser/demo/).
 
-This library has been battle-tested by [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es), which is used to transpile tens of thousands of real-world Oniguruma regexes.
+This library has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which use it to process tens of thousands of real-world Oniguruma regexes.
 
 ## Known differences
 
@@ -78,11 +78,11 @@ Additionally, this library doesn't yet support the `\k<+N>`/`\k'+N'` syntax for 
 Although enclosed `\k<…>`/`\k'…'` supports any number of digits (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently support only up to three digits (`\999`). Oniguruma supports `\1000` and higher when as many capturing groups are defined, but note that Oniguruma regexes with more than 999 captures never actually work, due to an apparent bug (they fail to match anything, with no error). Tested in Oniguruma 6.9.8 via `vscode-oniguruma`.
 </details>
 
-Additional edge case differences will be documented here soon. This library was originally built as part of [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw in some edge cases that are buggy in Oniguruma. However, as a standalone parser, in most cases the ideal path is to match Oniguruma's intention, even if the pattern would encounter bugs when used to search.
+Additional edge case differences will be documented here soon. This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw in some edge cases that are buggy in Oniguruma. However, as a standalone parser, in most cases the ideal path is to match Oniguruma's intention, even if the pattern would encounter bugs when used to search.
 
 ## About
 
-Created by [Steven Levithan](https://github.com/slevithan), originally as part of [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es). If you want to support this project, I'd love your help by contributing improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
+Created by [Steven Levithan](https://github.com/slevithan). If you want to support this project, I'd love your help by contributing improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
 MIT License.
 

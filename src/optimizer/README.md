@@ -1,14 +1,6 @@
 # oniguruma-parser: Optimizer module
 
-The optimizer transforms an Oniguruma pattern into an optimized version of itself.
-
-Benefits:
-
-- Optimized regexes are shorter; good for minification.
-- Optimized regexes are typically easier to read, unless the original used flag `x` for free-spacing (which gets stripped out during optimization).
-- Some optimizations can improve performance and reduce the risk of runaway backtracking.
-
-The optimizer isn't solely concerned with minification, although that's its primary purpose. It attempts to optimize both pattern length and performance, while avoiding transformations that might shorten the pattern in some contexts but be problematic in others (e.g., by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
+The optimizer transforms an Oniguruma pattern into an optimized version of itself. Optimization includes both minification and changes that improve performance. Optimized regexes match exactly the same strings.
 
 Example:
 
@@ -21,6 +13,16 @@ Becomes:
 ```
 !+(\da[abz])[\H\p{L}]\w
 ```
+
+Benefits:
+
+- Optimized regexes are shorter; good for minification.
+- Optimized regexes are typically easier to read, unless the original used flag `x` for free-spacing (which gets stripped out during optimization).
+- Some optimizations can improve performance and reduce the risk of ReDoS.
+
+The optimizer's primary purpose is minification, but it also attempts to improve regex performance, and it avoids transformations that might shorten the pattern in some contexts but be problematic in others (e.g., by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
+
+The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which uses it to process tens of thousands of real-world Oniguruma regexes.
 
 ## [Try the Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/)
 
