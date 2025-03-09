@@ -1,4 +1,4 @@
-import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
+import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeQuantifierKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
 Unwrap negated classes used to negate an individual character set.
@@ -27,6 +27,10 @@ const unwrapNegationWrappers = {
       kid.type === NodeTypes.Character &&
       kid.value === 10 // '\n'
     ) {
+      if (parent.type === NodeTypes.Quantifier && parent.kind !== NodeQuantifierKinds.lazy) {
+        // Avoid introducing a trigger for an Oniguruma bug; see <github.com/rosshamish/kuskus/issues/209>
+        return;
+      }
       // `[^\n]` -> `\N`; can only use `\N` if not in a class
       replaceWith(createCharacterSet(NodeCharacterSetKinds.newline, {negate: true}));
     }

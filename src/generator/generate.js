@@ -183,6 +183,7 @@ const generator = {
   },
 
   Quantifier({min, max, kind, element}, _, gen) {
+    // These errors shouldn't happen unless the AST is modified in an invalid way after parsing
     if (min > max) {
       throw new Error(`Invalid quantifier: min "${min}" > max "${max}"`);
     }

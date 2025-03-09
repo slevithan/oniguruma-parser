@@ -63,4 +63,21 @@ describe('Optimizer: unwrapNegationWrappers', () => {
       expect(thisOptimization(input)).toBe(input);
     }
   });
+
+  it(r`should not unwrap negated \n if it's non-lazily quantified`, () => {
+    const allowCases = [
+      [r`[^\n]+?`, r`\N+?`],
+    ];
+    for (const [input, expected] of allowCases) {
+      expect(thisOptimization(input)).toBe(expected);
+    }
+    // Avoid introducing a trigger for an Oniguruma bug; see <github.com/rosshamish/kuskus/issues/209>
+    const blockCases = [
+      r`[^\n]+`,
+      r`[^\n]++`,
+    ];
+    for (const input of blockCases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
 });
