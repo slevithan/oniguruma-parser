@@ -183,29 +183,42 @@ const generator = {
   },
 
   Quantifier({min, max, kind, element}, _, gen) {
+    if (min > max) {
+      throw new Error(`Invalid quantifier: min "${min}" > max "${max}"`);
+    }
+    if (min > 1 && max === Infinity && kind === NodeQuantifierKinds.possessive) {
+      // Onig reversed ranges are possessive but `{,n}` is greedy `{0,n}`, so there's no way to
+      // represent this without adding additional nodes that aren't in the AST
+      throw new Error(`Invalid possessive quantifier: min "${min}" with no max"`);
+    }
+    if (min === max && kind === NodeQuantifierKinds.possessive) {
+      // Can't add a `+` suffix to a fixed `{n}` interval quantifier
+      throw new Error(`Invalid possessive quantifier: min and max are equal "${min}"`);
+    }
+    const kidIsGreedyQuantifier = element.type === NodeTypes.Quantifier && element.kind === NodeQuantifierKinds.greedy;
     let base;
-    let allowPossessiveSuffix = true;
-    if (!min && max === 1) {
+    let interval = false;
+    if (!min && max === 1 && !kidIsGreedyQuantifier) {
       base = '?';
     } else if (!min && max === Infinity) {
       base = '*';
-    } else if (min === 1 && max === Infinity) {
+    } else if (min === 1 && max === Infinity && !kidIsGreedyQuantifier) {
       base = '+';
     } else if (min === max) {
       base = `{${min}}`;
-      // Don't really need this here since it should never be possessive; a following `+` creates a
-      // quantifier chain
-      allowPossessiveSuffix = false;
+      interval = true;
     } else {
       base = kind === NodeQuantifierKinds.possessive ?
         `{${max},${min}}` :
         `{${min},${max === Infinity ? '' : max}}`;
-      allowPossessiveSuffix = false;
+      interval = true;
     }
     const suffix = {
       greedy: '',
       lazy: '?',
-      possessive: allowPossessiveSuffix ? '+' : '',
+      // Interval quantifiers are marked possessive by reversing their min/max; a `+` suffix would
+      // create a quantifier chain
+      possessive: interval ? '' : '+',
     }[kind];
     return `${gen(element)}${base}${suffix}`;
   },
