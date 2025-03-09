@@ -17,6 +17,7 @@ describe('Optimizer: unwrapUselessGroups', () => {
       ['(?:(?:(?:a)))', 'a'],
       ['(?>a)', 'a'],
       ['(?:a(?:b))', 'ab'],
+      ['(?:(?:ab)(?:c))', 'abc'],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
