@@ -264,10 +264,10 @@ const optimized = optimize(pattern, {
 
 Adding new optimization transforms is straightforward:
 
-- Add your optimizer in a new file, e.g. `src/optimizer/transforms/foo.js`.
+- Add your optimization in a new file, e.g. `src/optimizer/transforms/foo.js`.
 - Import and list it in `src/optimizer/optimizations.js`.
 - Add tests in `spec/optimizer/foo.spec.js`; run them via `pnpm test`.
-- List it above with a simple example, in this readme file.
+- List it in this readme file with a simple example.
 
 Optimizations should be independently useful and can compliment each other; you don’t need to do too much in one. Ideas for new optimizations are listed [here](https://github.com/slevithan/oniguruma-parser/issues/7).
 
