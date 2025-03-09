@@ -42,10 +42,27 @@ The following rarely-used features throw errors since they aren't yet supported:
 - Absent expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.
 - Callouts: `(?{…})`, `(*…)`, etc.
-- Relative forward backreferences `\k<+N>` and backrefences with recursion level.
+- Numbered forward backreferences (including relative `\k<+N>`), backrefences with recursion level, and unenclosed four-digit backreferences.
 - Flags `y{g}`/`y{w}` (grapheme boundary modes); whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest); flags `D`, `P`, `S`, `W` (digit/POSIX/space/word is ASCII) within mode modifiers.
 
 Despite these gaps, more than 99.99% of real-world Oniguruma regexes are supported, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all). Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub.
+
+  <details>
+    <summary>More details about numbered forward backreferences</summary>
+
+  This library currently treats it as an error if numbered backreferences come before their referenced group.
+
+  - Most such placements are mistakes and can never match, due to Oniguruma's behavior for backreferences to nonparticipating groups.
+  - Erroring matches the correct behavior of named backreferences.
+  - For unenclosed backreferences, this only affects `\1`–`\9` since it's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
+  </details>
+
+  <details>
+    <summary>More details about unenclosed four-digit backreferences</summary>
+
+  Although enclosed `\k<…>`/`\k'…'` supports any number of digits (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently support only up to three digits (`\999`). Oniguruma supports `\1000` and higher when as many capturing groups are defined, but note that Oniguruma regexes with more than 999 captures never actually work, due to an apparent bug (they fail to match anything, with no error). Tested in Oniguruma 6.9.8 via `vscode-oniguruma`.
+  </details>
+
 </details>
 
 <details>
@@ -58,24 +75,6 @@ The following don't yet throw errors, but should:
   - An error is already thrown for backreference names that include `-` or `+`.
 - Subroutines used in ways that resemble infinite recursion.
   - Such subroutines error at compile time in Oniguruma.
-</details>
-
-<details>
-  <summary><b>Forward backreferences</b></summary>
-
-This library currently treats it as an error if numbered backreferences come before their referenced group.
-
-- Most such placements are mistakes and can never match, due to Oniguruma's behavior for backreferences to nonparticipating groups.
-- Erroring matches the behavior of named backreferences.
-- For unenclosed backreferences, this affects only `\1`–`\9`. It's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
-
-Additionally, this library doesn't yet support the `\k<+N>`/`\k'+N'` syntax for relative *forward* backreferences.
-</details>
-
-<details>
-  <summary><b>Unenclosed four-digit backreferences</b></summary>
-
-Although enclosed `\k<…>`/`\k'…'` supports any number of digits (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently support only up to three digits (`\999`). Oniguruma supports `\1000` and higher when as many capturing groups are defined, but note that Oniguruma regexes with more than 999 captures never actually work, due to an apparent bug (they fail to match anything, with no error). Tested in Oniguruma 6.9.8 via `vscode-oniguruma`.
 </details>
 
 Additional edge case differences that result in errors will be documented here soon. This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error in some edge cases that are buggy in Oniguruma. However, as a standalone parser, in most cases the ideal path is to match Oniguruma's intention, even if the pattern would encounter bugs when used to search. Thus, such errors will be removed in future versions.
