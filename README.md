@@ -42,9 +42,8 @@ The following rarely-used features throw errors since they aren't yet supported:
 - Absent expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.
 - Callouts: `(?{…})`, `(*…)`, etc.
-- Flags `y{g}`/`y{w}` (grapheme boundary modes); whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest); flags `D`, `P`, `S`, `W` (digit/POSIX/space/word is ASCII) within mode modifiers.
 - Numbered forward backreferences (including relative `\k<+N>`), and backreferences with recursion level.
-- Unenclosed backreferences support up to three digits: `\1000` handled as `\100` `0` even if 1000+ captures present.
+- Flags `y{g}`/`y{w}` (grapheme boundary modes); whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest); flags `D`, `P`, `S`, `W` (digit/POSIX/space/word is ASCII) within mode modifiers.
 
 Despite these gaps, more than 99.99% of real-world Oniguruma regexes are supported, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all). Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub.
 
@@ -57,13 +56,6 @@ Despite these gaps, more than 99.99% of real-world Oniguruma regexes are support
   - Erroring matches the correct behavior of named backreferences.
   - For unenclosed backreferences, this only affects `\1`–`\9` since it's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
   </details>
-
-  <details>
-    <summary>More details about unenclosed four-digit backreferences</summary>
-
-  Although enclosed `\k<…>`/`\k'…'` supports any number of digits (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently support only up to three digits (`\999`). Oniguruma supports `\1000` and higher when as many capturing groups are defined, but note that Oniguruma regexes with more than 999 captures never actually work, due to an apparent bug (they fail to match anything, with no error). Tested in Oniguruma 6.9.8 via `vscode-oniguruma`.
-  </details>
-
 </details>
 
 <details>
@@ -76,6 +68,14 @@ The following don't yet throw errors, but should:
   - An error is already thrown for backreference names that include `-` or `+`.
 - Subroutines used in ways that resemble infinite recursion.
   - Such subroutines error at compile time in Oniguruma.
+</details>
+
+<details>
+  <summary><b>Unenclosed four-digit backreferences</b></summary>
+
+Although any number of digits are supported for enclosed `\k<…>`/`\k'…'` backreferences (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently support only up to three digits (`\999`). In other words, `\1000` is handled as `\100` `0` even if 1,000+ captures are present.
+
+Note that, although Oniguruma supports `\1000` and higher when as many capturing groups are defined, Oniguruma regexes with more than 999 captures never actually work. They fail to match anything, with no error, due to an apparent bug. Tested in Oniguruma 6.9.8 via `vscode-oniguruma`.
 </details>
 
 Additional edge case differences that result in errors will be documented here soon. This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error in some edge cases that are buggy in Oniguruma. However, as a standalone parser, in most cases the ideal path is to match Oniguruma's intention, even if the pattern would encounter bugs when used to search. Thus, such errors will be removed in future versions.
