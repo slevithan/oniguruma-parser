@@ -2,7 +2,7 @@
 
 [Oniguruma](https://github.com/kkos/oniguruma) is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, Shiki, etc. for syntax highlighting), and many other tools.
 
-`onigurua-parser`'s optimizer is a JavaScript library that transforms Oniguruma patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match *exactly* the same strings.
+`oniguruma-parser`'s optimizer is a JavaScript library that transforms Oniguruma patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match *exactly* the same strings.
 
 Example:
 
