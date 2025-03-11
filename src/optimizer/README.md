@@ -215,9 +215,14 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="2" valign="top" align="left">
+    <th rowspan="3" valign="top" align="left">
       Quantifiers
     </th>
+    <td><code>preventReDoS</code></td>
+    <td>Fix some ReDoS vulnerabilities</td>
+    <td><code>'([^']+|\\')*'</code> → <code>'([^']|\\')*'</code></td>
+  </tr>
+  <tr>
     <td></td>
     <td>Use symbols for quantifier ranges when possible</td>
     <td><code>a{1,}</code> → <code>a+</code></td>

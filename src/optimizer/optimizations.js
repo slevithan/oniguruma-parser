@@ -2,6 +2,7 @@ import {alternationToClass} from './transforms/alternation-to-class.js';
 import {dedupeClasses} from './transforms/dedupe-classes.js';
 import {extractPrefix} from './transforms/extract-prefix.js';
 import {extractPrefix2} from './transforms/extract-prefix-2.js';
+import {preventReDoS} from './transforms/prevent-redos.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
 import {removeUselessFlags} from './transforms/remove-useless-flags.js';
 import {unnestUselessClasses} from './transforms/unnest-useless-classes.js';
@@ -18,6 +19,7 @@ import {useUnicodeProps} from './transforms/use-unicode-props.js';
   'dedupeClasses' |
   'extractPrefix' |
   'extractPrefix2' |
+  'preventReDoS' |
   'removeEmptyGroups' |
   'removeUselessFlags' |
   'unnestUselessClasses' |
@@ -34,6 +36,7 @@ const optimizations = new Map([
   ['dedupeClasses', dedupeClasses],
   ['extractPrefix', extractPrefix],
   ['extractPrefix2', extractPrefix2],
+  ['preventReDoS', preventReDoS],
   ['removeEmptyGroups', removeEmptyGroups],
   ['removeUselessFlags', removeUselessFlags],
   ['unnestUselessClasses', unnestUselessClasses],
