@@ -10,6 +10,7 @@ Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
 }}
 */
 function generate(ast) {
+  const parentStack = [ast];
   let lastNode = null;
   let parent = null;
   const state = {
@@ -22,12 +23,18 @@ function generate(ast) {
     lastNode = node;
     if (state.lastNode && getFirstChild(state.lastNode) === node) {
       state.parent = state.lastNode;
+      parentStack.push(state.parent);
     }
     const fn = generator[node.type];
     if (!fn) {
       throw new Error(`Unexpected node type "${node.type}"`);
     }
-    return fn(node, state, gen);
+    const result = fn(node, state, gen);
+    if (state.parent && getLastChild(state.parent) === node) {
+      parentStack.pop();
+      state.parent = parentStack.at(-1);
+    }
+    return result;
   }
   return gen(ast);
 }
@@ -182,44 +189,77 @@ const generator = {
     return alternatives.map(gen).join('|');
   },
 
-  Quantifier({min, max, kind, element}, _, gen) {
-    // These errors shouldn't happen unless the AST is modified in an invalid way after parsing
+  Quantifier({min, max, kind, element}, {parent}, gen) {
     if (min > max) {
+      // Shouldn't happen unless the AST is modified in an invalid way after parsing
       throw new Error(`Invalid quantifier: min "${min}" > max "${max}"`);
     }
-    if (min > 1 && max === Infinity && kind === NodeQuantifierKinds.possessive) {
-      // Onig reversed ranges are possessive but `{,n}` is greedy `{0,n}`, so there's no way to
-      // represent this without adding additional nodes that aren't in the AST
-      throw new Error(`Invalid possessive quantifier: min "${min}" with no max"`);
-    }
-    if (min === max && kind === NodeQuantifierKinds.possessive) {
-      // Can't add a `+` suffix to a fixed `{n}` interval quantifier
-      throw new Error(`Invalid possessive quantifier: min and max are equal "${min}"`);
-    }
-    const kidIsGreedyQuantifier = element.type === NodeTypes.Quantifier && element.kind === NodeQuantifierKinds.greedy;
+    const forcedInterval = (
+      parent.type === NodeTypes.Quantifier &&
+      parent.kind === NodeQuantifierKinds.possessive &&
+      parent.min === 1 &&
+      parent.max === Infinity
+    );
+    const isSymbolCandidate = (
+      (!min && max === 1) || // `?`
+      (!min && max === Infinity) || // `*`
+      (min === 1 && max === Infinity) // `+`
+    );
+    const kidIsGreedyQuantifier = (
+      element.type === NodeTypes.Quantifier &&
+      element.kind === NodeQuantifierKinds.greedy
+    );
     let base;
-    let interval = false;
-    if (!min && max === 1 && !kidIsGreedyQuantifier) {
-      base = '?';
-    } else if (!min && max === Infinity) {
-      base = '*';
-    } else if (min === 1 && max === Infinity && !kidIsGreedyQuantifier) {
-      base = '+';
-    } else if (min === max) {
-      base = `{${min}}`;
-      interval = true;
-    } else {
-      base = kind === NodeQuantifierKinds.possessive ?
-        `{${max},${min}}` :
-        `{${min},${max === Infinity ? '' : max}}`;
-      interval = true;
+    if (isSymbolCandidate && !forcedInterval) {
+      if (
+        !min && max === 1 &&
+        // Can't chain `?` to any greedy quantifier since that would make it lazy
+        !kidIsGreedyQuantifier
+      ) {
+        base = '?';
+      } else if (!min && max === Infinity) {
+        base = '*';
+      } else if (
+        min === 1 && max === Infinity &&
+        (
+          // Can't chain `+` to greedy `?`/`*`/`+` since that would make it possessive
+          !kidIsGreedyQuantifier ||
+          // ...but, you're forced to use `+` (and change the kid's rendering) if it's possessive
+          // `++` since you can't use a possessive reversed range with `Infinity`
+          kind === NodeQuantifierKinds.possessive
+        )
+      ) {
+        base = '+';
+      }
+    }
+    const isInterval = !base;
+    if (isInterval) {
+      if (min === max) {
+        if (kind === NodeQuantifierKinds.possessive) {
+          // Can't add a `+` suffix to a fixed `{n}` interval quantifier
+          throw new Error(`Invalid possessive quantifier: min and max are equal "${min}"`);
+        }
+        base = `{${min}}`;
+      } else if (max === Infinity && kind === NodeQuantifierKinds.possessive) {
+        if (min > 1) {
+          // Onig reversed ranges are possessive but `{,n}` is greedy `{0,n}`, so there's no way to
+          // represent this without adding additional nodes that aren't in the AST
+          throw new Error(`Invalid possessive quantifier: min "${min}" with infinite max"`);
+        }
+        // Can't reverse the range with `Infinity`, since `{,n}` is greedy `{0,n}`
+        base = `{${min},}`;
+      } else {
+        base = kind === NodeQuantifierKinds.possessive ?
+          `{${max},${min}}` :
+          `{${min},${max === Infinity ? '' : max}}`;
+      }
     }
     const suffix = {
       greedy: '',
       lazy: '?',
       // Interval quantifiers are marked possessive by reversing their min/max; a `+` suffix would
       // create a quantifier chain
-      possessive: interval ? '' : '+',
+      possessive: isInterval ? '' : '+',
     }[kind];
     return `${gen(element)}${base}${suffix}`;
   },
@@ -285,6 +325,25 @@ function getFirstChild(node) {
   }
   if (node.min && node.min.type) {
     return node.min;
+  }
+  if (node.pattern) {
+    return node.pattern;
+  }
+  return null;
+}
+
+function getLastChild(node) {
+  if (node.alternatives) {
+    return node.alternatives.at(-1);
+  }
+  if (node.elements) {
+    return node.elements.at(-1) ?? null;
+  }
+  if (node.element) {
+    return node.element;
+  }
+  if (node.max && node.max.type) {
+    return node.max;
   }
   if (node.pattern) {
     return node.pattern;
