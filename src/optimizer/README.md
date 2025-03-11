@@ -18,7 +18,7 @@ Becomes:
 
 ### [Try the Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/)
 
-Benefits:
+## Benefits
 
 - Optimized regexes are shorter; good for minification.
 - Optimized regexes are typically easier to read, unless the original used flag `x` for insignificant whitespace and comments (which are removed during optimization).
@@ -26,7 +26,7 @@ Benefits:
 
 The optimizer's primary purpose is minification, but it also attempts to improve regex performance. It avoids transformations that might shorten the pattern in some contexts but be problematic in others (e.g., by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
 
-The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which uses it to process tens of thousands of real-world Oniguruma regexes.
+The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which is used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
 
 ## Import
 

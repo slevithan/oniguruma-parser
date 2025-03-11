@@ -1,4 +1,4 @@
-# oniguruma-parser: Traverser module
+# `oniguruma-parser`: Traverser module
 
 Provides a traversal API (using the vistor pattern) for Oniguruma regex ASTs.
 

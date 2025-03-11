@@ -28,7 +28,7 @@ Additional exports are available that provide access to the [Parser](https://git
 > [!TIP]
 > Try the [optimizer/generator demo](https://slevithan.github.io/oniguruma-parser/demo/).
 
-`oniguruma-parser` has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which use it to process tens of thousands of real-world Oniguruma regexes.
+`oniguruma-parser` has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which are used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
 
 ## Known differences
 
