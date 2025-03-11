@@ -218,8 +218,8 @@ Some of the following optimizations (related to the representation of tokens) do
     <th rowspan="3" valign="top" align="left">
       Quantifiers
     </th>
-    <td><code>preventReDoS</code></td>
-    <td>Fix some ReDoS vulnerabilities</td>
+    <td><code>preventReDoS</code> 🚀</td>
+    <td>Remove identified ReDoS vulnerabilities without changing matches</td>
     <td><code>'([^']+|\\')*'</code> → <code>'([^']|\\')*'</code></td>
   </tr>
   <tr>

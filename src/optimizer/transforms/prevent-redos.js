@@ -2,18 +2,21 @@ import {hasOnlyChild} from '../../parser/node-utils.js';
 import {NodeQuantifierKinds, NodeTypes} from '../../parser/parse.js';
 
 /**
-Fix some ReDoS vulnerabilities.
+Remove identified ReDoS vulnerabilities without changing matches.
 */
 const preventReDoS = {
   Quantifier({node}) {
-    // ## Prevent a common cause of catastrophic backtracking by removing an unneeded nested
-    // quantifier from quantified groups
-    // [TODO] Skip if the quantified group is the last node in the pattern. If there's no following
-    // node, there's no backtracking trigger
-    const {element} = node;
+    // Prevent a common cause of catastrophic backtracking by removing an unneeded nested
+    // quantifier from the first alternative of infinitely-quantified groups. Can't remove nested
+    // quantifiers from other alternatives or if the first alternative has more than one element,
+    // because that might change the match
+    // [TODO] It's safe to skip this transform if the quantified group is the last node in its
+    // pattern. If there's no following node, there's no backtracking trigger
+    const {max, element} = node;
     if (
-      node.max !== Infinity ||
+      max !== Infinity ||
       (element.type !== NodeTypes.CapturingGroup && element.type !== NodeTypes.Group) ||
+      // No benefit with atomic groups
       (element.type === NodeTypes.Group && element.atomic)
     ) {
       return;
@@ -24,15 +27,10 @@ const preventReDoS = {
     }
     const nestedQuantifier = firstAlt.elements[0];
     if (
-      // It's not a problem to also cover cases with a possessive quantifier, but leaving the
-      // possesive quantifier in place can slightly improve performance
+      // No benefit with possessive quantifiers
       nestedQuantifier.kind === NodeQuantifierKinds.possessive ||
       nestedQuantifier.min > 1 ||
-      nestedQuantifier.max < 2 ||
-      ( nestedQuantifier.element.type !== NodeTypes.Character &&
-        nestedQuantifier.element.type !== NodeTypes.CharacterClass &&
-        nestedQuantifier.element.type !== NodeTypes.CharacterSet
-      )
+      nestedQuantifier.max < 2
     ) {
       return;
     }
