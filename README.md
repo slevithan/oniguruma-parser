@@ -1,8 +1,10 @@
-# oniguruma-parser
+# `oniguruma-parser`
 
 [![npm version][npm-version-src]][npm-version-href]
 
-Parse, validate, traverse, transform, and optimize [Oniguruma](https://github.com/kkos/oniguruma) regular expressions.
+[Oniguruma](https://github.com/kkos/oniguruma) is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, Shiki, etc. for syntax highlighting), and many other tools.
+
+`oniguruma-parser` is a JavaScript library that can be used to parse, validate, traverse, transform, and optimize Oniguruma regular expressions.
 
 To parse a regex and return an AST, call `toOnigurumaAst`, which uses the following type definition:
 
@@ -26,7 +28,7 @@ Additional exports are available that provide access to the [Parser](https://git
 > [!TIP]
 > Try the [optimizer/generator demo](https://slevithan.github.io/oniguruma-parser/demo/).
 
-This library has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which use it to process tens of thousands of real-world Oniguruma regexes.
+`oniguruma-parser` has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which use it to process tens of thousands of real-world Oniguruma regexes.
 
 ## Known differences
 

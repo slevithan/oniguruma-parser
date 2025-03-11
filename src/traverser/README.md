@@ -27,6 +27,6 @@ function traverse(
 
 ## About
 
-Created by [Steven Levithan](https://github.com/slevithan), originally as part of [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es). If you want to support this project, I'd love your help by contributing improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
+Created by [Steven Levithan](https://github.com/slevithan). If you want to support this project, I'd love your help by contributing improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
 MIT License.
