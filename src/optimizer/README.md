@@ -16,7 +16,7 @@ Becomes:
 !+(\da[abz])[\H\p{L}]\w
 ```
 
-### [Try the Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/)
+## [Try the Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/)
 
 ## Benefits
 
