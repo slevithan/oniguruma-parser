@@ -16,6 +16,7 @@ describe('Optimizer: extractPrefix', () => {
       ['^a|^b', '^(?:a|b)'],
       [r`\da|\db|\dc`, r`\d(?:a|b|c)`],
       ['^aa|^abb|^ac', '^a(?:a|bb|c)'],
+      ['^a|^ab|^ac', '^a(?:|b|c)'],
       ['^aa|^a|^ac', '^a(?:a||c)'],
       ['aa|aa', 'aa'],
     ];

@@ -2,9 +2,9 @@
 
 [![npm version][npm-version-src]][npm-version-href]
 
-Create, traverse, validate, transform, and optimize [Oniguruma](https://github.com/kkos/oniguruma) regular expressions and ASTs.
+Parse, validate, traverse, transform, and optimize [Oniguruma](https://github.com/kkos/oniguruma) regular expressions.
 
-This library's core function is `toOnigurumaAst`, which returns an Oniguruma AST generated from an Oniguruma pattern.
+To parse a regex and return an AST, call `toOnigurumaAst`, which uses the following type definition:
 
 ```ts
 function toOnigurumaAst(
@@ -21,7 +21,7 @@ function toOnigurumaAst(
 
 An error is thrown if the pattern isn't valid in Oniguruma.
 
-Additional exports are available that provide access to the [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md), [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md), [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md), and [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md) modules.
+Additional exports are available that provide access to the [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md) (which includes more options), [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md), [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md), and [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md) modules.
 
 > [!TIP]
 > Try the [optimizer/generator demo](https://slevithan.github.io/oniguruma-parser/demo/).
