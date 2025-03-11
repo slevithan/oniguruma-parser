@@ -15,9 +15,10 @@ const preventReDoS = {
     const {max, element} = node;
     if (
       max !== Infinity ||
-      (element.type !== NodeTypes.CapturingGroup && element.type !== NodeTypes.Group) ||
+      // Can't operate on capturing groups because that could change the captured value
+      element.type !== NodeTypes.Group ||
       // No benefit with atomic groups
-      (element.type === NodeTypes.Group && element.atomic)
+      element.atomic
     ) {
       return;
     }

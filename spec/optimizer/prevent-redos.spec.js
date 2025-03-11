@@ -11,13 +11,14 @@ describe('Optimizer: preventReDoS', () => {
     }).pattern;
   }
 
-  it('should avoid ReDoS for quantified group with qualifying nested quantifier', () => {
+  it('should avoid ReDoS for quantified groups with qualifying nested quantifiers', () => {
     const cases = [
-      ['(?:[^!]*)+', '(?:[^!]?)+'],
-      [r`'([^'\\]+|\\.)*'`, r`'([^'\\]|\\.)*'`],
-      ['(?:[^!]*)*!', '(?:[^!]?)*!'],
-      ['(?:[^!]+)*!', '(?:[^!])*!'],
-      ['(?:([^!])+)*!', '(?:([^!]))*!'],
+      ['(?:.*)+!', '(?:.?)+!'],
+      ['(?:.*)*!', '(?:.?)*!'],
+      ['(?:(?:..){0,10})*!', '(?:(?:..)?)*!'],
+      ['(?:.+)*!', '(?:.)*!'],
+      ['(?:(.){1,10})*!', '(?:(.))*!'],
+      [r`'(?:[^'\\]+|\\.)*'`, r`'(?:[^'\\]|\\.)*'`],
       [r`/\*(?:[^*]+|\*+(?!/))*\*/`, r`/\*(?:[^*]|\*+(?!/))*\*/`],
     ];
     for (const [input, expected] of cases) {
@@ -27,12 +28,17 @@ describe('Optimizer: preventReDoS', () => {
 
   it('should not apply to non-qualifying cases', () => {
     const cases = [
-      // Triggers ReDoS; can't optimize without changes to match, at least with current solution
-      r`/\*(?:\*+(?!/)|[^*]+)*\*/`,
-      r`/\*(?:a[^*]+|\*+(?!/))*\*/`,
-      r`/\*(?:[^*]a+|\*+(?!/))*\*/`,
+      // Triggers ReDoS, but optimization could change matches
+      '(?:.{2,10})*!',
+      '(?:.*){2,10}!',
+      '(?:.|.+)*!',
+      '(?:..+|.)*!',
+      // Triggers ReDoS, but optimization could change submatches
+      '(.+)*!',
       // Doesn't trigger ReDoS
-      '!(?:[^!]+)?!',
+      '(?:.+)?!',
+      '(?:.?)+!',
+      '(?>.+)*!',
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
