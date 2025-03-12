@@ -1,6 +1,8 @@
 # `oniguruma-parser`
 
 [![npm version][npm-version-src]][npm-version-href]
+[![npm downloads][npm-downloads-src]][npm-downloads-href]
+[![bundle][bundle-src]][bundle-href]
 
 [Oniguruma](https://github.com/kkos/oniguruma) is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, Shiki, etc. for syntax highlighting), and many other tools.
 
@@ -92,3 +94,7 @@ MIT License.
 
 [npm-version-src]: https://img.shields.io/npm/v/oniguruma-parser?color=78C372
 [npm-version-href]: https://npmjs.com/package/oniguruma-parser
+[npm-downloads-src]: https://img.shields.io/npm/dm/oniguruma-parser?color=78C372
+[npm-downloads-href]: https://npmjs.com/package/oniguruma-parser
+[bundle-src]: https://img.shields.io/bundlejs/size/oniguruma-parser?color=78C372&label=minzip
+[bundle-href]: https://bundlejs.com/?q=oniguruma-parser&treeshake=[*]
