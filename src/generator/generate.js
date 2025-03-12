@@ -189,31 +189,52 @@ const generator = {
     return alternatives.map(gen).join('|');
   },
 
-  Quantifier({min, max, kind, element}, {parent}, gen) {
+  Quantifier(node, {parent}, gen) {
+    // Rendering Onig quantifiers is wildly, unnecessarily complex compared to other regex flavors
+    // because of the combination of a few features unique to Oniguruma:
+    // - You can create quantifier chains (i.e., quantify a quantifier).
+    // - An implicit zero min is allowed for interval quantifiers (ex: `{,2}`).
+    // - Interval quantifiers can't use `+` to make them possessive (it creates a quantifier
+    //   chain), even though quantifiers `?` `*` `+` can.
+    // - A reversed range in a quantifier makes it possessive (ex: `{2,1}`).
+    //   - `{,n}` is always greedy with an implicit zero min, and can't represent a possesive range
+    //     from n to infinity.
+    const {min, max, kind, element} = node;
+    // These errors shouldn't happen unless the AST is modified in an invalid way after parsing
+    if (min === Infinity) {
+      throw new Error(`Invalid quantifier: infinite min`);
+    }
     if (min > max) {
-      // Shouldn't happen unless the AST is modified in an invalid way after parsing
       throw new Error(`Invalid quantifier: min "${min}" > max "${max}"`);
     }
-    const forcedInterval = (
+    function isSymbolCandidate({min, max}) {
+      return (
+        (!min && max === 1) || // `?`
+        (!min && max === Infinity) || // `*`
+        (min === 1 && max === Infinity) // `+`
+      );
+    }
+    const kidIsGreedyQuantifier = (
+      element.type === NodeTypes.Quantifier &&
+      element.kind === NodeQuantifierKinds.greedy
+    );
+    const parentIsPossessivePlus = (
       parent.type === NodeTypes.Quantifier &&
       parent.kind === NodeQuantifierKinds.possessive &&
       parent.min === 1 &&
       parent.max === Infinity
     );
-    const isSymbolCandidate = (
-      (!min && max === 1) || // `?`
-      (!min && max === Infinity) || // `*`
-      (min === 1 && max === Infinity) // `+`
-    );
-    const kidIsGreedyQuantifier = (
-      element.type === NodeTypes.Quantifier &&
-      element.kind === NodeQuantifierKinds.greedy
-    );
+    // Can't render as a symbol, because the following (parent) quantifier, which is `++`, would
+    // then alter this node's meaning to make it possessive, and the parent quantifier can't change
+    // to avoid this because there's no interval representation possible for `++`. There's also no
+    // other way to render `*+`, but a following `*` wouldn't alter the meaning of this node. `?+`
+    // is also safe since it can use the alternative `{1,0}` representation (which is possessive)
+    const forcedInterval = kind === NodeQuantifierKinds.greedy && parentIsPossessivePlus;
     let base;
-    if (isSymbolCandidate && !forcedInterval) {
+    if (isSymbolCandidate(node) && !forcedInterval) {
       if (
         !min && max === 1 &&
-        // Can't chain `?` to any greedy quantifier since that would make it lazy
+        // Can't chain a base of `?` to any greedy quantifier since that would make it lazy
         !kidIsGreedyQuantifier
       ) {
         base = '?';
@@ -222,9 +243,9 @@ const generator = {
       } else if (
         min === 1 && max === Infinity &&
         (
-          // Can't chain `+` to greedy `?`/`*`/`+` since that would make it possessive
-          !kidIsGreedyQuantifier ||
-          // ...but, you're forced to use `+` (and change the kid's rendering) if it's possessive
+          // Can't chain a base of `+` to greedy `?`/`*`/`+` since that would make them possessive
+          !(kidIsGreedyQuantifier && isSymbolCandidate(element)) ||
+          // ...but, we're forced to use `+` (and change the kid's rendering) if this is possessive
           // `++` since you can't use a possessive reversed range with `Infinity`
           kind === NodeQuantifierKinds.possessive
         )
@@ -232,26 +253,26 @@ const generator = {
         base = '+';
       }
     }
-    const isInterval = !base;
-    if (isInterval) {
-      if (min === max) {
-        if (kind === NodeQuantifierKinds.possessive) {
+    const isIntervalQuantifier = !base;
+    if (isIntervalQuantifier) {
+      if (kind === NodeQuantifierKinds.possessive) {
+        if (min === max) {
           // Can't add a `+` suffix to a fixed `{n}` interval quantifier
           throw new Error(`Invalid possessive quantifier: min and max are equal "${min}"`);
         }
-        base = `{${min}}`;
-      } else if (max === Infinity && kind === NodeQuantifierKinds.possessive) {
-        if (min > 1) {
-          // Onig reversed ranges are possessive but `{,n}` is greedy `{0,n}`, so there's no way to
-          // represent this without adding additional nodes that aren't in the AST
+        if (max === Infinity) {
+          // Onig reversed ranges are possessive but `{,n}` is the same as greedy `{0,n}`, so
+          // there's no way to represent this without adding additional nodes that aren't in the
+          // AST. The exceptions are when `min` is 0 or 1 (`?+`, `*+`, `++`), but we've already
+          // ruled out rendering as a symbol at this point
           throw new Error(`Invalid possessive quantifier: min "${min}" with infinite max"`);
         }
-        // Can't reverse the range with `Infinity`, since `{,n}` is greedy `{0,n}`
-        base = `{${min},}`;
+        // Reversed range
+        base = `{${max},${min}}`;
+      } else if (min === max) {
+        base = `{${min}}`;
       } else {
-        base = kind === NodeQuantifierKinds.possessive ?
-          `{${max},${min}}` :
-          `{${min},${max === Infinity ? '' : max}}`;
+        base = `{${min},${max === Infinity ? '' : max}}`;
       }
     }
     const suffix = {
@@ -259,7 +280,7 @@ const generator = {
       lazy: '?',
       // Interval quantifiers are marked possessive by reversing their min/max; a `+` suffix would
       // create a quantifier chain
-      possessive: isInterval ? '' : '+',
+      possessive: isIntervalQuantifier ? '' : '+',
     }[kind];
     return `${gen(element)}${base}${suffix}`;
   },
