@@ -222,7 +222,7 @@ Some of the following optimizations (related to the representation of tokens) do
     </th>
     <td><code>preventReDoS</code> 🚀</td>
     <td>Remove identified ReDoS vulnerabilities without changing matches</td>
-    <td><code>(?:.+)*!</code> → <code>(?:.)*!</code></td>
+    <td><code>(?:a+)*b</code> → <code>(?:a)*b</code></td>
   </tr>
   <tr>
     <td></td>

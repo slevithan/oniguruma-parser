@@ -91,11 +91,47 @@ const generator = {
     return `(${nameWrapper}${alternatives.map(gen).join('|')})`;
   },
 
-  Character({value}, state) {
-    return getCharEscape(value, {
-      escDigit: state.lastNode.type === NodeTypes.Backreference,
-      inCharClass: state.inCharClass,
-    });
+  Character(node, {inCharClass, lastNode, parent}) {
+    const {value} = node;
+    const escDigit = lastNode.type === NodeTypes.Backreference;
+    if (CharCodeEscapeMap.has(value)) {
+      return CharCodeEscapeMap.get(value);
+    }
+    if (
+      // Control chars, etc.; condition modeled on the Chrome developer console's display for strings
+      value < 32 || (value > 126 && value < 160) ||
+      // Unicode planes 4-16; unassigned, special purpose, and private use area
+      value > 0x3FFFF ||
+      // Avoid corrupting a preceding backref by immediately following it with a literal digit
+      (escDigit && isDigitCharCode(value))
+    ) {
+      // Don't convert value `0` to `\0` since that's corruptible by following literal digits
+      return value > 0x7F ?
+        `\\x{${value.toString(16).toUpperCase()}}` :
+        `\\x${value.toString(16).toUpperCase().padStart(2, '0')}`;
+    }
+    const char = cp(value);
+    let escape = false;
+    if (inCharClass) {
+      let isFirst = false;
+      let isLast = false;
+      if (parent.type === NodeTypes.CharacterClass) {
+        isFirst = parent.elements[0] === node;
+        isLast = parent.elements.at(-1) === node;
+      }
+      if (char === '^') {
+        escape = isFirst && !parent.negate;
+      } else if (char === '-') {
+        // Could also avoid escaping if it's immediately after a range or nested class, but that
+        // can be a bit confusing to read so don't make it the default rendering
+        escape = !isFirst && !isLast;
+      } else if (CharClassEscapeChars.has(char)) {
+        escape = true;
+      }
+    } else if (BaseEscapeChars.has(char)) {
+      escape = true;
+    }
+    return `${escape ? '\\' : ''}${char}`;
   },
 
   CharacterClass({kind, negate, elements}, state, gen) {
@@ -311,28 +347,6 @@ const CharCodeEscapeMap = new Map([
   [0x2029, r`\u2029`], // paragraph separator
   [0xFEFF, r`\uFEFF`], // ZWNBSP/BOM
 ]);
-
-function getCharEscape(codePoint, {escDigit, inCharClass}) {
-  if (CharCodeEscapeMap.has(codePoint)) {
-    return CharCodeEscapeMap.get(codePoint);
-  }
-  if (
-    // Control chars, etc.; condition modeled on the Chrome developer console's display for strings
-    codePoint < 32 || (codePoint > 126 && codePoint < 160) ||
-    // Unicode planes 4-16; unassigned, special purpose, and private use area
-    codePoint > 0x3FFFF ||
-    // Avoid corrupting a preceding backref by immediately following it with a literal digit
-    (escDigit && isDigitCharCode(codePoint))
-  ) {
-    // Don't convert codePoint `0` to `\0` since that's corruptible by following literal digits
-    return codePoint > 0x7F ?
-      `\\x{${codePoint.toString(16).toUpperCase()}}` :
-      `\\x${codePoint.toString(16).toUpperCase().padStart(2, '0')}`;
-  }
-  const escapeChars = inCharClass ? CharClassEscapeChars : BaseEscapeChars;
-  const char = cp(codePoint);
-  return (escapeChars.has(char) ? '\\' : '') + char;
-}
 
 function getFirstChild(node) {
   if (node.alternatives) {
