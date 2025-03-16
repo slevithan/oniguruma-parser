@@ -59,13 +59,18 @@ function showGenerated() {
       state.flags.W ? 'W' : ''
     }`,
   };
+  if (state.useGenerator) {
+    options.unicodePropertyMap = OnigurumaParser.OnigUnicodePropertyMap;
+    options.skipBackrefValidation = state.opts.rules.allowOrphanBackrefs;
+  }
   let outputPattern = '';
   let outputFlags = '';
   let runtime = 0;
   try {
     const startTime = performance.now();
     const result = state.useGenerator ?
-      OnigurumaParser.generate(OnigurumaParser.toOnigurumaAst(ui.input.value, options)) :
+      // Using `parse` instead of `toOnigurumaAst` so we can set `skipBackrefValidation`
+      OnigurumaParser.generate(OnigurumaParser.parse(ui.input.value, options)) :
       OnigurumaParser.optimize(ui.input.value, options);
     const endTime = performance.now();
     runtime = endTime - startTime;
