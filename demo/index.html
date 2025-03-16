@@ -66,6 +66,15 @@
           <div>
             <p>
               <label>
+                <input type="checkbox" id="option-allowOrphanBackrefs" onchange="setRule('allowOrphanBackrefs', this.checked)">
+                <code>allowOrphanBackrefs</code>
+                <span class="tip tip-xl">Useful with TextMate grammars that merge backrefs across <code>begin</code> and <code>end</code> patterns</span>
+              </label>
+            </p>
+          </div>
+          <div>
+            <p>
+              <label>
                 <input type="checkbox" id="option-captureGroup" onchange="setRule('captureGroup', this.checked)">
                 <code>captureGroup</code>
                 <span class="tip tip-xl">Unnamed captures and numbered calls allowed when using named capture; on by default in <code>vscode-oniguruma</code></span>

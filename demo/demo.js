@@ -17,6 +17,7 @@ const state = {
   },
   opts: {
     rules: {
+      allowOrphanBackrefs: getValue('option-allowOrphanBackrefs'),
       captureGroup: getValue('option-captureGroup'),
       singleline: getValue('option-singleline'),
     },

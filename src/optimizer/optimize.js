@@ -1,6 +1,7 @@
-import {toOnigurumaAst} from '../index.js';
 import {generate} from '../generator/generate.js';
+import {parse} from '../parser/parse.js';
 import {traverse} from '../traverser/traverse.js';
+import {OnigUnicodePropertyMap} from '../unicode.js';
 import {optimizations} from './optimizations.js';
 
 /**
@@ -10,6 +11,7 @@ Returns an optimized Oniguruma pattern and flags.
   flags?: string;
   override?: {[key in import('./optimizations.js').OptimizationName]?: boolean};
   rules?: {
+    allowOrphanBackrefs?: boolean;
     captureGroup?: boolean;
     singleline?: boolean;
   };
@@ -21,9 +23,14 @@ Returns an optimized Oniguruma pattern and flags.
 */
 function optimize(pattern, options) {
   const opts = getOptions(options);
-  const ast = toOnigurumaAst(pattern, {
+  const ast = parse(pattern, {
     flags: opts.flags,
-    rules: opts.rules,
+    rules: {
+      captureGroup: opts.rules.captureGroup,
+      singleline: opts.rules.singleline,
+    },
+    skipBackrefValidation: opts.rules.allowOrphanBackrefs,
+    unicodePropertyMap: OnigUnicodePropertyMap,
   });
   const active = Object.assign(getOptionalOptimizations(), opts.override);
   Object.keys(active).forEach(key => {
@@ -50,10 +57,23 @@ function optimize(pattern, options) {
 
 function getOptions(options = {}) {
   return {
+    // Oniguruma flags; a string with `imxDPSW` in any order (all optional). Oniguruma's `m` is
+    // equivalent to JavaScript's `s` (`dotAll`).
     flags: '',
+    // Enable or disable individual, optional optimizations to change their default state.
     override: {},
-    rules: {},
     ...options,
+    rules: {
+      // Useful with TextMate grammars that merge backreferences across patterns.
+      allowOrphanBackrefs: false,
+      // Allow unnamed captures and numbered calls (backreferences and subroutines) when using
+      // named capture. This is Oniguruma option `ONIG_OPTION_CAPTURE_GROUP`; on by default in
+      // `vscode-oniguruma`.
+      captureGroup: false,
+      // `^` as `\A`; `$` as`\Z`. This is Oniguruma option `ONIG_OPTION_SINGLELINE`.
+      singleline: false,
+      ...options.rules,
+    },
   };
 }
 

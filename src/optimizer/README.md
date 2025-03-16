@@ -43,6 +43,7 @@ function optimize(
     flags?: string;
     override?: {[key in OptimizationName]?: boolean};
     rules?: {
+      allowOrphanBackrefs?: boolean;
       captureGroup?: boolean;
       singleline?: boolean;
     };
