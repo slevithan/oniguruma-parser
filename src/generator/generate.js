@@ -122,8 +122,8 @@ const generator = {
       if (char === '^') {
         escape = isFirst && !parent.negate;
       } else if (char === '-') {
-        // Could also avoid escaping if it's immediately after a range or nested class, but that
-        // can be a bit confusing to read so don't make it the default rendering
+        // Could also avoid escaping if it's immediately after a range or nested class, but don't
+        // don't make that the default rendering
         escape = !isFirst && !isLast;
       } else if (CharClassEscapeChars.has(char)) {
         escape = true;
