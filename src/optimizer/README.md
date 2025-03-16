@@ -20,11 +20,11 @@ Becomes:
 
 ## Benefits
 
-- Optimized regexes are shorter; good for minification.
+- Optimized regexes are shorter. Good for minification.
+- Optimized regexes run faster. Some optimizations improve performance and can eliminate or reduce the risk of ReDoS.
 - Optimized regexes are typically easier to read, unless the original used flag `x` for insignificant whitespace and comments (which are removed during optimization).
-- Some optimizations can improve performance and eliminate or reduce the risk of ReDoS.
 
-The optimizer's primary purpose is minification, but it also attempts to improve regex performance. It avoids transformations that might shorten the pattern in some contexts but be problematic in others (e.g., by triggering edge case Oniguruma bugs). In rare cases, results might be slightly longer than the input.
+In rare cases, results might be slightly longer than the input.
 
 The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which is used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
 
