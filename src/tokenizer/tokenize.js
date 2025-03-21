@@ -13,6 +13,7 @@ const TokenTypes = /** @type {const} */ ({
   Directive: 'Directive',
   GroupClose: 'GroupClose',
   GroupOpen: 'GroupOpen',
+  Callout: 'Callout',
   Subroutine: 'Subroutine',
   Quantifier: 'Quantifier',
   // Intermediate representation not included in results
@@ -44,6 +45,7 @@ const TokenGroupKinds = /** @type {const} */ ({
   group: 'group',
   lookahead: 'lookahead',
   lookbehind: 'lookbehind',
+  callout: 'callout',
 });
 
 const TokenQuantifierKinds = /** @type {const} */ ({
@@ -104,7 +106,7 @@ const tokenRe = new RegExp(r`
       | #(?:[^)\\]|\\.?)*
       | [^:)]*[:)]
     )?
-    | \*
+    | \* [^)]* \)
   )?
   | ${quantifierRe.source}
   | ${charClassOpenPattern}
@@ -294,8 +296,15 @@ function getTokenWithDetails(context, pattern, m, lastIndex) {
   }
 
   if (m0 === '(') {
-    if (m === '(*') {
-      throw new Error(`Unsupported named callout "${m}"`);
+    if (m.startsWith('(*')) {
+      if (m !== '(*FAIL)') {
+        throw new Error(`Unsupported named callout "${m}"`);
+      }
+      return {
+        token: createToken(TokenTypes.Callout, m, {
+          kind: TokenGroupKinds.callout,
+        }),
+      };
     }
     if (m === '(?{') {
       throw new Error(`Unsupported callout "${m}"`);

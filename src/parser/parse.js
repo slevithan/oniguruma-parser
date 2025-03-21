@@ -35,6 +35,7 @@ const NodeTypes = /** @type {const} */ ({
   Directive: 'Directive',
   Flags: 'Flags',
   Group: 'Group',
+  Callout: 'Callout',
   LookaroundAssertion: 'LookaroundAssertion',
   Pattern: 'Pattern',
   Quantifier: 'Quantifier',
@@ -219,6 +220,8 @@ function parse(pattern, options = {}) {
           throwIfNot(NodeDirectiveKinds[token.kind], `Unexpected directive kind "${token.kind}"`),
           {flags: token.flags}
         );
+      case TokenTypes.Callout:
+        return parseCallout();
       case TokenTypes.GroupOpen:
         return parseGroupOpen(context, state);
       case TokenTypes.Quantifier:
@@ -401,6 +404,13 @@ function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNa
     return createPosixClass(value, {negate});
   }
   return createCharacterSet(kind, {negate});
+}
+
+function parseCallout() {
+  return createLookaroundAssertion({
+    behind: false,
+    negate: true,
+  });
 }
 
 function parseGroupOpen(context, state) {
