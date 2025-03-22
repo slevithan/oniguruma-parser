@@ -1,6 +1,8 @@
 import {PosixClassNames, r} from '../utils.js';
+import {type Options} from "../index.js";
+import {type FlagGroupModifiers} from '../parser/parse.js';
 
-const TokenTypes = /** @type {const} */ ({
+const TokenTypes = {
   Alternator: 'Alternator',
   Assertion: 'Assertion',
   Backreference: 'Backreference',
@@ -17,9 +19,9 @@ const TokenTypes = /** @type {const} */ ({
   Quantifier: 'Quantifier',
   // Intermediate representation not included in results
   EscapedNumber: 'EscapedNumber',
-});
+} as const;
 
-const TokenCharacterSetKinds = /** @type {const} */ ({
+const TokenCharacterSetKinds = {
   any: 'any',
   digit: 'digit',
   dot: 'dot',
@@ -30,27 +32,27 @@ const TokenCharacterSetKinds = /** @type {const} */ ({
   property: 'property',
   space: 'space',
   word: 'word',
-});
+} as const;
 
-const TokenDirectiveKinds = /** @type {const} */ ({
+const TokenDirectiveKinds = {
   flags: 'flags',
   keep: 'keep',
-});
+} as const;
 
-const TokenGroupKinds = /** @type {const} */ ({
+const TokenGroupKinds = {
   absent_repeater: 'absent_repeater',
   atomic: 'atomic',
   capturing: 'capturing',
   group: 'group',
   lookahead: 'lookahead',
   lookbehind: 'lookbehind',
-});
+} as const;
 
-const TokenQuantifierKinds = /** @type {const} */ ({
+const TokenQuantifierKinds = {
   greedy: 'greedy',
   lazy: 'lazy',
   possessive: 'possessive',
-});
+} as const;
 
 const EscapeCharCodes = new Map([
   ['a',  7], // alert/bell (Not available in JS)
@@ -104,7 +106,7 @@ const tokenRe = new RegExp(r`
       | #(?:[^)\\]|\\.?)*
       | [^:)]*[:)]
     )?
-    | \*
+    | \* [^)]* \)
   )?
   | ${quantifierRe.source}
   | ${charClassOpenPattern}
@@ -121,8 +123,7 @@ const charClassTokenRe = new RegExp(r`
   | .
 `.replace(/\s+/g, ''), 'gsu');
 
-/**
-@typedef {{
+export type RegexFlags = {
   ignoreCase: boolean;
   dotAll: boolean;
   extended: boolean;
@@ -130,17 +131,18 @@ const charClassTokenRe = new RegExp(r`
   posixIsAscii: boolean;
   spaceIsAscii: boolean;
   wordIsAscii: boolean;
-}} RegexFlags
-@typedef {{
-  type: keyof TokenTypes;
+};
+
+export type Token = {
+  type: keyof typeof TokenTypes;
   raw: string;
-  [key: string]: string | number | boolean;
-}} Token
-@typedef {{
+  [key: string]: string | number | boolean | {[key: string]: any;};
+};
+
+type TokenizerResult = {
   tokens: Array<Token>;
   flags: RegexFlags;
-}} TokenizerResult
-*/
+};
 /**
 @param {string} pattern Oniguruma pattern.
 @param {{
@@ -152,7 +154,7 @@ const charClassTokenRe = new RegExp(r`
 }} [options]
 @returns {TokenizerResult}
 */
-function tokenize(pattern, options = {}) {
+function tokenize(pattern: string, options: Options = {}): TokenizerResult {
   const opts = {
     flags: '',
     ...options,
@@ -607,10 +609,10 @@ function createTokenForSharedEscape(raw, {inCharClass}) {
 /**
 @param {keyof TokenTypes} type
 @param {string} raw
-@param {{[key: string]: string | number | boolean;}} [data]
+@param {{[key: string]: string | number | boolean| {[key: string]: any;};}} [data]
 @returns {Token}
 */
-function createToken(type, raw, data) {
+function createToken(type: keyof typeof TokenTypes, raw: string, data?: {[key: string]: string | number | boolean | {[key: string]: any;};}): Token {
   return {
     type,
     raw,
@@ -639,7 +641,7 @@ function createTokenForFlagMod(raw, context) {
   const isXOn = (context.getCurrentModX() || on.includes('x')) && !off.includes('x');
   const enabledFlags = getFlagGroupSwitches(on);
   const disabledFlags = getFlagGroupSwitches(off);
-  const flagChanges = {};
+  const flagChanges: FlagGroupModifiers = {};
   enabledFlags && (flagChanges.enable = enabledFlags);
   disabledFlags && (flagChanges.disable = disabledFlags);
   // Flag directive; ex: `(?im-x)`
@@ -668,7 +670,11 @@ function createTokenForFlagMod(raw, context) {
 }
 
 function createTokenForQuantifier(raw) {
-  const data = {};
+  const data: { // TODO: is there already a format for this somewhere else?
+    min?: number;
+    max?: number;
+    kind?: keyof typeof TokenQuantifierKinds;
+  } = {};
   if (raw[0] === '{') {
     const {min, max} = /^\{(?<min>\d*)(?:,(?<max>\d*))?/.exec(raw).groups;
     const limit = 100_000;
@@ -712,20 +718,18 @@ function createTokenForUnicodeProperty(raw) {
   });
 }
 
-/**
-@typedef {{
+export type FlagGroupSwitches = {
   ignoreCase?: true;
   dotAll?: true;
   extended?: true;
-}} FlagGroupSwitches
-*/
+};
 /**
 @param {string} flags
 @returns {FlagGroupSwitches?}
 */
-function getFlagGroupSwitches(flags) {
+function getFlagGroupSwitches(flags: string): FlagGroupSwitches {
   // Don't include `false` for flags that aren't included
-  const obj = {};
+  const obj: FlagGroupSwitches = {};
   if (flags.includes('i')) {
     obj.ignoreCase = true;
   }
