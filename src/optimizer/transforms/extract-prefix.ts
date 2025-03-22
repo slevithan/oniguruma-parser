@@ -1,5 +1,6 @@
 import {alternativeContainerTypes} from '../../parser/node-utils.js';
-import {createAlternative, createGroup, NodeTypes} from '../../parser/parse.js';
+import {createAlternative, createGroup, NodeTypes, type AlternativeContainerNode, type AssertionNode, type CharacterClassNode, type CharacterSetNode, type Node} from '../../parser/parse.js';
+import type {Path} from '../../traverser/traverse.js';
 
 /**
 Extract nodes at the start of every alternative into a prefix.
@@ -9,7 +10,7 @@ Also works within groups.
 - `a|b|c` -> `a|b|c` (no common prefix)
 */
 const extractPrefix = {
-  '*'({node}) {
+  '*'({node}: Path & {node: AlternativeContainerNode;}) {
     if (!alternativeContainerTypes.has(node.type) || node.alternatives.length < 2) {
       return;
     }
@@ -45,7 +46,7 @@ const extractPrefix = {
   },
 };
 
-function isAllowedSimpleType(type) {
+function isAllowedSimpleType(type: keyof typeof NodeTypes) {
   return (
     type === NodeTypes.Assertion ||
     type === NodeTypes.Character ||
@@ -54,14 +55,16 @@ function isAllowedSimpleType(type) {
 }
 
 // [TODO] Add support for more node types and move to `src/parser/`
-function isNodeEqual(a, b) {
+function isNodeEqual(a: Node, b: Node) {
   if (a.type !== b.type) {
     return false;
   }
   if (a.type === NodeTypes.Assertion || a.type === NodeTypes.CharacterSet) {
+    //@ts-ignore TODO:
     return a.kind === b.kind && a.negate === b.negate;
   }
   if (a.type === NodeTypes.Character) {
+    //@ts-ignore TODO:
     return a.value === b.value;
   }
   // Only supports types from `isAllowedSimpleType`

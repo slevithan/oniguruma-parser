@@ -1,10 +1,11 @@
-import {NodeCharacterSetKinds} from '../../parser/parse.js';
+import {NodeCharacterSetKinds, type CharacterSetNode} from '../../parser/parse.js';
+import type {Path} from '../../traverser/traverse.js';
 
 /**
 Use Unicode property aliases.
 */
 const useUnicodeAliases = {
-  CharacterSet({node}) {
+  CharacterSet({node}: Path & {node: CharacterSetNode;}) {
     if (node.kind !== NodeCharacterSetKinds.property) {
       return;
     }

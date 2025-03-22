@@ -1,4 +1,5 @@
-import {createUnicodeProperty, NodeCharacterSetKinds} from '../../parser/parse.js';
+import {createUnicodeProperty, NodeCharacterSetKinds, type CharacterClassRangeNode, type CharacterSetNode} from '../../parser/parse.js';
+import type {Path} from '../../traverser/traverse.js';
 import {isRange} from './use-shorthands.js';
 
 /**
@@ -8,7 +9,7 @@ Use Unicode properties when possible.
 See also `useShorthands`.
 */
 const useUnicodeProps = {
-  CharacterSet({node, root, replaceWith}) {
+  CharacterSet({node, root, replaceWith}: Path & {node: CharacterSetNode;}) {
     const {kind, negate, value} = node;
     let newNode;
     if (
@@ -26,7 +27,7 @@ const useUnicodeProps = {
     }
   },
 
-  CharacterClassRange({node, replaceWith}) {
+  CharacterClassRange({node, replaceWith}: Path & {node: CharacterClassRangeNode;}) {
     if (isRange(node, 0, 0x10FFFF)) {
       replaceWith(createUnicodeProperty('Any'));
     }

@@ -1,4 +1,5 @@
-import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
+import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes, type CharacterClassElementNode, type CharacterClassNode, type CharacterSetNode} from '../../parser/parse.js';
+import type {Path} from '../../traverser/traverse.js';
 
 /**
 Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
@@ -10,11 +11,11 @@ Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 See also `useUnicodeProps`.
 */
 const useShorthands = {
-  CharacterSet({node, parent, root, replaceWith}) {
+  CharacterSet({node, parent, root, replaceWith}: Path & {node: CharacterSetNode;}) {
     const {kind, negate, value} = node;
     let newNode;
     if (
-      ( kind === NodeCharacterSetKinds.property &&
+      (kind === NodeCharacterSetKinds.property &&
         (value === 'Decimal_Number' || value === 'Nd') &&
         // [TODO] Also need to check whether these flags are set in local context, when the parser
         // supports these flags on mode modifiers
@@ -62,7 +63,7 @@ const useShorthands = {
     }
   },
 
-  CharacterClass({node, root}) {
+  CharacterClass({node, root}: Path & {node: CharacterClassNode & typeof NodeCharacterClassKinds;}) {
     if (node.kind !== NodeCharacterClassKinds.union) {
       return;
     }
@@ -74,7 +75,7 @@ const useShorthands = {
       unicodeM: false,
       unicodeN: false,
       unicodePc: false,
-    }
+    };
     for (const kid of node.elements) {
       if (kid.type === NodeTypes.CharacterClassRange) {
         has.rangeDigit0To9 ||= isRange(kid, 48, 57); // '0' to '9'
@@ -108,7 +109,7 @@ const useShorthands = {
   },
 };
 
-function isRange(node, min, max) {
+function isRange(node: CharacterClassElementNode, min: number, max: number) {
   return (
     node.type === NodeTypes.CharacterClassRange &&
     node.min.value === min &&
@@ -116,22 +117,22 @@ function isRange(node, min, max) {
   );
 }
 
-function isUnicode(node, value, options: {supercategories?: boolean; subcategories?: boolean;} = {}) {
+function isUnicode(node: CharacterClassElementNode, value: string | string[], options: {supercategories?: boolean; subcategories?: boolean;} = {}) {
   const names = Array.isArray(value) ? value : [value];
   const expanded = [];
-  for (const v of names) {
+  for (const v of names as (keyof typeof fullNames | keyof typeof supercategories | keyof typeof subcategories)[]) {
     expanded.push(v);
-    if (fullNames[v]) {
-      expanded.push(fullNames[v]);
+    if (fullNames[<keyof typeof fullNames>v]) {
+      expanded.push(fullNames[<keyof typeof fullNames>v]);
     }
-    if (options.supercategories && supercategories[v]) {
-      expanded.push(supercategories[v]);
-      if (fullNames[supercategories[v]]) {
-        expanded.push(fullNames[supercategories[v]]);
+    if (options.supercategories && supercategories[<keyof typeof supercategories>v]) {
+      expanded.push(supercategories[<keyof typeof supercategories>v]);
+      if (fullNames[<keyof typeof fullNames>supercategories[<keyof typeof supercategories>v]]) {
+        expanded.push(fullNames[<keyof typeof fullNames>supercategories[<keyof typeof supercategories>v]]);
       }
     }
-    if (options.subcategories && subcategories[v]) {
-      expanded.push(...subcategories[v]);
+    if (options.subcategories && subcategories[<keyof typeof subcategories>v]) {
+      expanded.push(...subcategories[<keyof typeof subcategories>v]);
     }
   }
   return (

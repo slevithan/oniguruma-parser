@@ -1,11 +1,12 @@
-import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
+import {NodeCharacterClassKinds, NodeTypes, type CharacterClassNode} from '../../parser/parse.js';
+import type {Path} from '../../traverser/traverse.js';
 
 /**
 Unwrap outermost non-negated character classes containing a single character or character set.
 See also `unwrapNegationWrappers`.
 */
 const unwrapUselessClasses = {
-  CharacterClass({node, parent, replaceWith}) {
+  CharacterClass({node, parent, replaceWith}: Path & {node: CharacterClassNode;}) {
     const {kind, negate, elements} = node;
     const kid = elements[0];
     if (

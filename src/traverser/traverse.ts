@@ -1,7 +1,7 @@
 import {NodeTypes, type NodeType, type OnigurumaAst, type PatternNode, type RegexNode, type Node} from '../parser/parse.js';
 import {throwIfNot} from '../utils.js';
 
-type Path = {
+export type Path = {
   node: Node;
   parent?: Node;
   key?: number | string;
@@ -67,6 +67,7 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
           // TODO: assuming key is a number
           container[Math.max(0, <number>key + keyShift)] = newNode;
         } else {
+          //@ts-ignore TODO: I give up
           parent[key] = newNode;
         }
         if (traverseNew) {
