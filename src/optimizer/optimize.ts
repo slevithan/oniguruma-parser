@@ -1,4 +1,4 @@
-import {generate} from '../generator/generate.js';
+import {generate, type OnigurumaRegex} from '../generator/generate.js';
 import {parse} from '../parser/parse.js';
 import {traverse} from '../traverser/traverse.js';
 import {OnigUnicodePropertyMap} from '../unicode.js';
@@ -17,12 +17,9 @@ type Options = {
 Returns an optimized Oniguruma pattern and flags.
 @param {string} pattern Oniguruma regex pattern.
 @param {Options} [options]
-@returns {{
-  pattern: string;
-  flags: string;
-}}
+@returns {OnigurumaRegex}
 */
-function optimize(pattern: string, options: Options) {
+function optimize(pattern: string, options: Options): OnigurumaRegex {
   const opts = getOptions(options);
   const ast = parse(pattern, {
     flags: opts.flags,
@@ -34,13 +31,13 @@ function optimize(pattern: string, options: Options) {
     unicodePropertyMap: OnigUnicodePropertyMap,
   });
   const active = Object.assign(getOptionalOptimizations(), opts.override);
-  Object.keys(active).forEach(key => {
+  Object.keys(active).forEach((key: OptimizationName) => {
     if (!active[key]) {
       delete active[key];
     }
   });
   const names = <OptimizationName[]>Object.keys(active);
-  let optimized = {pattern, flags: null};
+  let optimized: Partial<OnigurumaRegex> = {pattern};
   let counter = 0;
   do {
     if (++counter > 200) {
@@ -51,9 +48,9 @@ function optimize(pattern: string, options: Options) {
       traverse(ast, optimizations.get(name));
     }
     optimized = generate(ast);
-  // Continue until no further optimization progress is made
+    // Continue until no further optimization progress is made
   } while (pattern !== optimized.pattern);
-  return optimized;
+  return <OnigurumaRegex>optimized;
 }
 
 function getOptions(options: Options = {}) {
@@ -85,8 +82,8 @@ type OptimizationNames = {[key in OptimizationName]: boolean};
 }} [options]
 @returns {OptimizationNames}
 */
-function getOptionalOptimizations({disable}: {disable?: boolean;} = {}): OptimizationNames {
-  const obj = {};
+function getOptionalOptimizations({disable}: {disable?: boolean;} = {}) {
+  const obj: Partial<OptimizationNames> = {};
   for (const key of optimizations.keys()) {
     obj[key] = !disable;
   }

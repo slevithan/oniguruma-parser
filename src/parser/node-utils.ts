@@ -1,4 +1,4 @@
-import {NodeCharacterSetKinds, NodeTypes} from './parse.js';
+import {NodeCharacterSetKinds, NodeTypes, type Node} from './parse.js';
 
 const alternativeContainerTypes = new Set([
   NodeTypes.AbsentFunction,
@@ -40,17 +40,18 @@ const universalCharacterSetKinds = new Set([
   NodeCharacterSetKinds.word,
 ]);
 
-function hasOnlyChild(node, props?) {
+function hasOnlyChild(node: Node, props?: {[key: string]: any;}): boolean {
   // [TODO] Add support for nodes with `alternatives`; look for `elements` within the first alt
   // after checking that there's only one alt
-  if (!node.elements) {
+  if (!('elements' in node)) {
     throw new Error('Expected node with elements');
   }
   if (node.elements.length !== 1) {
     return false;
   }
   const kid = node.elements[0];
-  return !props || Object.keys(props).every(key => props[key] === kid[key]);
+  // TODO: upgrade <any>
+  return !props || Object.keys(props).every(key => props[key] === (<any>kid)[key]);
 }
 
 export {

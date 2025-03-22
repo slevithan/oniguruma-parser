@@ -1,11 +1,12 @@
 import {hasOnlyChild} from '../../parser/node-utils.js';
-import {NodeQuantifierKinds, NodeTypes} from '../../parser/parse.js';
+import {NodeQuantifierKinds, NodeTypes, type QuantifierNode} from '../../parser/parse.js';
+import type {Path} from '../../traverser/traverse.js';
 
 /**
 Remove identified ReDoS vulnerabilities without changing matches.
 */
 const preventReDoS = {
-  Quantifier({node}) {
+  Quantifier({node}: Path & {node: QuantifierNode;}) {
     // Prevent a common cause of catastrophic backtracking by removing an unneeded nested
     // quantifier from the first alternative of infinitely-quantified groups. Can't remove nested
     // quantifiers from other alternatives or if the first alternative has more than one element,
@@ -26,7 +27,7 @@ const preventReDoS = {
     if (!hasOnlyChild(firstAlt, {type: NodeTypes.Quantifier})) {
       return;
     }
-    const nestedQuantifier = firstAlt.elements[0];
+    const nestedQuantifier = <QuantifierNode>firstAlt.elements[0];
     if (
       // No benefit with possessive quantifiers
       nestedQuantifier.kind === NodeQuantifierKinds.possessive ||

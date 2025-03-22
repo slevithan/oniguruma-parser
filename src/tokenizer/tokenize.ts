@@ -136,7 +136,24 @@ export type RegexFlags = {
 export type Token = {
   type: keyof typeof TokenTypes;
   raw: string;
+  negate?: boolean;
+  value?: string | number;
+  number?: number;
+  name?: string;
+  flags?: FlagGroupModifiers;
+  min?: number;
+  max?: number;
   [key: string]: string | number | boolean | {[key: string]: any;};
+};
+
+type Context = {
+  captureGroup: boolean;
+  getCurrentModX: () => boolean | undefined;
+  numOpenGroups: number;
+  popModX(): void;
+  pushModX(isXOn: boolean): void;
+  replaceCurrentModX(isXOn: boolean): void;
+  singleline: boolean;
 };
 
 type TokenizerResult = {
@@ -169,17 +186,17 @@ function tokenize(pattern: string, options: Options = {}): TokenizerResult {
   }
   const flagsObj = getFlagsObj(opts.flags);
   const xStack = [flagsObj.extended];
-  const context = {
+  const context: Context = {
     captureGroup: opts.rules.captureGroup,
     getCurrentModX: () => xStack.at(-1),
     numOpenGroups: 0,
-    popModX() {xStack.pop()},
-    pushModX(isXOn) {xStack.push(isXOn)},
-    replaceCurrentModX(isXOn) {xStack[xStack.length - 1] = isXOn},
+    popModX() {xStack.pop();},
+    pushModX(isXOn) {xStack.push(isXOn);},
+    replaceCurrentModX(isXOn) {xStack[xStack.length - 1] = isXOn;},
     singleline: opts.rules.singleline,
   };
-  let tokens = [];
-  let match;
+  let tokens: Token[] = [];
+  let match: RegExpExecArray;
   tokenRe.lastIndex = 0;
   while ((match = tokenRe.exec(pattern))) {
     const result = getTokenWithDetails(context, pattern, match[0], tokenRe.lastIndex);
@@ -193,7 +210,7 @@ function tokenize(pattern: string, options: Options = {}): TokenizerResult {
     }
   }
 
-  const potentialUnnamedCaptureTokens = [];
+  const potentialUnnamedCaptureTokens: Token[] = [];
   let numNamedAndOptInUnnamedCaptures = 0;
   tokens.forEach(t => {
     if (t.type === TokenTypes.GroupOpen) {
@@ -223,7 +240,7 @@ function tokenize(pattern: string, options: Options = {}): TokenizerResult {
   };
 }
 
-function getTokenWithDetails(context, pattern, m, lastIndex) {
+function getTokenWithDetails(context: Context, pattern: string, m: string, lastIndex: number) {
   const [m0, m1] = m;
 
   if (m0 === '[') {
@@ -456,12 +473,12 @@ function getTokenWithDetails(context, pattern, m, lastIndex) {
   };
 }
 
-function getAllTokensForCharClass(pattern, opener, lastIndex) {
+function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: number) {
   const tokens = [createToken(TokenTypes.CharacterClassOpen, opener, {
     negate: opener[1] === '^',
   })];
   let numCharClassesOpen = 1;
-  let match;
+  let match: RegExpExecArray;
   charClassTokenRe.lastIndex = lastIndex;
   while ((match = charClassTokenRe.exec(pattern))) {
     const m = match[0];
@@ -497,10 +514,10 @@ function getAllTokensForCharClass(pattern, opener, lastIndex) {
   return {
     tokens,
     lastIndex: charClassTokenRe.lastIndex || pattern.length,
-  }
+  };
 }
 
-function createTokenForAnyTokenWithinCharClass(raw) {
+function createTokenForAnyTokenWithinCharClass(raw: string) {
   if (raw[0] === '\\') {
     // Assumes an identity escape as final condition
     return createTokenForSharedEscape(raw, {inCharClass: true});
@@ -531,7 +548,7 @@ function createTokenForAnyTokenWithinCharClass(raw) {
 }
 
 // Tokens shared by base syntax and char class syntax that start with `\`
-function createTokenForSharedEscape(raw, {inCharClass}) {
+function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean;}) {
   const char1 = raw[1];
   if (char1 === 'c' || char1 === 'C') {
     return createTokenForControlChar(raw);
@@ -621,7 +638,7 @@ function createToken(type: keyof typeof TokenTypes, raw: string, data?: {[key: s
 }
 
 // Expects `\cx` or `\C-x`
-function createTokenForControlChar(raw) {
+function createTokenForControlChar(raw: string) {
   const char = raw[1] === 'c' ? raw[2] : raw[3];
   if (!char || !/[A-Za-z]/.test(char)) {
     // Unlike JS, Onig allows any char to follow `\c` or `\C-`, but this is an extreme edge case
@@ -633,9 +650,9 @@ function createTokenForControlChar(raw) {
   });
 }
 
-function createTokenForFlagMod(raw, context) {
+function createTokenForFlagMod(raw: string, context: Context): Token {
   // Allows multiple `-` and solo `-` without `on` or `off` flags
-  let {on, off} = /^\(\?(?<on>[imx]*)(?:-(?<off>[-imx]*))?/.exec(raw).groups;
+  let {on, off} = /^\(\?(?<on>[imx]*)(?:-(?<off>[-imx]*))?/.exec(raw)?.groups!;
   off ??= '';
   // Flag x is used directly by the tokenizer since it changes how to interpret the pattern
   const isXOn = (context.getCurrentModX() || on.includes('x')) && !off.includes('x');
@@ -669,14 +686,14 @@ function createTokenForFlagMod(raw, context) {
   throw new Error(`Unexpected flag modifier "${raw}"`);
 }
 
-function createTokenForQuantifier(raw) {
+function createTokenForQuantifier(raw: string): Token {
   const data: { // TODO: is there already a format for this somewhere else?
     min?: number;
     max?: number;
     kind?: keyof typeof TokenQuantifierKinds;
   } = {};
   if (raw[0] === '{') {
-    const {min, max} = /^\{(?<min>\d*)(?:,(?<max>\d*))?/.exec(raw).groups;
+    const {min, max} = /^\{(?<min>\d*)(?:,(?<max>\d*))?/.exec(raw)?.groups!;
     const limit = 100_000;
     if (+min > limit || +max > limit) {
       throw new Error('Quantifier value unsupported in Oniguruma');
@@ -695,7 +712,7 @@ function createTokenForQuantifier(raw) {
   return createToken(TokenTypes.Quantifier, raw, data);
 }
 
-function createTokenForShorthandCharClass(raw) {
+function createTokenForShorthandCharClass(raw: string) {
   const lower = raw[1].toLowerCase();
   return createToken(TokenTypes.CharacterSet, raw, {
     kind: {
@@ -708,8 +725,8 @@ function createTokenForShorthandCharClass(raw) {
   });
 }
 
-function createTokenForUnicodeProperty(raw) {
-  const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw).groups;
+function createTokenForUnicodeProperty(raw: string) {
+  const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw)?.groups!;
   const negate = (p === 'P' && !neg) || (p === 'p' && !!neg);
   return createToken(TokenTypes.CharacterSet, raw, {
     kind: TokenCharacterSetKinds.property,
@@ -743,7 +760,7 @@ function getFlagGroupSwitches(flags: string): FlagGroupSwitches {
   return Object.keys(obj).length ? obj : null;
 }
 
-function getFlagsObj(flags) {
+function getFlagsObj(flags: string) {
   if (!/^[imxDPSW]*$/.test(flags)) {
     throw new Error(`Flags "${flags}" includes unsupported value`);
   }
@@ -757,7 +774,7 @@ function getFlagsObj(flags) {
     wordIsAscii: false,
   };
   for (const char of flags) {
-    flagsObj[{
+    flagsObj[<keyof typeof flagsObj>{
       i: 'ignoreCase',
       // Flag m is called `multiline` in Onig, but that has a different meaning in JS. Onig flag m
       // is equivalent to JS flag s
@@ -776,7 +793,7 @@ function getFlagsObj(flags) {
 
 // - Unenclosed `\xNN` above 0x7F is handled elsewhere as a UTF-8 encoded byte sequence
 // - Enclosed `\x{}` with value above 0x10FFFF is allowed here; handled in the parser
-function getValidatedHexCharCode(raw) {
+function getValidatedHexCharCode(raw: string) {
   // Note: Onig (tested 6.9.8) has a bug where bare `\u` and `\x` are identity escapes if they
   // appear at the very end of the pattern, so e.g. `\u` matches `u`, but `\u0`, `\u.`, and `[\u]`
   // are all errors, and `\x.` and `[\x]` aren't errors but instead the `\x` is equivalent to `\0`.
@@ -797,7 +814,7 @@ function getValidatedHexCharCode(raw) {
 
 // Value is 1-3 digits, which can be a backref (possibly invalid), null, octal, or identity escape,
 // possibly followed by 1-2 literal digits
-function splitEscapedNumToken(token, numCaptures) {
+function splitEscapedNumToken(token: Token, numCaptures: number) {
   const {raw, inCharClass} = token;
   // Keep any leading 0s since they indicate octal
   const value = raw.slice(1);
@@ -812,7 +829,7 @@ function splitEscapedNumToken(token, numCaptures) {
   ) {
     return [createToken(TokenTypes.Backreference, raw)];
   }
-  const tokens = [];
+  const tokens: Token[] = [];
   // Returns 1-3 matches; the first (only) might be octal
   const matches = value.match(/^[0-7]+|\d/g);
   for (let i = 0; i < matches.length; i++) {
@@ -835,7 +852,7 @@ function splitEscapedNumToken(token, numCaptures) {
   return tokens;
 }
 
-function assertSingleCodePoint(raw) {
+function assertSingleCodePoint(raw: string) {
   if ([...raw].length !== 1) {
     throw new Error(`Expected "${raw}" to be a single code point`);
   }

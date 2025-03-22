@@ -1,25 +1,33 @@
-import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes, type FlagGroupModifiers, type OnigurumaAst} from '../parser/parse.js';
+import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes, type FlagGroupModifiers, type OnigurumaAst, type Node, type AbsentFunctionNode, type QuantifierNode, type RegexNode, type AlternativeNode, type AssertionNode, type BackreferenceNode, type CapturingGroupNode, type CharacterNode, type CharacterClassNode, type CharacterClassRangeNode, type CharacterSetNode, type DirectiveNode, type GroupNode, type LookaroundAssertionNode, type PatternNode, type SubroutineNode, type FlagsNode} from '../parser/parse.js';
 import {type RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNot} from '../utils.js';
+
+type State = {
+  inCharClass: boolean;
+  lastNode: Node;
+  parent: Node;
+};
+export type OnigurumaRegex = {
+  pattern: string;
+  flags: string;
+};
+type Gen = (node: Node) => OnigurumaRegex | string;
 
 /**
 Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
 @param {OnigurumaAst} ast
-@returns {{
-  pattern: string;
-  flags: string;
-}}
+@returns {OnigurumaRegex}
 */
-function generate(ast: OnigurumaAst) {
-  const parentStack = [ast];
-  let lastNode = null;
-  let parent = null;
+function generate(ast: OnigurumaAst): OnigurumaRegex {
+  const parentStack: Node[] = [ast];
+  let lastNode: Node = null;
+  let parent: Node = null;
   const state = {
     inCharClass: false,
     lastNode,
     parent,
   };
-  function gen(node) {
+  function gen(node: Node): OnigurumaRegex {
     state.lastNode = lastNode;
     lastNode = node;
     if (state.lastNode && getFirstChild(state.lastNode) === node) {
@@ -35,32 +43,31 @@ function generate(ast: OnigurumaAst) {
       parentStack.pop();
       state.parent = parentStack.at(-1);
     }
-    return result;
+    return <OnigurumaRegex>result;
   }
   return gen(ast);
 }
-
-const generator = {
-  Regex({pattern, flags}, _, gen) {
+const generator: {[key in Node['type']]: (node: Node, state: State, gen: Gen) => OnigurumaRegex | string;} = {
+  Regex({pattern, flags}: RegexNode, state: State, gen: Gen): OnigurumaRegex {
     // Final result is an object; other node types return strings
     return {
-      pattern: gen(pattern),
-      flags: gen(flags),
+      pattern: <string>gen(pattern),
+      flags: <string>gen(flags),
     };
   },
 
-  AbsentFunction({kind, alternatives}, _, gen) {
+  AbsentFunction({kind, alternatives}: AbsentFunctionNode, state: State, gen: Gen): string {
     if (kind !== NodeAbsentFunctionKinds.repeater) {
       throw new Error(`Unexpected absent function kind "${kind}"`);
     }
     return `(?~${alternatives.map(gen).join('|')})`;
   },
 
-  Alternative({elements}, _, gen) {
+  Alternative({elements}: AlternativeNode, state: State, gen: Gen): string {
     return elements.map(gen).join('');
   },
 
-  Assertion({kind, negate}) {
+  Assertion({kind, negate}: AssertionNode): string {
     if (kind === NodeAssertionKinds.grapheme_boundary) {
       return negate ? r`\Y` : r`\y`;
     }
@@ -77,7 +84,7 @@ const generator = {
     }[kind], `Unexpected assertion kind "${kind}"`);
   },
 
-  Backreference({ref}) {
+  Backreference({ref}: BackreferenceNode): string {
     if (typeof ref === 'number') {
       // [TODO] Won't be safe to indiscriminately unenclose when forward backrefs are supported
       return '\\' + ref;
@@ -86,13 +93,13 @@ const generator = {
     return `\\k<${ref}>`;
   },
 
-  CapturingGroup(node, _, gen) {
+  CapturingGroup(node: CapturingGroupNode, state: State, gen: Gen): string {
     const {name, alternatives} = node;
     const nameWrapper = name ? `?${name.includes('>') ? `'${name}'` : `<${name}>`}` : '';
     return `(${nameWrapper}${alternatives.map(gen).join('|')})`;
   },
 
-  Character(node, {inCharClass, lastNode, parent}) {
+  Character(node: CharacterNode, {inCharClass, lastNode, parent}: State): string {
     const {value} = node;
     const escDigit = lastNode.type === NodeTypes.Backreference;
     if (CharCodeEscapeMap.has(value)) {
@@ -119,15 +126,17 @@ const generator = {
       if (parent.type === NodeTypes.CharacterClass) {
         isFirst = parent.elements[0] === node;
         isLast = parent.elements.at(-1) === node;
-      }
-      if (char === '^') {
-        escape = isFirst && !parent.negate;
-      } else if (char === '-') {
-        // Could also avoid escaping if it's immediately after a range or nested class, but don't
-        // don't make that the default rendering
-        escape = !isFirst && !isLast;
-      } else if (CharClassEscapeChars.has(char)) {
-        escape = true;
+        if (char === '^') {
+          escape = isFirst && !parent.negate;
+        } else if (char === ']') {
+          escape = !isFirst;
+        } else if (char === '-') {
+          // Could also avoid escaping if it's immediately after a range or nested class, but don't
+          // don't make that the default rendering
+          escape = !isFirst && !isLast;
+        } else if (CharClassEscapeChars.has(char)) {
+          escape = true;
+        }
       }
     } else if (BaseEscapeChars.has(char)) {
       escape = true;
@@ -135,7 +144,7 @@ const generator = {
     return `${escape ? '\\' : ''}${char}`;
   },
 
-  CharacterClass({kind, negate, elements}, state, gen) {
+  CharacterClass({kind, negate, elements}: CharacterClassNode, state: State, gen: Gen): string {
     function genClass() {
       if (
         state.parent.type === NodeTypes.CharacterClass &&
@@ -160,11 +169,11 @@ const generator = {
     return genClass();
   },
 
-  CharacterClassRange({min, max}, _, gen) {
+  CharacterClassRange({min, max}: CharacterClassRangeNode, state: State, gen: Gen): string {
     return `${gen(min)}-${gen(max)}`;
   },
 
-  CharacterSet({kind, negate, value}, state) {
+  CharacterSet({kind, negate, value}: CharacterSetNode, state: State): string {
     if (kind === NodeCharacterSetKinds.digit) {
       return negate ? r`\D` : r`\d`;
     }
@@ -195,11 +204,11 @@ const generator = {
     }[kind], `Unexpected character set kind "${kind}"`);
   },
 
-  Directive({kind, flags}) {
+  Directive({kind, flags}: DirectiveNode): string {
     if (kind === NodeDirectiveKinds.flags) {
       const {enable = {}, disable = {}} = flags;
-      const enableStr = getFlagsStr(enable);
-      const disableStr = getFlagsStr(disable);
+      const enableStr = getFlagsStr(<RegexFlags>enable);
+      const disableStr = getFlagsStr(<RegexFlags>disable);
       return (enableStr || disableStr) ? `(?${enableStr}${disableStr ? `-${disableStr}` : ''})` : '';
     }
     if (kind === NodeDirectiveKinds.keep) {
@@ -208,25 +217,25 @@ const generator = {
     throw new Error(`Unexpected directive kind "${kind}"`);
   },
 
-  Flags(node) {
+  Flags(node: FlagsNode): string {
     return getFlagsStr(node);
   },
 
-  Group({atomic, flags, alternatives}, _, gen) {
+  Group({atomic, flags, alternatives}: GroupNode, state: State, gen: Gen): string {
     const contents = alternatives.map(gen).join('|');
     return `(?${getGroupPrefix(atomic, flags)}${contents})`;
   },
 
-  LookaroundAssertion({kind, negate, alternatives}, _, gen) {
+  LookaroundAssertion({kind, negate, alternatives}: LookaroundAssertionNode, state: State, gen: Gen): string {
     const prefix = `${kind === NodeLookaroundAssertionKinds.lookahead ? '' : '<'}${negate ? '!' : '='}`;
     return `(?${prefix}${alternatives.map(gen).join('|')})`;
   },
 
-  Pattern({alternatives}, _, gen) {
+  Pattern({alternatives}: PatternNode, state: State, gen: Gen): string {
     return alternatives.map(gen).join('|');
   },
 
-  Quantifier(node, {parent}, gen) {
+  Quantifier(node: QuantifierNode, {parent}: State, gen: Gen): string {
     // Rendering Onig quantifiers is wildly, unnecessarily complex compared to other regex flavors
     // because of the combination of a few features unique to Oniguruma:
     // - You can create quantifier chains (i.e., quantify a quantifier).
@@ -244,7 +253,7 @@ const generator = {
     if (min > max) {
       throw new Error(`Invalid quantifier: min "${min}" > max "${max}"`);
     }
-    function isSymbolCandidate({min, max}) {
+    function isSymbolCandidate({min, max}: QuantifierNode): boolean {
       return (
         (!min && max === 1) || // `?`
         (!min && max === Infinity) || // `*`
@@ -322,7 +331,7 @@ const generator = {
     return `${gen(element)}${base}${suffix}`;
   },
 
-  Subroutine({ref}) {
+  Subroutine({ref}: SubroutineNode): string {
     if (typeof ref === 'string' && ref.includes('>')) {
       return r`\g'${ref}'`;
     }
@@ -349,39 +358,39 @@ const CharCodeEscapeMap = new Map([
   [0xFEFF, r`\uFEFF`], // ZWNBSP/BOM
 ]);
 
-function getFirstChild(node) {
-  if (node.alternatives) {
+function getFirstChild(node: Node) {
+  if ('alternatives' in node) {
     return node.alternatives[0];
   }
-  if (node.elements) {
+  if ('elements' in node) {
     return node.elements[0] ?? null;
   }
-  if (node.element) {
+  if ('element' in node) {
     return node.element;
   }
-  if (node.min && node.min.type) {
+  if ('min' in node && 'type' in node.min) {
     return node.min;
   }
-  if (node.pattern) {
+  if ('pattern' in node) {
     return node.pattern;
   }
   return null;
 }
 
-function getLastChild(node) {
-  if (node.alternatives) {
+function getLastChild(node: Node) {
+  if ('alternatives' in node) {
     return node.alternatives.at(-1);
   }
-  if (node.elements) {
+  if ('elements' in node) {
     return node.elements.at(-1) ?? null;
   }
-  if (node.element) {
+  if ('element' in node) {
     return node.element;
   }
-  if (node.max && node.max.type) {
+  if ('max' in node && 'type' in node.max) {
     return node.max;
   }
-  if (node.pattern) {
+  if ('pattern' in node) {
     return node.pattern;
   }
   return null;
@@ -414,7 +423,7 @@ function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, 
 @param {FlagGroupModifiers} flagMods
 @returns {string}
 */
-function getGroupPrefix(atomic, flagMods: FlagGroupModifiers) {
+function getGroupPrefix(atomic: boolean, flagMods: FlagGroupModifiers) {
   if (atomic) {
     return '>';
   }
@@ -428,7 +437,7 @@ function getGroupPrefix(atomic, flagMods: FlagGroupModifiers) {
   return `${mods}:`;
 }
 
-function isDigitCharCode(value) {
+function isDigitCharCode(value: number) {
   return value > 47 && value < 58;
 }
 
