@@ -1,72 +1,71 @@
-import {NodeTypes} from '../parser/parse.js';
+import {NodeTypes, type NodeType, type OnigurumaAst, type PatternNode, type RegexNode, type Node} from '../parser/parse.js';
 import {throwIfNot} from '../utils.js';
 
-/**
-@typedef {{
-  node: import('../parser/parse.js').Node;
-  parent: import('../parser/parse.js').Node?;
-  key: (number | string)?;
-  container: Array<import('../parser/parse.js').Node>?;
-  root: import('../parser/parse.js').RegexNode;
+type Path = {
+  node: Node;
+  parent?: Node;
+  key?: number | string;
+  container?: Node[];
+  root: RegexNode;
   remove: () => void;
-  removeAllNextSiblings: () => Array<import('../parser/parse.js').Node>;
-  removeAllPrevSiblings: () => Array<import('../parser/parse.js').Node>;
-  replaceWith: (newNode: import('../parser/parse.js').Node, options?: {traverse?: boolean}) => void;
-  replaceWithMultiple: (newNodes: Array<import('../parser/parse.js').Node>, options?: {traverse?: boolean}) => void;
+  removeAllNextSiblings: () => Node[];
+  removeAllPrevSiblings: () => Node[];
+  replaceWith: (newNode: Node, options?: {traverse?: boolean;}) => void;
+  replaceWithMultiple: (newNodes: Node[], options?: {traverse?: boolean;}) => void;
   skip: () => void;
-}} Path
-@typedef {
-  ( path: Path,
-    state: {
-      [key: string]: any;
-    }
-  ) => void
-} Transformer
-*/
+};
+type Transformer = (
+  path: Path,
+  state: {
+    [key: string]: any;
+  }
+) => void;
+type Visitor = {[key in ('*' | NodeType)]?: Transformer | {enter?: Transformer, exit?: Transformer;};};
+type State = {[key: string]: any;};
 
 /**
-@param {import('../parser/parse.js').OnigurumaAst} ast
-@param {{
-  [key in ('*' | import('../parser/parse.js').NodeType)]?: Transformer | {enter?: Transformer, exit?: Transformer};
-}} visitor
-@param {{
-  [key: string]: any;
-}} [state]
+@param {OnigurumaAst} ast
+@param {Visitor} visitor
+@param {State} [state]
 */
-function traverse(ast, visitor, state = null) {
-  function traverseArray(array, parent) {
+function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
+  function traverseArray(array: Node[], parent: Node) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);
       i = Math.max(-1, i + keyShift);
     }
   }
-  function traverseNode(node, parent = null, key = null, container = null) {
+  function traverseNode(node: OnigurumaAst | PatternNode | Node, parent: Node = null, key: number | string = null, container: Node[] = null) {
     const containerExpected = 'Container expected';
     let keyShift = 0;
     let skipTraversingKidsOfPath = false;
-    const path = {
+    const path: Path = {
       node,
       parent,
       key,
       container,
       root: ast,
-      remove() {
-        throwIfNot(container, containerExpected).splice(Math.max(0, key + keyShift), 1);
+      remove(): void {
+        // TODO: assuming key is a number
+        throwIfNot(container, containerExpected).splice(Math.max(0, <number>key + keyShift), 1);
         keyShift--;
         skipTraversingKidsOfPath = true;
       },
-      removeAllNextSiblings() {
-        return throwIfNot(container, containerExpected).splice(key + 1);
+      removeAllNextSiblings(): Node[] {
+        // TODO: assuming key is a number
+        return throwIfNot(container, containerExpected).splice(<number>key + 1);
       },
-      removeAllPrevSiblings() {
-        const shifted = key + keyShift;
+      removeAllPrevSiblings(): Node[] {
+        // TODO: assuming key is a number
+        const shifted = <number>key + keyShift;
         keyShift -= shifted;
         return throwIfNot(container, containerExpected).splice(0, Math.max(0, shifted));
       },
-      replaceWith(newNode, options = {}) {
+      replaceWith(newNode: Node, options: {traverse?: boolean;} = {}): void {
         const traverseNew = !!options.traverse;
         if (container) {
-          container[Math.max(0, key + keyShift)] = newNode;
+          // TODO: assuming key is a number
+          container[Math.max(0, <number>key + keyShift)] = newNode;
         } else {
           parent[key] = newNode;
         }
@@ -75,19 +74,21 @@ function traverse(ast, visitor, state = null) {
         }
         skipTraversingKidsOfPath = true;
       },
-      replaceWithMultiple(newNodes, options = {}) {
+      replaceWithMultiple(newNodes: Node[], options: {traverse?: boolean;} = {}) {
         const traverseNew = !!options.traverse;
-        throwIfNot(container, containerExpected).splice(Math.max(0, key + keyShift), 1, ...newNodes);
+        // TODO: assuming key is a number
+        throwIfNot(container, containerExpected).splice(Math.max(0, <number>key + keyShift), 1, ...newNodes);
         keyShift += newNodes.length - 1;
         if (traverseNew) {
           let keyShiftInLoop = 0;
           for (let i = 0; i < newNodes.length; i++) {
-            keyShiftInLoop += traverseNode(newNodes[i], parent, key + i + keyShiftInLoop, container);
+            // TODO: assuming key is a number
+            keyShiftInLoop += traverseNode(newNodes[i], parent, <number>key + i + keyShiftInLoop, container);
           }
         }
         skipTraversingKidsOfPath = true;
       },
-      skip() {
+      skip(): void {
         skipTraversingKidsOfPath = true;
       },
     };
@@ -115,6 +116,7 @@ function traverse(ast, visitor, state = null) {
         case NodeTypes.CharacterSet:
         case NodeTypes.Directive:
         case NodeTypes.Flags:
+        //@ts-ignore
         case NodeTypes.Recursion:
         case NodeTypes.Subroutine:
           break;
@@ -135,11 +137,14 @@ function traverse(ast, visitor, state = null) {
           traverseNode(node.element, node, 'element');
           break;
         default:
+          //@ts-ignore
           throw new Error(`Unexpected node type "${node.type}"`);
       }
     }
 
+    //@ts-ignore
     anyType?.exit?.(path, state);
+    //@ts-ignore
     thisType?.exit?.(path, state);
     return keyShift;
   }

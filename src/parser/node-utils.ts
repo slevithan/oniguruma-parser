@@ -40,7 +40,7 @@ const universalCharacterSetKinds = new Set([
   NodeCharacterSetKinds.word,
 ]);
 
-function hasOnlyChild(node, props) {
+function hasOnlyChild(node, props?) {
   // [TODO] Add support for nodes with `alternatives`; look for `elements` within the first alt
   // after checking that there's only one alt
   if (!node.elements) {

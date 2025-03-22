@@ -1,15 +1,16 @@
-import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes} from '../parser/parse.js';
+import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes, type FlagGroupModifiers, type OnigurumaAst} from '../parser/parse.js';
+import {type RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNot} from '../utils.js';
 
 /**
 Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
-@param {import('../parser/parse.js').OnigurumaAst} ast
+@param {OnigurumaAst} ast
 @returns {{
   pattern: string;
   flags: string;
 }}
 */
-function generate(ast) {
+function generate(ast: OnigurumaAst) {
   const parentStack = [ast];
   let lastNode = null;
   let parent = null;
@@ -387,10 +388,10 @@ function getLastChild(node) {
 }
 
 /**
-@param {import('../tokenizer/tokenize.js').RegexFlags} node
+@param {RegexFlags} node
 @returns {string}
 */
-function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}) {
+function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}: RegexFlags): string {
   return `${
     ignoreCase ? 'i' : ''
   }${
@@ -410,18 +411,18 @@ function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, 
 
 /**
 @param {boolean} atomic
-@param {import('../parser/parse.js').FlagGroupModifiers} flagMods
+@param {FlagGroupModifiers} flagMods
 @returns {string}
 */
-function getGroupPrefix(atomic, flagMods) {
+function getGroupPrefix(atomic, flagMods: FlagGroupModifiers) {
   if (atomic) {
     return '>';
   }
   let mods = '';
   if (flagMods) {
     const {enable = {}, disable = {}} = flagMods;
-    const enableStr = getFlagsStr(enable);
-    const disableStr = getFlagsStr(disable);
+    const enableStr = getFlagsStr(<RegexFlags>enable);
+    const disableStr = getFlagsStr(<RegexFlags>disable);
     mods = `${enableStr}${disableStr ? `-${disableStr}` : ''}`;
   }
   return `${mods}:`;

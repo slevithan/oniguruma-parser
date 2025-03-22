@@ -116,7 +116,7 @@ function isRange(node, min, max) {
   );
 }
 
-function isUnicode(node, value, options = {}) {
+function isUnicode(node, value, options: {supercategories?: boolean; subcategories?: boolean;} = {}) {
   const names = Array.isArray(value) ? value : [value];
   const expanded = [];
   for (const v of names) {

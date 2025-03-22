@@ -13,8 +13,7 @@ import {useShorthands} from './transforms/use-shorthands.js';
 import {useUnicodeAliases} from './transforms/use-unicode-aliases.js';
 import {useUnicodeProps} from './transforms/use-unicode-props.js';
 
-/**
-@typedef {
+export type OptimizationName =
   'alternationToClass' |
   'dedupeClasses' |
   'extractPrefix' |
@@ -28,10 +27,9 @@ import {useUnicodeProps} from './transforms/use-unicode-props.js';
   'unwrapUselessGroups' |
   'useShorthands' |
   'useUnicodeAliases' |
-  'useUnicodeProps'
-} OptimizationName
-*/
-const optimizations = new Map([
+  'useUnicodeProps';
+
+const optimizations = new Map<OptimizationName, object>([
   ['alternationToClass', alternationToClass],
   ['dedupeClasses', dedupeClasses],
   ['extractPrefix', extractPrefix],

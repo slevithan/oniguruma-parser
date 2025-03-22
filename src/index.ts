@@ -1,20 +1,22 @@
-import {parse} from './parser/parse.js';
+import {parse, type OnigurumaAst} from './parser/parse.js';
 import {OnigUnicodePropertyMap} from './unicode.js';
 
-/**
-Returns an Oniguruma AST generated from an Oniguruma pattern.
-@param {string} pattern Oniguruma regex pattern.
-@param {{
+export type Options = {
   flags?: string;
   rules?: {
     captureGroup?: boolean;
     singleline?: boolean;
   };
-}} [options]
-@returns {import('./parser/parse.js').OnigurumaAst}
+};
+
+/**
+Returns an Oniguruma AST generated from an Oniguruma pattern.
+@param {string} pattern Oniguruma regex pattern.
+@param {Options} [options]
+@returns {OnigurumaAst}
 */
-function toOnigurumaAst(pattern, options = {}) {
-  if ({}.toString.call(options) !== '[object Object]') {
+function toOnigurumaAst(pattern: string, options: Options = {}): OnigurumaAst {
+  if ({}.toString.call(options) !== '[object Object]') { // typeof options !== 'object'
     throw new Error('Unexpected options');
   }
   return parse(pattern, {

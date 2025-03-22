@@ -1,8 +1,7 @@
-import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
+import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes, type FlagGroupSwitches, type RegexFlags, type Token} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
 
-/**
-@typedef {
+export type NodeType =
   'AbsentFunction' |
   'Alternative' |
   'Assertion' |
@@ -19,10 +18,8 @@ import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
   'Pattern' |
   'Quantifier' |
   'Regex' |
-  'Subroutine'
-} NodeType
-*/
-const NodeTypes = /** @type {const} */ ({
+  'Subroutine';
+const NodeTypes = {
   AbsentFunction: 'AbsentFunction',
   Alternative: 'Alternative',
   Assertion: 'Assertion',
@@ -43,11 +40,11 @@ const NodeTypes = /** @type {const} */ ({
   // Type `Recursion` is used only by the `oniguruma-to-es` transformer for Regex+ ASTs
   // [TODO] Refactor to remove this type: <github.com/slevithan/oniguruma-parser/issues/3>
   Recursion: 'Recursion',
-});
+} as const;
 
-/**
-@typedef {RegexNode} OnigurumaAst
-@typedef {
+export type OnigurumaAst = RegexNode;
+
+export type Node =
   AbsentFunctionNode |
   AlternativeNode |
   AssertionNode |
@@ -64,16 +61,16 @@ const NodeTypes = /** @type {const} */ ({
   PatternNode |
   QuantifierNode |
   RegexNode |
-  SubroutineNode
-} Node
-@typedef {
+  SubroutineNode;
+
+type AlternativeContainerNode =
   AbsentFunctionNode |
   CapturingGroupNode |
   GroupNode |
   LookaroundAssertionNode |
-  PatternNode
-} AlternativeContainerNode
-@typedef {
+  PatternNode;
+
+type AlternativeElementNode =
   AbsentFunctionNode |
   AssertionNode |
   BackreferenceNode |
@@ -85,15 +82,15 @@ const NodeTypes = /** @type {const} */ ({
   GroupNode |
   LookaroundAssertionNode |
   QuantifierNode |
-  SubroutineNode
-} AlternativeElementNode
-@typedef {
+  SubroutineNode;
+
+type CharacterClassElementNode =
   CharacterNode |
   CharacterClassNode |
   CharacterClassRangeNode |
-  CharacterSetNode
-} CharacterClassElementNode
-@typedef {
+  CharacterSetNode;
+
+type QuantifiableNode =
   AbsentFunctionNode |
   BackreferenceNode |
   CapturingGroupNode |
@@ -102,16 +99,14 @@ const NodeTypes = /** @type {const} */ ({
   CharacterSetNode |
   GroupNode |
   QuantifierNode |
-  SubroutineNode
-} QuantifiableNode
-*/
+  SubroutineNode;
 
 // See <github.com/slevithan/oniguruma-to-es/issues/13>
-const NodeAbsentFunctionKinds = /** @type {const} */ ({
+const NodeAbsentFunctionKinds = {
   repeater: 'repeater',
-});
+} as const;
 
-const NodeAssertionKinds = /** @type {const} */ ({
+const NodeAssertionKinds = {
   grapheme_boundary: 'grapheme_boundary',
   line_end: 'line_end',
   line_start: 'line_start',
@@ -120,26 +115,24 @@ const NodeAssertionKinds = /** @type {const} */ ({
   string_end_newline: 'string_end_newline',
   string_start: 'string_start',
   word_boundary: 'word_boundary',
-});
+} as const;
 
-const NodeCharacterClassKinds = /** @type {const} */ ({
+const NodeCharacterClassKinds = {
   union: 'union',
   intersection: 'intersection',
-});
+} as const;
 
 // Identical values
 const NodeCharacterSetKinds = TokenCharacterSetKinds;
 const NodeDirectiveKinds = TokenDirectiveKinds;
 const NodeQuantifierKinds = TokenQuantifierKinds;
 
-const NodeLookaroundAssertionKinds = /** @type {const} */ ({
+const NodeLookaroundAssertionKinds = {
   lookahead: 'lookahead',
   lookbehind: 'lookbehind',
-});
+} as const;
 
-/**
-@param {string} pattern Oniguruma pattern.
-@param {{
+type options = {
   flags?: string;
   normalizeUnknownPropertyNames?: boolean;
   rules?: {
@@ -149,11 +142,14 @@ const NodeLookaroundAssertionKinds = /** @type {const} */ ({
   skipBackrefValidation?: boolean;
   skipLookbehindValidation?: boolean;
   skipPropertyNameValidation?: boolean;
-  unicodePropertyMap?: Map<string, string>?;
-}} [options]
+  unicodePropertyMap?: Map<string, string>;
+};
+/**
+@param {string} pattern Oniguruma pattern.
+@param {options} [options]
 @returns {OnigurumaAst}
 */
-function parse(pattern, options = {}) {
+function parse(pattern: string, options: options = {}): OnigurumaAst {
   const opts = {
     flags: '',
     normalizeUnknownPropertyNames: false,
@@ -203,11 +199,12 @@ function parse(pattern, options = {}) {
         // Top-level only; groups handle their own alternators
         return createAlternative();
       case TokenTypes.Assertion:
+        // TODO: kind doesn't exist on Token??
         return createAssertionFromToken(token);
       case TokenTypes.Backreference:
         return parseBackreference(context);
       case TokenTypes.Character:
-        return createCharacter(token.value, {useLastValid: !!state.isCheckingRangeEnd});
+        return createCharacter(<number>token.value, {useLastValid: !!state.isCheckingRangeEnd});
       case TokenTypes.CharacterClassHyphen:
         return parseCharacterClassHyphen(context, state);
       case TokenTypes.CharacterClassOpen:
@@ -216,8 +213,8 @@ function parse(pattern, options = {}) {
         return parseCharacterSet(context);
       case TokenTypes.Directive:
         return createDirective(
-          throwIfNot(NodeDirectiveKinds[token.kind], `Unexpected directive kind "${token.kind}"`),
-          {flags: token.flags}
+          throwIfNot(NodeDirectiveKinds[<string>token.kind], `Unexpected directive kind "${token.kind}"`),
+          {flags: <FlagGroupModifiers>token.flags}
         );
       case TokenTypes.GroupOpen:
         return parseGroupOpen(context, state);
@@ -232,12 +229,12 @@ function parse(pattern, options = {}) {
   const ast = createRegex(createPattern(), createFlags(tokenized.flags));
   let top = ast.pattern.alternatives[0];
   while (context.current < tokenized.tokens.length) {
-    const node = walk(top, {});
+    const node = <AlternativeNode | AlternativeElementNode>walk(top, {});
     if (node.type === NodeTypes.Alternative) {
-      ast.pattern.alternatives.push(node);
-      top = node;
+      ast.pattern.alternatives.push(<AlternativeNode>node);
+      top = <AlternativeNode>node;
     } else {
-      top.elements.push(node);
+      top.elements.push(<AlternativeElementNode>node);
     }
   }
   // `context` updated by preceding `walk` loop
@@ -545,18 +542,16 @@ function parseSubroutine(context) {
   return node;
 }
 
-/**
-@typedef {{
+type AbsentFunctionNode = {
   type: 'AbsentFunction';
-  kind: keyof NodeAbsentFunctionKinds;
+  kind: keyof typeof NodeAbsentFunctionKinds;
   alternatives: Array<AlternativeNode>;
-}} AbsentFunctionNode
-*/
+};
 /**
-@param {keyof NodeAbsentFunctionKinds} kind
+@param {keyof typeof NodeAbsentFunctionKinds} kind
 @returns {AbsentFunctionNode}
 */
-function createAbsentFunction(kind) {
+function createAbsentFunction(kind: keyof typeof NodeAbsentFunctionKinds): AbsentFunctionNode {
   if (kind !== NodeAbsentFunctionKinds.repeater) {
     throw new Error(`Unexpected absent function kind "${kind}"`);
   }
@@ -567,38 +562,36 @@ function createAbsentFunction(kind) {
   };
 }
 
-/**
-@typedef {{
+type AlternativeNode = {
   type: 'Alternative';
   elements: Array<AlternativeElementNode>;
-}} AlternativeNode
-*/
+};
 /**
 @returns {AlternativeNode}
 */
-function createAlternative() {
+function createAlternative(): AlternativeNode {
   return {
     type: NodeTypes.Alternative,
     elements: [],
   };
 }
 
-/**
-@typedef {{
+type AssertionNode = {
   type: 'Assertion';
-  kind: keyof NodeAssertionKinds;
+  kind: keyof typeof NodeAssertionKinds;
   negate?: boolean;
-}} AssertionNode
-*/
+};
 /**
-@param {keyof NodeAssertionKinds} kind
+@param {keyof typeof NodeAssertionKinds} kind
 @param {{
   negate?: boolean;
 }} [options]
 @returns {AssertionNode}
 */
-function createAssertion(kind, options) {
-  const node = {
+function createAssertion(kind: keyof typeof NodeAssertionKinds, options: {
+  negate?: boolean;
+}): AssertionNode {
+  const node: AssertionNode = {
     type: NodeTypes.Assertion,
     kind,
   };
@@ -608,7 +601,7 @@ function createAssertion(kind, options) {
   return node;
 }
 
-function createAssertionFromToken({kind}) {
+function createAssertionFromToken({kind}: Token) {
   return createAssertion(
     throwIfNot({
       '^': NodeAssertionKinds.line_start,
@@ -621,18 +614,16 @@ function createAssertionFromToken({kind}) {
       '\\Y': NodeAssertionKinds.grapheme_boundary,
       '\\z': NodeAssertionKinds.string_end,
       '\\Z': NodeAssertionKinds.string_end_newline,
-    }[kind], `Unexpected assertion kind "${kind}"`),
+    }[<string>kind], `Unexpected assertion kind "${kind}"`),
     {negate: kind === r`\B` || kind === r`\Y`}
   );
 }
 
-/**
-@typedef {{
+type BackreferenceNode = {
   type: 'Backreference';
   ref: string | number;
   orphan?: boolean;
-}} BackreferenceNode
-*/
+};
 /**
 @param {string | number} ref
 @param {{
@@ -640,7 +631,9 @@ function createAssertionFromToken({kind}) {
 }} [options]
 @returns {BackreferenceNode}
 */
-function createBackreference(ref, options) {
+function createBackreference(ref: string | number, options?: {
+  orphan?: boolean;
+}): BackreferenceNode {
   const orphan = !!options?.orphan;
   return {
     type: NodeTypes.Backreference,
@@ -670,20 +663,19 @@ function createByGroupKind({flags, kind, name, negate, number}) {
   }
 }
 
-/**
-@typedef {{
+type CapturingGroupNode = {
   type: 'CapturingGroup';
+  kind?: never;
   number: number;
   name?: string;
   alternatives: Array<AlternativeNode>;
-}} CapturingGroupNode
-*/
+};
 /**
 @param {number} number
 @param {string} [name]
 @returns {CapturingGroupNode}
 */
-function createCapturingGroup(number, name) {
+function createCapturingGroup(number: number, name: string): CapturingGroupNode {
   const hasName = name !== undefined;
   if (hasName && !isValidGroupName(name)) {
     throw new Error(`Group name "${name}" invalid in Oniguruma`);
@@ -696,12 +688,10 @@ function createCapturingGroup(number, name) {
   };
 }
 
-/**
-@typedef {{
+type CharacterNode = {
   type: 'Character';
   value: number;
-}} CharacterNode
-*/
+};
 /**
 @param {number} charCode
 @param {{
@@ -709,7 +699,9 @@ function createCapturingGroup(number, name) {
 }} [options]
 @returns {CharacterNode}
 */
-function createCharacter(charCode, options) {
+function createCharacter(charCode: number, options?: {
+  useLastValid?: boolean;
+}): CharacterNode {
   const opts = {
     useLastValid: false,
     ...options,
@@ -730,22 +722,23 @@ function createCharacter(charCode, options) {
   };
 }
 
-/**
-@typedef {{
+type CharacterClassNode = {
   type: 'CharacterClass';
-  kind: keyof NodeCharacterClassKinds;
+  kind: keyof typeof NodeCharacterClassKinds;
   negate: boolean;
   elements: Array<CharacterClassElementNode>;
-}} CharacterClassNode
-*/
+};
 /**
 @param {{
-  kind?: keyof NodeCharacterClassKinds;
+  kind?: keyof typeof NodeCharacterClassKinds;
   negate?: boolean;
 }} [options]
 @returns {CharacterClassNode}
 */
-function createCharacterClass(options) {
+function createCharacterClass(options?: {
+  kind?: keyof typeof NodeCharacterClassKinds;
+  negate?: boolean;
+}): CharacterClassNode {
   const opts = {
     kind: NodeCharacterClassKinds.union,
     negate: false,
@@ -759,19 +752,17 @@ function createCharacterClass(options) {
   };
 }
 
-/**
-@typedef {{
+type CharacterClassRangeNode = {
   type: 'CharacterClassRange';
   min: CharacterNode;
   max: CharacterNode;
-}} CharacterClassRangeNode
-*/
+};
 /**
 @param {CharacterNode} min
 @param {CharacterNode} max
 @returns {CharacterClassRangeNode}
 */
-function createCharacterClassRange(min, max) {
+function createCharacterClassRange(min: CharacterNode, max: CharacterNode): CharacterClassRangeNode {
   if (max.value < min.value) {
     throw new Error('Character class range out of order');
   }
@@ -782,17 +773,15 @@ function createCharacterClassRange(min, max) {
   };
 }
 
-/**
-@typedef {{
+type CharacterSetNode = {
   type: 'CharacterSet';
-  kind: keyof NodeCharacterSetKinds;
+  kind: keyof typeof NodeCharacterSetKinds;
   value?: string;
   negate?: boolean;
   variableLength?: boolean;
-}} CharacterSetNode
-*/
+};
 /**
-@param {keyof Omit<NodeCharacterSetKinds, 'posix' | 'property'>} kind
+@param {keyof typeof Omit<NodeCharacterSetKinds, 'posix' | 'property'>} kind
 @param {{
   negate?: boolean;
 }} [options]
@@ -802,9 +791,15 @@ function createCharacterClassRange(min, max) {
   }
 }
 */
-function createCharacterSet(kind, options) {
+function createCharacterSet(kind: keyof Omit<typeof NodeCharacterSetKinds, 'posix' | 'property'>, options?: {
+  negate?: boolean;
+}): Omit<CharacterSetNode, 'value'> & {
+  kind: keyof Omit<typeof NodeCharacterSetKinds, 'posix' | 'property'>;
+} {
   const negate = !!options?.negate;
-  const node = {
+  const node: Omit<CharacterSetNode, 'value'> & {
+    kind: keyof Omit<typeof NodeCharacterSetKinds, 'posix' | 'property'>;
+  } = {
     type: NodeTypes.CharacterSet,
     kind: throwIfNot(NodeCharacterSetKinds[kind], `Unexpected character set kind "${kind}"`),
   };
@@ -826,22 +821,22 @@ function createCharacterSet(kind, options) {
   return node;
 }
 
-/**
-@typedef {{
+type DirectiveNode = {
   type: 'Directive';
-  kind: keyof NodeDirectiveKinds;
+  kind: keyof typeof NodeDirectiveKinds;
   flags?: FlagGroupModifiers;
-}} DirectiveNode
-*/
+};
 /**
-@param {keyof NodeDirectiveKinds} kind
+@param {keyof typeof NodeDirectiveKinds} kind
 @param {{
   flags?: FlagGroupModifiers;
 }} [options]
 @returns {DirectiveNode}
 */
-function createDirective(kind, options) {
-  const node = {
+function createDirective(kind: keyof typeof NodeDirectiveKinds, options: {
+  flags?: FlagGroupModifiers;
+}): DirectiveNode {
+  const node: DirectiveNode = {
     type: NodeTypes.Directive,
     kind,
   };
@@ -854,34 +849,32 @@ function createDirective(kind, options) {
   return node;
 }
 
-/**
-@typedef {{
+type FlagsNode = {
   type: 'Flags';
-} & import('../tokenizer/tokenize.js').RegexFlags} FlagsNode
-*/
+} & RegexFlags;
 /**
-@param {import('../tokenizer/tokenize.js').RegexFlags} flags
+@param {RegexFlags} flags
 @returns {FlagsNode}
 */
-function createFlags(flags) {
+function createFlags(flags: RegexFlags): FlagsNode {
   return {
     type: NodeTypes.Flags,
     ...flags,
   };
 }
 
-/**
-@typedef {{
-  enable?: import('../tokenizer/tokenize.js').FlagGroupSwitches;
-  disable?: import('../tokenizer/tokenize.js').FlagGroupSwitches;
-}} FlagGroupModifiers
-@typedef {{
+export type FlagGroupModifiers = {
+  enable?: FlagGroupSwitches;
+  disable?: FlagGroupSwitches;
+};
+
+type GroupNode = {
   type: 'Group';
+  kind?: never,
   atomic?: boolean;
   flags?: FlagGroupModifiers;
   alternatives: Array<AlternativeNode>;
-}} GroupNode
-*/
+};
 /**
 @param {{
   atomic?: boolean;
@@ -889,7 +882,10 @@ function createFlags(flags) {
 }} [options]
 @returns {GroupNode}
 */
-function createGroup(options) {
+function createGroup(options?: {
+  atomic?: boolean;
+  flags?: FlagGroupModifiers;
+}): GroupNode {
   const atomic = options?.atomic;
   const flags = options?.flags;
   return {
@@ -900,14 +896,12 @@ function createGroup(options) {
   };
 }
 
-/**
-@typedef {{
+type LookaroundAssertionNode = {
   type: 'LookaroundAssertion';
-  kind: keyof NodeLookaroundAssertionKinds;
+  kind: keyof typeof NodeLookaroundAssertionKinds;
   negate: boolean;
   alternatives: Array<AlternativeNode>;
-}} LookaroundAssertionNode
-*/
+};
 /**
 @param {{
   behind?: boolean;
@@ -915,7 +909,10 @@ function createGroup(options) {
 }} [options]
 @returns {LookaroundAssertionNode}
 */
-function createLookaroundAssertion(options) {
+function createLookaroundAssertion(options: {
+  behind?: boolean;
+  negate?: boolean;
+}): LookaroundAssertionNode {
   const opts = {
     behind: false,
     negate: false,
@@ -929,16 +926,14 @@ function createLookaroundAssertion(options) {
   };
 }
 
-/**
-@typedef {{
+export type PatternNode = {
   type: 'Pattern';
   alternatives: Array<AlternativeNode>;
-}} PatternNode
-*/
+};
 /**
 @returns {PatternNode}
 */
-function createPattern() {
+function createPattern(): PatternNode {
   return {
     type: NodeTypes.Pattern,
     alternatives: [createAlternative()],
@@ -958,7 +953,13 @@ function createPattern() {
   }
 }
 */
-function createPosixClass(name, options) {
+function createPosixClass(name: string, options: {
+  negate?: boolean;
+}): CharacterSetNode & {
+  kind: 'posix';
+  value: string;
+  negate: boolean;
+} {
   const negate = !!options?.negate;
   if (!PosixClassNames.has(name)) {
     throw new Error(`Invalid POSIX class "${name}"`);
@@ -971,23 +972,21 @@ function createPosixClass(name, options) {
   };
 }
 
-/**
-@typedef {{
+type QuantifierNode = {
   type: 'Quantifier';
   min: number;
   max: number;
-  kind: keyof NodeQuantifierKinds;
+  kind: keyof typeof NodeQuantifierKinds;
   element: QuantifiableNode;
-}} QuantifierNode
-*/
+};
 /**
 @param {QuantifiableNode} element
 @param {number} min
 @param {number} max
-@param {keyof NodeQuantifierKinds} [kind]
+@param {keyof typeof NodeQuantifierKinds} [kind]
 @returns {QuantifierNode}
 */
-function createQuantifier(element, min, max, kind = NodeQuantifierKinds.greedy) {
+function createQuantifier(element: QuantifiableNode, min: number, max: number, kind: keyof typeof NodeQuantifierKinds = NodeQuantifierKinds.greedy): QuantifierNode {
   const node = {
     type: NodeTypes.Quantifier,
     min,
@@ -1006,19 +1005,17 @@ function createQuantifier(element, min, max, kind = NodeQuantifierKinds.greedy) 
   return node;
 }
 
-/**
-@typedef {{
+export type RegexNode = {
   type: 'Regex';
   pattern: PatternNode;
   flags: FlagsNode;
-}} RegexNode
-*/
+};
 /**
 @param {PatternNode} pattern
 @param {FlagsNode} flags
 @returns {RegexNode}
 */
-function createRegex(pattern, flags) {
+function createRegex(pattern: PatternNode, flags: FlagsNode): RegexNode {
   return {
     type: NodeTypes.Regex,
     pattern,
@@ -1026,17 +1023,15 @@ function createRegex(pattern, flags) {
   };
 }
 
-/**
-@typedef {{
+type SubroutineNode = {
   type: 'Subroutine';
   ref: string | number;
-}} SubroutineNode
-*/
+};
 /**
 @param {string | number} ref
 @returns {SubroutineNode}
 */
-function createSubroutine(ref) {
+function createSubroutine(ref: string | number): SubroutineNode {
   return {
     type: NodeTypes.Subroutine,
     ref,
@@ -1059,7 +1054,16 @@ function createSubroutine(ref) {
   }
 }
 */
-function createUnicodeProperty(name, options) {
+function createUnicodeProperty(name: string, options?: {
+  negate?: boolean;
+  normalizeUnknownPropertyNames?: boolean;
+  skipPropertyNameValidation?: boolean;
+  unicodePropertyMap?: Map<string, string> | null;
+}): CharacterSetNode & {
+  kind: 'property';
+  value: string;
+  negate: boolean;
+} {
   const opts = {
     negate: false,
     normalizeUnknownPropertyNames: false,
@@ -1106,11 +1110,11 @@ Generates a Unicode property lookup name: lowercase, without spaces, hyphens, or
 @param {string} name Unicode property name.
 @returns {string}
 */
-function slug(name) {
+function slug(name: string): string {
   return name.replace(/[- _]+/g, '').toLowerCase();
 }
 
-function throwIfUnclosedCharacterClass(token, firstClassToken) {
+function throwIfUnclosedCharacterClass(token, firstClassToken?) {
   return throwIfNot(
     token,
     // Easier to understand error when applicable
