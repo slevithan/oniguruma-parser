@@ -9,7 +9,7 @@ Unwrap nonbeneficial noncapturing and atomic groups.
 const unwrapUselessGroups = {
   Group({node, parent, replaceWithMultiple}: Path & {node: GroupNode}) {
     const {alternatives, atomic, flags} = node;
-    if (alternatives.length > 1 || parent.type === NodeTypes.Quantifier) {
+    if (alternatives.length > 1 || parent?.type === NodeTypes.Quantifier) {
       return;
     }
     const els = alternatives[0].elements;
@@ -42,7 +42,7 @@ const unwrapUselessGroups = {
     if (groupKids.length !== 1) {
       return;
     }
-    const candidate = <QuantifiableNode>groupKids[0];
+    const candidate = groupKids[0] as QuantifiableNode;
     if (
       !quantifiableTypes.has(candidate.type) ||
       (quantifiedGroup.atomic && !atomicTypes.has(candidate.type)) ||

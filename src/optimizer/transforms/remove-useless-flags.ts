@@ -41,14 +41,14 @@ function removeEmptyFlagsObj(node: DirectiveNode | GroupNode) {
 }
 
 function removeFlagX({flags}: DirectiveNode | GroupNode) {
-  flags.enable && delete flags.enable.extended;
-  flags.disable && delete flags.disable.extended;
+  flags?.enable && delete flags.enable.extended;
+  flags?.disable && delete flags.disable.extended;
   cleanupFlagsObj(flags);
 }
 
-function cleanupFlagsObj(flags: FlagGroupModifiers) {
-  flags.enable && !Object.keys(flags.enable).length && delete flags.enable;
-  flags.disable && !Object.keys(flags.disable).length && delete flags.disable;
+function cleanupFlagsObj(flags: FlagGroupModifiers | undefined) {
+  flags?.enable && !Object.keys(flags.enable).length && delete flags.enable;
+  flags?.disable && !Object.keys(flags.disable).length && delete flags.disable;
 }
 
 export {

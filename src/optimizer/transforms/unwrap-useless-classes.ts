@@ -11,7 +11,7 @@ const unwrapUselessClasses = {
     const {kind, negate, elements} = node;
     const kid = elements[0];
     if (
-      parent.type === NodeTypes.CharacterClass ||
+      parent?.type === NodeTypes.CharacterClass ||
       negate ||
       kind !== NodeCharacterClassKinds.union ||
       elements.length !== 1 ||

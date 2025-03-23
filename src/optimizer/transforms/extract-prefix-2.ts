@@ -91,7 +91,7 @@ const extractPrefix2 = {
 function isPrefixNodeShared(
   node: AlternativeElementNode,
   alts: Array<AlternativeNode>,
-  {prefixI, nodeI, numDiffPrefixes}: {prefixI: number; nodeI: number; numDiffPrefixes: number;}
+  {prefixI, nodeI, numDiffPrefixes}: {prefixI: number; nodeI: number; numDiffPrefixes: number}
 ) {
   for (let i = prefixI; i < alts.length; i += numDiffPrefixes) {
     const alt = alts[i];

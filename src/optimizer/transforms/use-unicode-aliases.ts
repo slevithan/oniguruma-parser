@@ -10,7 +10,7 @@ const useUnicodeAliases = {
     if (node.kind !== NodeCharacterSetKinds.property) {
       return;
     }
-    const alias = OnigUnicodeAliasMap.get(node.value);
+    const alias = OnigUnicodeAliasMap.get(node.value!); // Assuming value is string
     if (alias) {
       node.value = alias;
     }
