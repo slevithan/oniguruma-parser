@@ -1,5 +1,6 @@
 import {hasOnlyChild} from '../../parser/node-utils.js';
-import {NodeCharacterClassKinds, NodeTypes, type CharacterClassNode} from '../../parser/parse.js';
+import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
+import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path} from '../../traverser/traverse.js';
 
 /**
@@ -7,7 +8,7 @@ Unnest character classes when possible.
 See also `unwrapNegationWrappers`.
 */
 const unnestUselessClasses = {
-  CharacterClass({node, parent, replaceWith, replaceWithMultiple}:Path & {node:CharacterClassNode}) {
+  CharacterClass({node, parent, replaceWith, replaceWithMultiple}: Path & {node: CharacterClassNode}) {
     const {kind, negate, elements} = node;
     if (
       // Don't use this to unwrap outermost classes; see `unwrapUselessClasses` for that

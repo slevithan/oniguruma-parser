@@ -1,17 +1,18 @@
-import {NodeTypes, type GroupNode, type Node, type QuantifierNode} from '../../parser/parse.js';
+import {NodeTypes} from '../../parser/parse.js';
+import type {GroupNode, Node, QuantifierNode} from '../../parser/parse.js';
 import type {Path} from '../../traverser/traverse.js';
 
 /**
 Remove empty noncapturing, atomic, and flag groups, even if quantified.
 */
 const removeEmptyGroups = {
-  Group({node, remove}: Path & {node: GroupNode;}) {
+  Group({node, remove}: Path & {node: GroupNode}) {
     if (isEmptyGroup(node)) {
       remove();
     }
   },
 
-  Quantifier({node, remove}: Path & {node: QuantifierNode;}) {
+  Quantifier({node, remove}: Path & {node: QuantifierNode}) {
     let kid = node.element;
     while (kid.type === NodeTypes.Quantifier) {
       kid = kid.element;

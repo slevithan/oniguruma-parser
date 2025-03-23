@@ -1,5 +1,6 @@
 import {alternativeContainerTypes} from '../../parser/node-utils.js';
-import {createAlternative, createGroup, type AlternativeContainerNode, type AlternativeElementNode, type AlternativeNode} from '../../parser/parse.js';
+import {createAlternative, createGroup} from '../../parser/parse.js';
+import type {AlternativeContainerNode, AlternativeElementNode, AlternativeNode} from '../../parser/parse.js';
 import type {Path} from '../../traverser/traverse.js';
 import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
 
@@ -9,7 +10,7 @@ Also works within groups.
 - `^a|!a|^bb|!bb|^c|!c` -> `(?:^|!)(?:a|bb|c)`
 */
 const extractPrefix2 = {
-  '*'({node}: Path & {node: AlternativeContainerNode;}) {
+  '*'({node}: Path & {node: AlternativeContainerNode}) {
     if (!alternativeContainerTypes.has(node.type)) {
       return;
     }
@@ -19,7 +20,7 @@ const extractPrefix2 = {
       return;
     }
     const prefixAltElsByI = [...node.alternatives.slice(0, numDiffPrefixes).map(alt => alt.elements)];
-    const prefixNodesByI = Array.from({length: numDiffPrefixes}, (): AlternativeElementNode[] => []);
+    const prefixNodesByI = Array.from({length: numDiffPrefixes}, (): Array<AlternativeElementNode> => []);
     const prefixIsFinishedByI = Array(numDiffPrefixes).fill(false);
     const longestOf = Math.max(...prefixAltElsByI.map(els => els.length));
     for (let nodeI = 0; nodeI < longestOf; nodeI++) {
@@ -87,7 +88,11 @@ const extractPrefix2 = {
   },
 };
 
-function isPrefixNodeShared(node: AlternativeElementNode, alts: AlternativeNode[], {prefixI, nodeI, numDiffPrefixes}: {prefixI: number, nodeI: number, numDiffPrefixes: number;}) {
+function isPrefixNodeShared(
+  node: AlternativeElementNode,
+  alts: Array<AlternativeNode>,
+  {prefixI, nodeI, numDiffPrefixes}: {prefixI: number; nodeI: number; numDiffPrefixes: number;}
+) {
   for (let i = prefixI; i < alts.length; i += numDiffPrefixes) {
     const alt = alts[i];
     const bNode = alt.elements[nodeI];

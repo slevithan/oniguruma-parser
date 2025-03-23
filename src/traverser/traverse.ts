@@ -1,42 +1,45 @@
-import {NodeTypes, type NodeType, type OnigurumaAst, type PatternNode, type RegexNode, type Node} from '../parser/parse.js';
-import {throwIfNot} from '../utils.js';
+import {NodeTypes} from '../parser/parse.js';
+import type {Node, NodeType, OnigurumaAst, RegexNode} from '../parser/parse.js';
 
-export type Path = {
+type Path = {
   node: Node;
-  parent?: Node;
-  key?: number | string;
-  container?: Node[];
-  root: RegexNode;
+  parent: Node;
+  key: number | string;
+  container: Array<Node>;
+  root: RegexNode; // Same as `OnigurumaAst`
   remove: () => void;
-  removeAllNextSiblings: () => Node[];
-  removeAllPrevSiblings: () => Node[];
-  replaceWith: (newNode: Node, options?: {traverse?: boolean;}) => void;
-  replaceWithMultiple: (newNodes: Node[], options?: {traverse?: boolean;}) => void;
+  removeAllNextSiblings: () => Array<Node>;
+  removeAllPrevSiblings: () => Array<Node>;
+  replaceWith: (newNode: Node, options?: {traverse?: boolean}) => void;
+  replaceWithMultiple: (newNodes: Array<Node>, options?: {traverse?: boolean}) => void;
   skip: () => void;
 };
-type Transformer = (
-  path: Path,
-  state: {
-    [key: string]: any;
+type State = {[key: string]: any};
+type Transformer = (path: Path, state: State) => void;
+type Visitor = {
+  [key in ('*' | NodeType)]?: Transformer | {
+    enter?: Transformer;
+    exit?: Transformer;
   }
-) => void;
-type Visitor = {[key in ('*' | NodeType)]?: Transformer | {enter?: Transformer, exit?: Transformer;};};
-type State = {[key: string]: any;};
+};
 
-/**
-@param {OnigurumaAst} ast
-@param {Visitor} visitor
-@param {State} [state]
-*/
 function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
-  function traverseArray(array: Node[], parent: Node) {
+  function traverseArray(array: Path['container'], parent: Path['parent']) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);
       i = Math.max(-1, i + keyShift);
     }
   }
-  function traverseNode(node: OnigurumaAst | PatternNode | Node, parent: Node = null, key: number | string = null, container: Node[] = null) {
-    const containerExpected = 'Container expected';
+  function traverseNode(
+    node: Path['node'],
+    parent: Path['parent'] = null,
+    key: Path['key'] = null,
+    container: Path['container'] = null
+  ) {
+    const keyIsNumber = typeof key === 'number';
+    if ((keyIsNumber && !container) || (!keyIsNumber && container)) { // XOR
+      throw new Error('Container expected with numeric key');
+    }
     let keyShift = 0;
     let skipTraversingKidsOfPath = false;
     const path: Path = {
@@ -45,29 +48,29 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
       key,
       container,
       root: ast,
-      remove(): void {
-        // TODO: assuming key is a number
-        throwIfNot(container, containerExpected).splice(Math.max(0, <number>key + keyShift), 1);
+      remove() {
+        assertIsNumber(key);
+        container.splice(Math.max(0, key + keyShift), 1);
         keyShift--;
         skipTraversingKidsOfPath = true;
       },
-      removeAllNextSiblings(): Node[] {
-        // TODO: assuming key is a number
-        return throwIfNot(container, containerExpected).splice(<number>key + 1);
+      removeAllNextSiblings() {
+        assertIsNumber(key);
+        return container.splice(key + 1);
       },
-      removeAllPrevSiblings(): Node[] {
-        // TODO: assuming key is a number
-        const shifted = <number>key + keyShift;
+      removeAllPrevSiblings() {
+        assertIsNumber(key);
+        const shifted = key + keyShift;
         keyShift -= shifted;
-        return throwIfNot(container, containerExpected).splice(0, Math.max(0, shifted));
+        return container.splice(0, Math.max(0, shifted));
       },
-      replaceWith(newNode: Node, options: {traverse?: boolean;} = {}): void {
+      replaceWith(newNode, options = {}) {
         const traverseNew = !!options.traverse;
         if (container) {
-          // TODO: assuming key is a number
-          container[Math.max(0, <number>key + keyShift)] = newNode;
+          assertIsNumber(key);
+          container[Math.max(0, key + keyShift)] = newNode;
         } else {
-          //@ts-ignore TODO: I give up
+          // @ts-expect-error
           parent[key] = newNode;
         }
         if (traverseNew) {
@@ -75,21 +78,20 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
         }
         skipTraversingKidsOfPath = true;
       },
-      replaceWithMultiple(newNodes: Node[], options: {traverse?: boolean;} = {}) {
+      replaceWithMultiple(newNodes, options = {}) {
         const traverseNew = !!options.traverse;
-        // TODO: assuming key is a number
-        throwIfNot(container, containerExpected).splice(Math.max(0, <number>key + keyShift), 1, ...newNodes);
+        assertIsNumber(key);
+        container.splice(Math.max(0, key + keyShift), 1, ...newNodes);
         keyShift += newNodes.length - 1;
         if (traverseNew) {
           let keyShiftInLoop = 0;
           for (let i = 0; i < newNodes.length; i++) {
-            // TODO: assuming key is a number
-            keyShiftInLoop += traverseNode(newNodes[i], parent, <number>key + i + keyShiftInLoop, container);
+            keyShiftInLoop += traverseNode(newNodes[i], parent, key + i + keyShiftInLoop, container);
           }
         }
         skipTraversingKidsOfPath = true;
       },
-      skip(): void {
+      skip() {
         skipTraversingKidsOfPath = true;
       },
     };
@@ -117,7 +119,7 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
         case NodeTypes.CharacterSet:
         case NodeTypes.Directive:
         case NodeTypes.Flags:
-        //@ts-ignore
+        // @ts-expect-error TODO: <github.com/slevithan/oniguruma-parser/issues/3>
         case NodeTypes.Recursion:
         case NodeTypes.Subroutine:
           break;
@@ -138,20 +140,28 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
           traverseNode(node.element, node, 'element');
           break;
         default:
-          //@ts-ignore
+          // @ts-expect-error
           throw new Error(`Unexpected node type "${node.type}"`);
       }
     }
 
-    //@ts-ignore
+    // @ts-expect-error
     anyType?.exit?.(path, state);
-    //@ts-ignore
+    // @ts-expect-error
     thisType?.exit?.(path, state);
     return keyShift;
   }
   traverseNode(ast);
 }
 
+function assertIsNumber(value: unknown): asserts value is number {
+  if (typeof value !== 'number') {
+    throw new Error('Numeric key expected');
+  }
+}
+
 export {
   traverse,
+  type Path,
+  type Visitor,
 };

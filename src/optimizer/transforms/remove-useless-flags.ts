@@ -1,5 +1,5 @@
-import {NodeDirectiveKinds, type DirectiveNode, type FlagGroupModifiers, type GroupNode, type Node} from '../../parser/parse.js';
-import type {RegexFlags} from '../../tokenizer/tokenize.js';
+import {NodeDirectiveKinds} from '../../parser/parse.js';
+import type {DirectiveNode, FlagGroupModifiers, FlagsNode, GroupNode} from '../../parser/parse.js';
 import type {Path} from '../../traverser/traverse.js';
 
 /**
@@ -7,12 +7,12 @@ Remove flags (from top-level and modifiers) that have no effect.
 [TODO] Support removing additional flags besides `x`.
 */
 const removeUselessFlags = {
-  Flags({node}: Path & {node: RegexFlags & FlagGroupModifiers;}) {
+  Flags({node}: Path & {node: FlagsNode}) {
     // Effects of flag x are already applied during parsing
     node.extended = false;
   },
 
-  Directive({node, remove}: Path & {node: DirectiveNode;}) {
+  Directive({node, remove}: Path & {node: DirectiveNode}) {
     if (node.kind !== NodeDirectiveKinds.flags) {
       return;
     }
@@ -22,7 +22,7 @@ const removeUselessFlags = {
     }
   },
 
-  Group({node}: Path & {node: DirectiveNode;}) {
+  Group({node}: Path & {node: GroupNode}) {
     if (!node.flags) {
       return;
     }
@@ -31,7 +31,7 @@ const removeUselessFlags = {
   },
 };
 
-function removeEmptyFlagsObj(node: DirectiveNode) {
+function removeEmptyFlagsObj(node: DirectiveNode | GroupNode) {
   const {flags} = node;
   if (flags && !flags.enable && !flags.disable) {
     delete node.flags;
@@ -40,7 +40,7 @@ function removeEmptyFlagsObj(node: DirectiveNode) {
   return false;
 }
 
-function removeFlagX({flags}: DirectiveNode) {
+function removeFlagX({flags}: DirectiveNode | GroupNode) {
   flags.enable && delete flags.enable.extended;
   flags.disable && delete flags.disable.extended;
   cleanupFlagsObj(flags);

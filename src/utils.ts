@@ -25,7 +25,7 @@ function getOrInsert<T extends any>(map: Map<any, T>, key: any, defaultValue: an
   return map.get(key);
 }
 
-function throwIfNot<T extends any >(value: T, msg: string): T {
+function throwIfNot<T extends any>(value: T, msg?: string): T {
   if (!value) {
     throw new Error(msg ?? 'Value expected');
   }

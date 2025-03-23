@@ -12,8 +12,9 @@ import {unwrapUselessGroups} from './transforms/unwrap-useless-groups.js';
 import {useShorthands} from './transforms/use-shorthands.js';
 import {useUnicodeAliases} from './transforms/use-unicode-aliases.js';
 import {useUnicodeProps} from './transforms/use-unicode-props.js';
+import type {Visitor} from '../traverser/traverse.js';
 
-export type OptimizationName =
+type OptimizationName =
   'alternationToClass' |
   'dedupeClasses' |
   'extractPrefix' |
@@ -29,7 +30,7 @@ export type OptimizationName =
   'useUnicodeAliases' |
   'useUnicodeProps';
 
-const optimizations = new Map<OptimizationName, object>([
+const optimizations = new Map<OptimizationName, Visitor>([
   ['alternationToClass', alternationToClass],
   ['dedupeClasses', dedupeClasses],
   ['extractPrefix', extractPrefix],
@@ -48,4 +49,5 @@ const optimizations = new Map<OptimizationName, object>([
 
 export {
   optimizations,
+  type OptimizationName,
 };

@@ -1,5 +1,6 @@
 import {alternativeContainerTypes} from '../../parser/node-utils.js';
-import {createAlternative, createGroup, NodeTypes, type AlternativeContainerNode, type AssertionNode, type CharacterClassNode, type CharacterSetNode, type Node} from '../../parser/parse.js';
+import {createAlternative, createGroup, NodeTypes} from '../../parser/parse.js';
+import type {AlternativeContainerNode, Node, NodeType} from '../../parser/parse.js';
 import type {Path} from '../../traverser/traverse.js';
 
 /**
@@ -10,7 +11,7 @@ Also works within groups.
 - `a|b|c` -> `a|b|c` (no common prefix)
 */
 const extractPrefix = {
-  '*'({node}: Path & {node: AlternativeContainerNode;}) {
+  '*'({node}: Path & {node: AlternativeContainerNode}) {
     if (!alternativeContainerTypes.has(node.type) || node.alternatives.length < 2) {
       return;
     }
@@ -46,7 +47,7 @@ const extractPrefix = {
   },
 };
 
-function isAllowedSimpleType(type: keyof typeof NodeTypes) {
+function isAllowedSimpleType(type: NodeType) {
   return (
     type === NodeTypes.Assertion ||
     type === NodeTypes.Character ||
@@ -60,11 +61,11 @@ function isNodeEqual(a: Node, b: Node) {
     return false;
   }
   if (a.type === NodeTypes.Assertion || a.type === NodeTypes.CharacterSet) {
-    //@ts-ignore TODO:
+    // @ts-expect-error
     return a.kind === b.kind && a.negate === b.negate;
   }
   if (a.type === NodeTypes.Character) {
-    //@ts-ignore TODO:
+    // @ts-expect-error
     return a.value === b.value;
   }
   // Only supports types from `isAllowedSimpleType`

@@ -1,25 +1,24 @@
-import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes, type FlagGroupModifiers, type OnigurumaAst, type Node, type AbsentFunctionNode, type QuantifierNode, type RegexNode, type AlternativeNode, type AssertionNode, type BackreferenceNode, type CapturingGroupNode, type CharacterNode, type CharacterClassNode, type CharacterClassRangeNode, type CharacterSetNode, type DirectiveNode, type GroupNode, type LookaroundAssertionNode, type PatternNode, type SubroutineNode, type FlagsNode} from '../parser/parse.js';
-import {type RegexFlags} from '../tokenizer/tokenize.js';
+import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes} from '../parser/parse.js';
+import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterNode, CharacterClassNode, CharacterClassRangeNode, CharacterSetNode, DirectiveNode, FlagGroupModifiers, FlagsNode, GroupNode, LookaroundAssertionNode, Node, NodeType, OnigurumaAst, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
+import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNot} from '../utils.js';
 
+type Gen = (node: Node) => OnigurumaRegex | string;
+type OnigurumaRegex = {
+  pattern: string;
+  flags: string;
+};
 type State = {
   inCharClass: boolean;
   lastNode: Node;
   parent: Node;
 };
-export type OnigurumaRegex = {
-  pattern: string;
-  flags: string;
-};
-type Gen = (node: Node) => OnigurumaRegex | string;
 
 /**
 Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
-@param {OnigurumaAst} ast
-@returns {OnigurumaRegex}
 */
 function generate(ast: OnigurumaAst): OnigurumaRegex {
-  const parentStack: Node[] = [ast];
+  const parentStack: Array<Node> = [ast];
   let lastNode: Node = null;
   let parent: Node = null;
   const state = {
@@ -47,8 +46,9 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
   }
   return gen(ast);
 }
-const generator: {[key in Node['type']]: (node: Node, state: State, gen: Gen) => OnigurumaRegex | string;} = {
-  Regex({pattern, flags}: RegexNode, state: State, gen: Gen): OnigurumaRegex {
+
+const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => OnigurumaRegex | string} = {
+  Regex({pattern, flags}: RegexNode, _: State, gen: Gen): OnigurumaRegex {
     // Final result is an object; other node types return strings
     return {
       pattern: <string>gen(pattern),
@@ -56,14 +56,14 @@ const generator: {[key in Node['type']]: (node: Node, state: State, gen: Gen) =>
     };
   },
 
-  AbsentFunction({kind, alternatives}: AbsentFunctionNode, state: State, gen: Gen): string {
+  AbsentFunction({kind, alternatives}: AbsentFunctionNode, _: State, gen: Gen): string {
     if (kind !== NodeAbsentFunctionKinds.repeater) {
       throw new Error(`Unexpected absent function kind "${kind}"`);
     }
     return `(?~${alternatives.map(gen).join('|')})`;
   },
 
-  Alternative({elements}: AlternativeNode, state: State, gen: Gen): string {
+  Alternative({elements}: AlternativeNode, _: State, gen: Gen): string {
     return elements.map(gen).join('');
   },
 
@@ -93,7 +93,7 @@ const generator: {[key in Node['type']]: (node: Node, state: State, gen: Gen) =>
     return `\\k<${ref}>`;
   },
 
-  CapturingGroup(node: CapturingGroupNode, state: State, gen: Gen): string {
+  CapturingGroup(node: CapturingGroupNode, _: State, gen: Gen): string {
     const {name, alternatives} = node;
     const nameWrapper = name ? `?${name.includes('>') ? `'${name}'` : `<${name}>`}` : '';
     return `(${nameWrapper}${alternatives.map(gen).join('|')})`;
@@ -121,25 +121,23 @@ const generator: {[key in Node['type']]: (node: Node, state: State, gen: Gen) =>
     const char = cp(value);
     let escape = false;
     if (inCharClass) {
-      let isFirst = false;
-      let isLast = false;
-      if (parent.type === NodeTypes.CharacterClass) {
-        isFirst = parent.elements[0] === node;
-        isLast = parent.elements.at(-1) === node;
-        if (char === '^') {
-          escape = isFirst && !parent.negate;
-        } else if (char === ']') {
-          escape = !isFirst;
-        } else if (char === '-') {
-          // Could also avoid escaping if it's immediately after a range or nested class, but don't
-          // don't make that the default rendering
-          escape = !isFirst && !isLast;
-        } else if (CharClassEscapeChars.has(char)) {
-          escape = true;
-        }
+      const isDirectClassKid = parent.type === NodeTypes.CharacterClass;
+      const isFirst = isDirectClassKid && parent.elements[0] === node;
+      const isLast = isDirectClassKid && parent.elements.at(-1) === node;
+      // Avoid escaping in some optional special cases when escaping isn't needed due to position
+      if (char === '^') {
+        escape = isFirst && !parent.negate;
+      } else if (char === ']') {
+        escape = !isFirst;
+      } else if (char === '-') {
+        // Could also avoid escaping if it's immediately after a range or nested class, but don't
+        // make that the default rendering
+        escape = !isFirst && !isLast;
+      } else {
+        escape = CharClassEscapeChars.has(char);
       }
-    } else if (BaseEscapeChars.has(char)) {
-      escape = true;
+    } else {
+      escape = BaseEscapeChars.has(char);
     }
     return `${escape ? '\\' : ''}${char}`;
   },
@@ -169,7 +167,7 @@ const generator: {[key in Node['type']]: (node: Node, state: State, gen: Gen) =>
     return genClass();
   },
 
-  CharacterClassRange({min, max}: CharacterClassRangeNode, state: State, gen: Gen): string {
+  CharacterClassRange({min, max}: CharacterClassRangeNode, _: State, gen: Gen): string {
     return `${gen(min)}-${gen(max)}`;
   },
 
@@ -221,23 +219,23 @@ const generator: {[key in Node['type']]: (node: Node, state: State, gen: Gen) =>
     return getFlagsStr(node);
   },
 
-  Group({atomic, flags, alternatives}: GroupNode, state: State, gen: Gen): string {
+  Group({atomic, flags, alternatives}: GroupNode, _: State, gen: Gen): string {
     const contents = alternatives.map(gen).join('|');
     return `(?${getGroupPrefix(atomic, flags)}${contents})`;
   },
 
-  LookaroundAssertion({kind, negate, alternatives}: LookaroundAssertionNode, state: State, gen: Gen): string {
+  LookaroundAssertion({kind, negate, alternatives}: LookaroundAssertionNode, _: State, gen: Gen): string {
     const prefix = `${kind === NodeLookaroundAssertionKinds.lookahead ? '' : '<'}${negate ? '!' : '='}`;
     return `(?${prefix}${alternatives.map(gen).join('|')})`;
   },
 
-  Pattern({alternatives}: PatternNode, state: State, gen: Gen): string {
+  Pattern({alternatives}: PatternNode, _: State, gen: Gen): string {
     return alternatives.map(gen).join('|');
   },
 
   Quantifier(node: QuantifierNode, {parent}: State, gen: Gen): string {
     // Rendering Onig quantifiers is wildly, unnecessarily complex compared to other regex flavors
-    // because of the combination of a few features unique to Oniguruma:
+    // because of the combination of a few features unique to Onig:
     // - You can create quantifier chains (i.e., quantify a quantifier).
     // - An implicit zero min is allowed for interval quantifiers (ex: `{,2}`).
     // - Interval quantifiers can't use `+` to make them possessive (it creates a quantifier
@@ -396,10 +394,6 @@ function getLastChild(node: Node) {
   return null;
 }
 
-/**
-@param {RegexFlags} node
-@returns {string}
-*/
 function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}: RegexFlags): string {
   return `${
     ignoreCase ? 'i' : ''
@@ -418,11 +412,6 @@ function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, 
   }`;
 }
 
-/**
-@param {boolean} atomic
-@param {FlagGroupModifiers} flagMods
-@returns {string}
-*/
 function getGroupPrefix(atomic: boolean, flagMods: FlagGroupModifiers) {
   if (atomic) {
     return '>';
@@ -443,4 +432,5 @@ function isDigitCharCode(value: number) {
 
 export {
   generate,
+  type OnigurumaRegex,
 };

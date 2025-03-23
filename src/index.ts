@@ -1,7 +1,8 @@
-import {parse, type OnigurumaAst} from './parser/parse.js';
+import {parse} from './parser/parse.js';
+import type {OnigurumaAst} from './parser/parse.js';
 import {OnigUnicodePropertyMap} from './unicode.js';
 
-export type Options = {
+type ToOnigurumaAstOptions = {
   flags?: string;
   rules?: {
     captureGroup?: boolean;
@@ -11,16 +12,14 @@ export type Options = {
 
 /**
 Returns an Oniguruma AST generated from an Oniguruma pattern.
-@param {string} pattern Oniguruma regex pattern.
-@param {Options} [options]
-@returns {OnigurumaAst}
 */
-function toOnigurumaAst(pattern: string, options: Options = {}): OnigurumaAst {
-  if ({}.toString.call(options) !== '[object Object]') { // typeof options !== 'object'
+function toOnigurumaAst(pattern: string, options: ToOnigurumaAstOptions = {}): OnigurumaAst {
+  // If `options` provided, it must be a plain object (excluding `null`, arrays, etc.)
+  if ({}.toString.call(options) !== '[object Object]') {
     throw new Error('Unexpected options');
   }
   return parse(pattern, {
-    // Limit the options that can be passed to the parser
+    // The parser includes additional options; limit the options that can be passed
     flags: options.flags ?? '',
     rules: {
       captureGroup: options.rules?.captureGroup ?? false,

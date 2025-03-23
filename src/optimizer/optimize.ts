@@ -1,10 +1,12 @@
-import {generate, type OnigurumaRegex} from '../generator/generate.js';
+import {generate} from '../generator/generate.js';
+import type {OnigurumaRegex} from '../generator/generate.js';
 import {parse} from '../parser/parse.js';
 import {traverse} from '../traverser/traverse.js';
 import {OnigUnicodePropertyMap} from '../unicode.js';
-import {optimizations, type OptimizationName} from './optimizations.js';
+import {optimizations} from './optimizations.js';
+import type {OptimizationName} from './optimizations.js';
 
-type Options = {
+type OptimizerOptions = {
   flags?: string;
   override?: {[key in OptimizationName]?: boolean};
   rules?: {
@@ -13,13 +15,11 @@ type Options = {
     singleline?: boolean;
   };
 };
+
 /**
 Returns an optimized Oniguruma pattern and flags.
-@param {string} pattern Oniguruma regex pattern.
-@param {Options} [options]
-@returns {OnigurumaRegex}
 */
-function optimize(pattern: string, options: Options): OnigurumaRegex {
+function optimize(pattern: string, options?: OptimizerOptions): OnigurumaRegex {
   const opts = getOptions(options);
   const ast = parse(pattern, {
     flags: opts.flags,
@@ -36,7 +36,7 @@ function optimize(pattern: string, options: Options): OnigurumaRegex {
       delete active[key];
     }
   });
-  const names = <OptimizationName[]>Object.keys(active);
+  const names = <Array<OptimizationName>>Object.keys(active);
   let optimized: Partial<OnigurumaRegex> = {pattern};
   let counter = 0;
   do {
@@ -48,12 +48,14 @@ function optimize(pattern: string, options: Options): OnigurumaRegex {
       traverse(ast, optimizations.get(name));
     }
     optimized = generate(ast);
+  } while (
     // Continue until no further optimization progress is made
-  } while (pattern !== optimized.pattern);
+    pattern !== optimized.pattern
+  );
   return <OnigurumaRegex>optimized;
 }
 
-function getOptions(options: Options = {}) {
+function getOptions(options: OptimizerOptions = {}) {
   return {
     // Oniguruma flags; a string with `imxDPSW` in any order (all optional). Oniguruma's `m` is
     // equivalent to JavaScript's `s` (`dotAll`).
@@ -76,13 +78,8 @@ function getOptions(options: Options = {}) {
 }
 
 type OptimizationNames = {[key in OptimizationName]: boolean};
-/**
-@param {{
-  disable?: boolean;
-}} [options]
-@returns {OptimizationNames}
-*/
-function getOptionalOptimizations({disable}: {disable?: boolean;} = {}) {
+
+function getOptionalOptimizations({disable}: {disable?: boolean} = {}) {
   const obj: Partial<OptimizationNames> = {};
   for (const key of optimizations.keys()) {
     obj[key] = !disable;

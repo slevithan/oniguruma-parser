@@ -1,6 +1,5 @@
+import type {FlagGroupModifiers} from '../parser/parse.js';
 import {PosixClassNames, r} from '../utils.js';
-import {type Options} from "../index.js";
-import {type FlagGroupModifiers} from '../parser/parse.js';
 
 const TokenTypes = {
   Alternator: 'Alternator',
@@ -106,7 +105,7 @@ const tokenRe = new RegExp(r`
       | #(?:[^)\\]|\\.?)*
       | [^:)]*[:)]
     )?
-    | \* [^)]* \)
+    | \*[^)]*\)
   )?
   | ${quantifierRe.source}
   | ${charClassOpenPattern}
@@ -123,7 +122,7 @@ const charClassTokenRe = new RegExp(r`
   | .
 `.replace(/\s+/g, ''), 'gsu');
 
-export type RegexFlags = {
+type RegexFlags = {
   ignoreCase: boolean;
   dotAll: boolean;
   extended: boolean;
@@ -133,22 +132,30 @@ export type RegexFlags = {
   wordIsAscii: boolean;
 };
 
-export type Token = {
+type FlagGroupSwitches = {
+  ignoreCase?: true;
+  dotAll?: true;
+  extended?: true;
+};
+
+type Token = {
   type: keyof typeof TokenTypes;
   raw: string;
-  negate?: boolean;
-  value?: string | number;
-  number?: number;
-  name?: string;
+  // Token-type-specific properties
   flags?: FlagGroupModifiers;
-  min?: number;
+  inCharClass?: boolean;
+  kind?: string;
   max?: number;
-  [key: string]: string | number | boolean | {[key: string]: any;};
+  min?: number;
+  name?: string;
+  negate?: boolean;
+  number?: number;
+  value?: string | number;
 };
 
 type Context = {
   captureGroup: boolean;
-  getCurrentModX: () => boolean | undefined;
+  getCurrentModX(): boolean;
   numOpenGroups: number;
   popModX(): void;
   pushModX(isXOn: boolean): void;
@@ -156,22 +163,20 @@ type Context = {
   singleline: boolean;
 };
 
-type TokenizerResult = {
-  tokens: Array<Token>;
-  flags: RegexFlags;
-};
-/**
-@param {string} pattern Oniguruma pattern.
-@param {{
+type TokenizerOptions = {
   flags?: string;
   rules?: {
     captureGroup?: boolean;
     singleline?: boolean;
   };
-}} [options]
-@returns {TokenizerResult}
-*/
-function tokenize(pattern: string, options: Options = {}): TokenizerResult {
+};
+
+type TokenizerResult = {
+  tokens: Array<Token>;
+  flags: RegexFlags;
+};
+
+function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerResult {
   const opts = {
     flags: '',
     ...options,
@@ -188,14 +193,14 @@ function tokenize(pattern: string, options: Options = {}): TokenizerResult {
   const xStack = [flagsObj.extended];
   const context: Context = {
     captureGroup: opts.rules.captureGroup,
-    getCurrentModX: () => xStack.at(-1),
+    getCurrentModX() {return xStack.at(-1);},
     numOpenGroups: 0,
     popModX() {xStack.pop();},
     pushModX(isXOn) {xStack.push(isXOn);},
     replaceCurrentModX(isXOn) {xStack[xStack.length - 1] = isXOn;},
     singleline: opts.rules.singleline,
   };
-  let tokens: Token[] = [];
+  let tokens: Array<Token> = [];
   let match: RegExpExecArray;
   tokenRe.lastIndex = 0;
   while ((match = tokenRe.exec(pattern))) {
@@ -210,7 +215,7 @@ function tokenize(pattern: string, options: Options = {}): TokenizerResult {
     }
   }
 
-  const potentialUnnamedCaptureTokens: Token[] = [];
+  const potentialUnnamedCaptureTokens: Array<Token> = [];
   let numNamedAndOptInUnnamedCaptures = 0;
   tokens.forEach(t => {
     if (t.type === TokenTypes.GroupOpen) {
@@ -548,7 +553,7 @@ function createTokenForAnyTokenWithinCharClass(raw: string) {
 }
 
 // Tokens shared by base syntax and char class syntax that start with `\`
-function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean;}) {
+function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}) {
   const char1 = raw[1];
   if (char1 === 'c' || char1 === 'C') {
     return createTokenForControlChar(raw);
@@ -623,13 +628,7 @@ function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: bo
   throw new Error(`Unexpected escape "${raw}"`);
 }
 
-/**
-@param {keyof TokenTypes} type
-@param {string} raw
-@param {{[key: string]: string | number | boolean| {[key: string]: any;};}} [data]
-@returns {Token}
-*/
-function createToken(type: keyof typeof TokenTypes, raw: string, data?: {[key: string]: string | number | boolean | {[key: string]: any;};}): Token {
+function createToken(type: keyof typeof TokenTypes, raw: string, data?: Omit<Token, 'type' | 'raw'>): Token {
   return {
     type,
     raw,
@@ -652,7 +651,7 @@ function createTokenForControlChar(raw: string) {
 
 function createTokenForFlagMod(raw: string, context: Context): Token {
   // Allows multiple `-` and solo `-` without `on` or `off` flags
-  let {on, off} = /^\(\?(?<on>[imx]*)(?:-(?<off>[-imx]*))?/.exec(raw)?.groups!;
+  let {on, off} = /^\(\?(?<on>[imx]*)(?:-(?<off>[-imx]*))?/.exec(raw).groups;
   off ??= '';
   // Flag x is used directly by the tokenizer since it changes how to interpret the pattern
   const isXOn = (context.getCurrentModX() || on.includes('x')) && !off.includes('x');
@@ -687,13 +686,14 @@ function createTokenForFlagMod(raw: string, context: Context): Token {
 }
 
 function createTokenForQuantifier(raw: string): Token {
-  const data: { // TODO: is there already a format for this somewhere else?
+  // TODO: Create TS types for specific token types
+  const data: {
     min?: number;
     max?: number;
     kind?: keyof typeof TokenQuantifierKinds;
   } = {};
   if (raw[0] === '{') {
-    const {min, max} = /^\{(?<min>\d*)(?:,(?<max>\d*))?/.exec(raw)?.groups!;
+    const {min, max} = /^\{(?<min>\d*)(?:,(?<max>\d*))?/.exec(raw).groups;
     const limit = 100_000;
     if (+min > limit || +max > limit) {
       throw new Error('Quantifier value unsupported in Oniguruma');
@@ -726,7 +726,7 @@ function createTokenForShorthandCharClass(raw: string) {
 }
 
 function createTokenForUnicodeProperty(raw: string) {
-  const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw)?.groups!;
+  const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw).groups;
   const negate = (p === 'P' && !neg) || (p === 'p' && !!neg);
   return createToken(TokenTypes.CharacterSet, raw, {
     kind: TokenCharacterSetKinds.property,
@@ -735,15 +735,6 @@ function createTokenForUnicodeProperty(raw: string) {
   });
 }
 
-export type FlagGroupSwitches = {
-  ignoreCase?: true;
-  dotAll?: true;
-  extended?: true;
-};
-/**
-@param {string} flags
-@returns {FlagGroupSwitches?}
-*/
 function getFlagGroupSwitches(flags: string): FlagGroupSwitches {
   // Don't include `false` for flags that aren't included
   const obj: FlagGroupSwitches = {};
@@ -764,7 +755,7 @@ function getFlagsObj(flags: string) {
   if (!/^[imxDPSW]*$/.test(flags)) {
     throw new Error(`Flags "${flags}" includes unsupported value`);
   }
-  const flagsObj = {
+  const flagsObj: RegexFlags = {
     ignoreCase: false,
     dotAll: false,
     extended: false,
@@ -774,7 +765,7 @@ function getFlagsObj(flags: string) {
     wordIsAscii: false,
   };
   for (const char of flags) {
-    flagsObj[<keyof typeof flagsObj>{
+    flagsObj[<keyof RegexFlags>{
       i: 'ignoreCase',
       // Flag m is called `multiline` in Onig, but that has a different meaning in JS. Onig flag m
       // is equivalent to JS flag s
@@ -829,7 +820,7 @@ function splitEscapedNumToken(token: Token, numCaptures: number) {
   ) {
     return [createToken(TokenTypes.Backreference, raw)];
   }
-  const tokens: Token[] = [];
+  const tokens: Array<Token> = [];
   // Returns 1-3 matches; the first (only) might be octal
   const matches = value.match(/^[0-7]+|\d/g);
   for (let i = 0; i < matches.length; i++) {
@@ -865,4 +856,7 @@ export {
   TokenGroupKinds,
   TokenQuantifierKinds,
   TokenTypes,
+  type FlagGroupSwitches,
+  type RegexFlags,
+  type Token,
 };

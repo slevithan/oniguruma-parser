@@ -1,4 +1,5 @@
-import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes, type CharacterClassElementNode, type CharacterClassNode, type CharacterSetNode} from '../../parser/parse.js';
+import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
+import type {CharacterClassElementNode, CharacterClassNode, CharacterSetNode} from '../../parser/parse.js';
 import type {Path} from '../../traverser/traverse.js';
 
 /**
@@ -11,11 +12,11 @@ Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 See also `useUnicodeProps`.
 */
 const useShorthands = {
-  CharacterSet({node, parent, root, replaceWith}: Path & {node: CharacterSetNode;}) {
+  CharacterSet({node, parent, root, replaceWith}: Path & {node: CharacterSetNode}) {
     const {kind, negate, value} = node;
     let newNode;
     if (
-      (kind === NodeCharacterSetKinds.property &&
+      ( kind === NodeCharacterSetKinds.property &&
         (value === 'Decimal_Number' || value === 'Nd') &&
         // [TODO] Also need to check whether these flags are set in local context, when the parser
         // supports these flags on mode modifiers
@@ -63,7 +64,7 @@ const useShorthands = {
     }
   },
 
-  CharacterClass({node, root}: Path & {node: CharacterClassNode & typeof NodeCharacterClassKinds;}) {
+  CharacterClass({node, root}: Path & {node: CharacterClassNode}) {
     if (node.kind !== NodeCharacterClassKinds.union) {
       return;
     }
@@ -117,48 +118,54 @@ function isRange(node: CharacterClassElementNode, min: number, max: number) {
   );
 }
 
-function isUnicode(node: CharacterClassElementNode, value: string | string[], options: {supercategories?: boolean; subcategories?: boolean;} = {}) {
+function isUnicode(
+  node: CharacterClassElementNode,
+  value: string | Array<string>,
+  options: {supercategories?: boolean; subcategories?: boolean;} = {}
+) {
+  if (
+    node.type !== NodeTypes.CharacterSet ||
+    node.kind !== NodeCharacterSetKinds.property ||
+    node.negate
+  ) {
+    return false;
+  }
   const names = Array.isArray(value) ? value : [value];
   const expanded = [];
-  for (const v of names as (keyof typeof fullNames | keyof typeof supercategories | keyof typeof subcategories)[]) {
+  for (const v of names) {
     expanded.push(v);
-    if (fullNames[<keyof typeof fullNames>v]) {
-      expanded.push(fullNames[<keyof typeof fullNames>v]);
+    if (fullNames.has(v)) {
+      expanded.push(fullNames.get(v));
     }
-    if (options.supercategories && supercategories[<keyof typeof supercategories>v]) {
-      expanded.push(supercategories[<keyof typeof supercategories>v]);
-      if (fullNames[<keyof typeof fullNames>supercategories[<keyof typeof supercategories>v]]) {
-        expanded.push(fullNames[<keyof typeof fullNames>supercategories[<keyof typeof supercategories>v]]);
+    if (options.supercategories && supercategories.has(v)) {
+      expanded.push(supercategories.get(v));
+      if (fullNames.has(supercategories.get(v))) {
+        expanded.push(fullNames.get(supercategories.get(v)));
       }
     }
-    if (options.subcategories && subcategories[<keyof typeof subcategories>v]) {
-      expanded.push(...subcategories[<keyof typeof subcategories>v]);
+    if (options.subcategories && subcategories.has(v)) {
+      expanded.push(...subcategories.get(v));
     }
   }
-  return (
-    node.type === NodeTypes.CharacterSet &&
-    node.kind === NodeCharacterSetKinds.property &&
-    !node.negate &&
-    expanded.includes(node.value)
-  );
+  return expanded.includes(node.value);
 }
 
-const fullNames = {
-  L: 'Letter',
-  M: 'Mark',
-  N: 'Number',
-  P: 'Punctuation',
-};
+const fullNames = new Map([
+  ['L', 'Letter'],
+  ['M', 'Mark'],
+  ['N', 'Number'],
+  ['P', 'Punctuation'],
+]);
 
-const supercategories = {
-  Pc: 'P',
-};
+const subcategories = new Map([
+  ['L', ['Ll', 'Lm', 'Lo', 'Lt', 'Lu']],
+  ['M', ['Mc', 'Me', 'Mn']],
+  ['N', ['Nd', 'Nl', 'No']],
+]);
 
-const subcategories = {
-  L: ['Ll', 'Lm', 'Lo', 'Lt', 'Lu'],
-  M: ['Mc', 'Me', 'Mn'],
-  N: ['Nd', 'Nl', 'No'],
-};
+const supercategories = new Map([
+  ['Pc', 'P'],
+]);
 
 export {
   isRange,
