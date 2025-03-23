@@ -1,7 +1,7 @@
 import {alternativeContainerTypes} from '../../parser/node-utils.js';
 import {createAlternative, createGroup, NodeTypes} from '../../parser/parse.js';
 import type {AlternativeContainerNode, Node, NodeType} from '../../parser/parse.js';
-import type {Path} from '../../traverser/traverse.js';
+import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Extract nodes at the start of every alternative into a prefix.
@@ -10,8 +10,9 @@ Also works within groups.
 - `aa|aa|aa` -> `aa`
 - `a|b|c` -> `a|b|c` (no common prefix)
 */
-const extractPrefix = {
-  '*'({node}: Path & {node: AlternativeContainerNode}) {
+const extractPrefix: Visitor = {
+  '*'(path: Path){
+    const {node} = path as Path & {node: AlternativeContainerNode};
     if (!alternativeContainerTypes.has(node.type) || node.alternatives.length < 2) {
       return;
     }

@@ -1,13 +1,14 @@
 import {hasOnlyChild} from '../../parser/node-utils.js';
 import {NodeQuantifierKinds, NodeTypes} from '../../parser/parse.js';
 import type {QuantifierNode} from '../../parser/parse.js';
-import type {Path} from '../../traverser/traverse.js';
+import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Remove identified ReDoS vulnerabilities without changing matches.
 */
-const preventReDoS = {
-  Quantifier({node}: Path & {node: QuantifierNode}) {
+const preventReDoS: Visitor = {
+  Quantifier(path: Path){
+    const {node} = path as Path & {node: QuantifierNode};
     // Prevent a common cause of catastrophic backtracking by removing an unneeded nested
     // quantifier from the first alternative of infinitely-quantified groups. Can't remove nested
     // quantifiers from other alternatives or if the first alternative has more than one element,

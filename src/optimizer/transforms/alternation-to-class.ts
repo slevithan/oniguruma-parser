@@ -1,13 +1,14 @@
 import {alternativeContainerTypes, universalCharacterSetKinds} from '../../parser/node-utils.js';
 import {createAlternative, createCharacterClass, NodeTypes} from '../../parser/parse.js';
-import type {AlternativeContainerNode, CharacterClassNode, CharacterNode, CharacterSetNode} from '../../parser/parse.js';
-import type {Path} from '../../traverser/traverse.js';
+import type {AlternativeContainerNode, AlternativeNode, CharacterClassNode, CharacterNode, CharacterSetNode} from '../../parser/parse.js';
+import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Use character classes for adjacent alternatives with single-length values.
 */
-const alternationToClass = {
-  '*'({node}: Path & {node: AlternativeContainerNode}) {
+const alternationToClass: Visitor = {
+  '*'(path: Path) {
+    const {node} = path as Path & {node: AlternativeContainerNode};
     if (!alternativeContainerTypes.has(node.type)) {
       return;
     }
@@ -38,7 +39,7 @@ const alternationToClass = {
   },
 };
 
-function createAlternativeWithCombinedNodes(nodes: Array<CharacterNode | CharacterClassNode | CharacterSetNode>) {
+function createAlternativeWithCombinedNodes(nodes: Array<CharacterNode | CharacterClassNode | CharacterSetNode>): AlternativeNode {
   const alt = createAlternative();
   let node = nodes[0];
   if (nodes.length > 1) {

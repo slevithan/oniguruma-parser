@@ -1,18 +1,20 @@
 import {NodeDirectiveKinds} from '../../parser/parse.js';
 import type {DirectiveNode, FlagGroupModifiers, FlagsNode, GroupNode} from '../../parser/parse.js';
-import type {Path} from '../../traverser/traverse.js';
+import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Remove flags (from top-level and modifiers) that have no effect.
 [TODO] Support removing additional flags besides `x`.
 */
-const removeUselessFlags = {
-  Flags({node}: Path & {node: FlagsNode}) {
+const removeUselessFlags: Visitor = {
+  Flags(path: Path) {
+    const {node} = path as Path & {node: FlagsNode};
     // Effects of flag x are already applied during parsing
     node.extended = false;
   },
 
-  Directive({node, remove}: Path & {node: DirectiveNode}) {
+  Directive(path: Path) {
+    const {node, remove} = path as Path & {node: DirectiveNode};
     if (node.kind !== NodeDirectiveKinds.flags) {
       return;
     }
@@ -22,7 +24,8 @@ const removeUselessFlags = {
     }
   },
 
-  Group({node}: Path & {node: GroupNode}) {
+  Group(path: Path) {
+    const {node} = path as Path & {node: GroupNode};
     if (!node.flags) {
       return;
     }

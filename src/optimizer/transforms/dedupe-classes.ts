@@ -1,12 +1,13 @@
 import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
 import type {CharacterClassElementNode, CharacterClassNode} from '../../parser/parse.js';
-import type {Path} from '../../traverser/traverse.js';
+import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Remove duplicate characters, sets, and ranges from character classes.
 */
-const dedupeClasses = {
-  CharacterClass({node}: Path & {node: CharacterClassNode}) {
+const dedupeClasses: Visitor = {
+  CharacterClass(path: Path) {
+    const {node} = path as Path & {node: CharacterClassNode};
     const {kind, elements} = node;
     if (kind !== NodeCharacterClassKinds.union) {
       return;

@@ -31,7 +31,7 @@ function optimize(pattern: string, options?: OptimizerOptions): OnigurumaRegex {
     unicodePropertyMap: OnigUnicodePropertyMap,
   });
   const active = Object.assign(getOptionalOptimizations(), opts.override);
-  Object.keys(active).forEach((key: OptimizationName) => {
+  (Object.keys(active) as Array<OptimizationName>).forEach((key: OptimizationName) => {
     if (!active[key]) {
       delete active[key];
     }
