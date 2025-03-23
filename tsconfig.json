@@ -10,7 +10,7 @@
     "lib": ["ES2023", "DOM"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "strict": false,
+    "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitReturns": true,

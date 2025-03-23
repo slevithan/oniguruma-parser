@@ -1,15 +1,15 @@
 import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeQuantifierKinds, NodeTypes} from '../../parser/parse.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
-import type {Path} from '../../traverser/traverse.js';
+import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Unwrap negated classes used to negate an individual character set.
 Allows independently controlling this behavior and avoiding logic duplication in
 `unwrapUselessClasses` and `unnestUselessClasses`.
 */
-const unwrapNegationWrappers = {
-  CharacterClass({node, parent, replaceWith}: Path & {node: CharacterClassNode}) {
-    const {kind, negate, elements} = node;
+const unwrapNegationWrappers: Visitor = {
+  CharacterClass({node, parent, replaceWith}: Path) {
+    const {kind, negate, elements} = node as CharacterClassNode;
     const kid = elements[0];
     if (
       !negate ||

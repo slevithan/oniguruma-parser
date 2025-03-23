@@ -48,7 +48,8 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
 }
 
 const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => OnigurumaRegex | string} = {
-  Regex({pattern, flags}: RegexNode, _: State, gen: Gen): OnigurumaRegex {
+  Regex(node: Node, _: State, gen: Gen): OnigurumaRegex {
+    const {pattern, flags} = node as RegexNode;
     // Final result is an object; other node types return strings
     return {
       pattern: gen(pattern) as string,
@@ -56,18 +57,21 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     };
   },
 
-  AbsentFunction({kind, alternatives}: AbsentFunctionNode, _: State, gen: Gen): string {
+  AbsentFunction(node: Node, _: State, gen: Gen): string {
+    const {kind, alternatives} = node as AbsentFunctionNode;
     if (kind !== NodeAbsentFunctionKinds.repeater) {
       throw new Error(`Unexpected absent function kind "${kind}"`);
     }
     return `(?~${alternatives.map(gen).join('|')})`;
   },
 
-  Alternative({elements}: AlternativeNode, _: State, gen: Gen): string {
+  Alternative(node: Node, _: State, gen: Gen): string {
+    const {elements} = node as AlternativeNode;
     return elements.map(gen).join('');
   },
 
-  Assertion({kind, negate}: AssertionNode): string {
+  Assertion(node: Node): string {
+    const {kind, negate} = node as AssertionNode;
     if (kind === NodeAssertionKinds.grapheme_boundary) {
       return negate ? r`\Y` : r`\y`;
     }
@@ -84,7 +88,8 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     }[kind], `Unexpected assertion kind "${kind}"`);
   },
 
-  Backreference({ref}: BackreferenceNode): string {
+  Backreference(node: Node): string {
+    const {ref} = node as BackreferenceNode;
     if (typeof ref === 'number') {
       // [TODO] Won't be safe to indiscriminately unenclose when forward backrefs are supported
       return '\\' + ref;
@@ -93,14 +98,14 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     return `\\k<${ref}>`;
   },
 
-  CapturingGroup(node: CapturingGroupNode, _: State, gen: Gen): string {
-    const {name, alternatives} = node;
+  CapturingGroup(node: Node, _: State, gen: Gen): string {
+    const {name, alternatives} = node as CapturingGroupNode;
     const nameWrapper = name ? `?${name.includes('>') ? `'${name}'` : `<${name}>`}` : '';
     return `(${nameWrapper}${alternatives.map(gen).join('|')})`;
   },
 
-  Character(node: CharacterNode, {inCharClass, lastNode, parent}: State & {parent: CharacterClassNode}): string {
-    const {value} = node;
+  Character(node: Node, {inCharClass, lastNode, parent}: State): string {
+    const {value} = node as CharacterNode;
     const escDigit = lastNode?.type === NodeTypes.Backreference;
     if (CharCodeEscapeMap.has(value)) {
       return CharCodeEscapeMap.get(value)!;
@@ -142,7 +147,8 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     return `${escape ? '\\' : ''}${char}`;
   },
 
-  CharacterClass({kind, negate, elements}: CharacterClassNode, state: State, gen: Gen): string {
+  CharacterClass(node: Node, state: State, gen: Gen): string {
+    const {kind, negate, elements} = node as CharacterClassNode;
     function genClass() {
       if (
         state.parent.type === NodeTypes.CharacterClass &&
@@ -167,11 +173,13 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     return genClass();
   },
 
-  CharacterClassRange({min, max}: CharacterClassRangeNode, _: State, gen: Gen): string {
+  CharacterClassRange(node: Node, _: State, gen: Gen): string {
+    const {min, max} = node as CharacterClassRangeNode;
     return `${gen(min)}-${gen(max)}`;
   },
 
-  CharacterSet({kind, negate, value}: CharacterSetNode, state: State): string {
+  CharacterSet(node: Node, state: State): string {
+    const {kind, negate, value} = node as CharacterSetNode;
     if (kind === NodeCharacterSetKinds.digit) {
       return negate ? r`\D` : r`\d`;
     }
@@ -202,7 +210,8 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     }[kind], `Unexpected character set kind "${kind}"`);
   },
 
-  Directive({kind, flags}: DirectiveNode): string {
+  Directive(node: Node): string {
+    const {kind, flags} = node as DirectiveNode;
     if (kind === NodeDirectiveKinds.flags) {
       const {enable = {}, disable = {}} = flags!;
       const enableStr = getFlagsStr(enable as RegexFlags);
@@ -215,25 +224,28 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     throw new Error(`Unexpected directive kind "${kind}"`);
   },
 
-  Flags(node: FlagsNode): string {
-    return getFlagsStr(node);
+  Flags(node: Node): string {
+    return getFlagsStr(node as FlagsNode);
   },
 
-  Group({atomic, flags, alternatives}: GroupNode, _: State, gen: Gen): string {
+  Group(node: Node, _: State, gen: Gen): string {
+    const {atomic, flags, alternatives} = node as GroupNode;
     const contents = alternatives.map(gen).join('|');
     return `(?${getGroupPrefix(atomic, flags)}${contents})`;
   },
 
-  LookaroundAssertion({kind, negate, alternatives}: LookaroundAssertionNode, _: State, gen: Gen): string {
+  LookaroundAssertion(node: Node, _: State, gen: Gen): string {
+    const {kind, negate, alternatives} = node as LookaroundAssertionNode;
     const prefix = `${kind === NodeLookaroundAssertionKinds.lookahead ? '' : '<'}${negate ? '!' : '='}`;
     return `(?${prefix}${alternatives.map(gen).join('|')})`;
   },
 
-  Pattern({alternatives}: PatternNode, _: State, gen: Gen): string {
+  Pattern(node: Node, _: State, gen: Gen): string {
+    const {alternatives} = node as PatternNode;
     return alternatives.map(gen).join('|');
   },
 
-  Quantifier(node: QuantifierNode, {parent}: State, gen: Gen): string {
+  Quantifier(node: Node, {parent}: State, gen: Gen): string {
     // Rendering Onig quantifiers is wildly, unnecessarily complex compared to other regex flavors
     // because of the combination of a few features unique to Onig:
     // - You can create quantifier chains (i.e., quantify a quantifier).
@@ -243,7 +255,7 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     // - A reversed range in a quantifier makes it possessive (ex: `{2,1}`).
     //   - `{,n}` is always greedy with an implicit zero min, and can't represent a possesive range
     //     from n to infinity.
-    const {min, max, kind, element} = node;
+    const {min, max, kind, element} = node as QuantifierNode;
     // These errors shouldn't happen unless the AST is modified in an invalid way after parsing
     if (min === Infinity) {
       throw new Error(`Invalid quantifier: infinite min`);
@@ -275,7 +287,7 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     // is also safe since it can use the alternative `{1,0}` representation (which is possessive)
     const forcedInterval = kind === NodeQuantifierKinds.greedy && parentIsPossessivePlus;
     let base;
-    if (isSymbolCandidate(node) && !forcedInterval) {
+    if (isSymbolCandidate(node as QuantifierNode) && !forcedInterval) {
       if (
         !min && max === 1 &&
         // Can't chain a base of `?` to any greedy quantifier since that would make it lazy
@@ -329,7 +341,8 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     return `${gen(element)}${base}${suffix}`;
   },
 
-  Subroutine({ref}: SubroutineNode): string {
+  Subroutine(node: Node): string {
+    const {ref} = node as SubroutineNode;
     if (typeof ref === 'string' && ref.includes('>')) {
       return r`\g'${ref}'`;
     }
