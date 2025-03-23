@@ -37,7 +37,7 @@ function optimize(pattern: string, options?: OptimizerOptions): OnigurumaRegex {
     }
   });
   const names = <Array<OptimizationName>>Object.keys(active);
-  let optimized: Partial<OnigurumaRegex> = {pattern};
+  let optimized: OnigurumaRegex = {pattern, flags: opts.flags};
   let counter = 0;
   do {
     if (++counter > 200) {
@@ -45,14 +45,14 @@ function optimize(pattern: string, options?: OptimizerOptions): OnigurumaRegex {
     }
     pattern = optimized.pattern;
     for (const name of names) {
-      traverse(ast, optimizations.get(name));
+      traverse(ast, optimizations.get(name)!); // TypeSystem fails on Map
     }
     optimized = generate(ast);
   } while (
     // Continue until no further optimization progress is made
     pattern !== optimized.pattern
   );
-  return <OnigurumaRegex>optimized;
+  return optimized;
 }
 
 function getOptions(options: OptimizerOptions = {}) {
@@ -84,7 +84,7 @@ function getOptionalOptimizations({disable}: {disable?: boolean} = {}) {
   for (const key of optimizations.keys()) {
     obj[key] = !disable;
   }
-  return <OptimizationNames>obj;
+  return obj as OptimizationNames;
 }
 
 export {

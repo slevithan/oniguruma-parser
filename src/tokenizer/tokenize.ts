@@ -193,15 +193,15 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
   const xStack = [flagsObj.extended];
   const context: Context = {
     captureGroup: opts.rules.captureGroup,
-    getCurrentModX() {return xStack.at(-1);},
+    getCurrentModX(): boolean {return xStack.at(-1)!},
     numOpenGroups: 0,
-    popModX() {xStack.pop();},
-    pushModX(isXOn) {xStack.push(isXOn);},
-    replaceCurrentModX(isXOn) {xStack[xStack.length - 1] = isXOn;},
+    popModX() {xStack.pop()},
+    pushModX(isXOn) {xStack.push(isXOn)},
+    replaceCurrentModX(isXOn) {xStack[xStack.length - 1] = isXOn},
     singleline: opts.rules.singleline,
   };
   let tokens: Array<Token> = [];
-  let match: RegExpExecArray;
+  let match: RegExpExecArray | null;
   tokenRe.lastIndex = 0;
   while ((match = tokenRe.exec(pattern))) {
     const result = getTokenWithDetails(context, pattern, match[0], tokenRe.lastIndex);
@@ -245,7 +245,26 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
   };
 }
 
-function getTokenWithDetails(context: Context, pattern: string, m: string, lastIndex: number) {
+function getTokenWithDetails(context: Context, pattern: string, m: string, lastIndex: number): {
+  // Array of all of the char class's tokens
+  tokens: Array<Token>;
+  // Jump forward to the end of the char class
+  lastIndex: number; token?: undefined;
+} | {
+  token: Token;
+  tokens?: undefined;
+  // Jump forward to after the closing paren
+  lastIndex?: undefined;
+} | {
+  tokens: Array<Token>;
+  // Jump forward to after the closing paren
+  lastIndex?: undefined; token?: undefined;
+} | {
+  // Jump forward to after the closing paren
+  lastIndex: number;
+  tokens?: undefined;
+  token?: undefined;
+} {
   const [m0, m1] = m;
 
   if (m0 === '[') {
@@ -478,12 +497,12 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
   };
 }
 
-function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: number) {
+function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: number): {tokens: Array<Token>; lastIndex: number} {
   const tokens = [createToken(TokenTypes.CharacterClassOpen, opener, {
     negate: opener[1] === '^',
   })];
   let numCharClassesOpen = 1;
-  let match: RegExpExecArray;
+  let match: RegExpExecArray | null;
   charClassTokenRe.lastIndex = lastIndex;
   while ((match = charClassTokenRe.exec(pattern))) {
     const m = match[0];
@@ -495,7 +514,7 @@ function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: nu
         negate: m[1] === '^',
       }));
     } else if (m === ']') {
-      if (tokens.at(-1).type === TokenTypes.CharacterClassOpen) {
+      if (tokens.at(-1)?.type === TokenTypes.CharacterClassOpen) {
         // Allow unescaped `]` as leading char
         tokens.push(createToken(TokenTypes.Character, m, {
           value: 93,
@@ -522,7 +541,7 @@ function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: nu
   };
 }
 
-function createTokenForAnyTokenWithinCharClass(raw: string) {
+function createTokenForAnyTokenWithinCharClass(raw: string): Token | Array<Token> {
   if (raw[0] === '\\') {
     // Assumes an identity escape as final condition
     return createTokenForSharedEscape(raw, {inCharClass: true});
@@ -530,13 +549,13 @@ function createTokenForAnyTokenWithinCharClass(raw: string) {
   // POSIX class: `[:name:]` or `[:^name:]`
   if (raw[0] === '[') {
     const posix = /\[:(?<negate>\^?)(?<name>[a-z]+):\]/.exec(raw);
-    if (!posix || !PosixClassNames.has(posix.groups.name)) {
+    if (!posix || !PosixClassNames.has(posix.groups!.name)) {
       throw new Error(`Invalid POSIX class "${raw}"`);
     }
     return createToken(TokenTypes.CharacterSet, raw, {
       kind: TokenCharacterSetKinds.posix,
-      value: posix.groups.name,
-      negate: !!posix.groups.negate,
+      value: posix.groups!.name,
+      negate: !!posix.groups!.negate,
     });
   }
   // Range (possibly invalid) or literal hyphen
@@ -553,7 +572,7 @@ function createTokenForAnyTokenWithinCharClass(raw: string) {
 }
 
 // Tokens shared by base syntax and char class syntax that start with `\`
-function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}) {
+function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}): Token | Array<Token> {
   const char1 = raw[1];
   if (char1 === 'c' || char1 === 'C') {
     return createTokenForControlChar(raw);
@@ -637,7 +656,7 @@ function createToken(type: keyof typeof TokenTypes, raw: string, data?: Omit<Tok
 }
 
 // Expects `\cx` or `\C-x`
-function createTokenForControlChar(raw: string) {
+function createTokenForControlChar(raw: string): Token {
   const char = raw[1] === 'c' ? raw[2] : raw[3];
   if (!char || !/[A-Za-z]/.test(char)) {
     // Unlike JS, Onig allows any char to follow `\c` or `\C-`, but this is an extreme edge case
@@ -645,13 +664,13 @@ function createTokenForControlChar(raw: string) {
     throw new Error(`Unsupported control character "${raw}"`);
   }
   return createToken(TokenTypes.Character, raw, {
-    value: char.toUpperCase().codePointAt(0) - 64,
+    value: char.toUpperCase().codePointAt(0)! - 64,
   });
 }
 
 function createTokenForFlagMod(raw: string, context: Context): Token {
   // Allows multiple `-` and solo `-` without `on` or `off` flags
-  let {on, off} = /^\(\?(?<on>[imx]*)(?:-(?<off>[-imx]*))?/.exec(raw).groups;
+  let {on, off} = /^\(\?(?<on>[imx]*)(?:-(?<off>[-imx]*))?/.exec(raw)!.groups as {on: string, off: string | undefined};
   off ??= '';
   // Flag x is used directly by the tokenizer since it changes how to interpret the pattern
   const isXOn = (context.getCurrentModX() || on.includes('x')) && !off.includes('x');
@@ -693,8 +712,9 @@ function createTokenForQuantifier(raw: string): Token {
     kind?: keyof typeof TokenQuantifierKinds;
   } = {};
   if (raw[0] === '{') {
-    const {min, max} = /^\{(?<min>\d*)(?:,(?<max>\d*))?/.exec(raw).groups;
+    const {min, max} = /^\{(?<min>\d*)(?:,(?<max>\d*))?/.exec(raw)!.groups as {min: string, max: string | undefined};
     const limit = 100_000;
+    // @ts-expect-error +undefined is NaN
     if (+min > limit || +max > limit) {
       throw new Error('Quantifier value unsupported in Oniguruma');
     }
@@ -712,7 +732,7 @@ function createTokenForQuantifier(raw: string): Token {
   return createToken(TokenTypes.Quantifier, raw, data);
 }
 
-function createTokenForShorthandCharClass(raw: string) {
+function createTokenForShorthandCharClass(raw: string): Token {
   const lower = raw[1].toLowerCase();
   return createToken(TokenTypes.CharacterSet, raw, {
     kind: {
@@ -726,7 +746,7 @@ function createTokenForShorthandCharClass(raw: string) {
 }
 
 function createTokenForUnicodeProperty(raw: string) {
-  const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw).groups;
+  const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw)!.groups!;
   const negate = (p === 'P' && !neg) || (p === 'p' && !!neg);
   return createToken(TokenTypes.CharacterSet, raw, {
     kind: TokenCharacterSetKinds.property,
@@ -735,7 +755,7 @@ function createTokenForUnicodeProperty(raw: string) {
   });
 }
 
-function getFlagGroupSwitches(flags: string): FlagGroupSwitches {
+function getFlagGroupSwitches(flags: string): FlagGroupSwitches | null {
   // Don't include `false` for flags that aren't included
   const obj: FlagGroupSwitches = {};
   if (flags.includes('i')) {
@@ -751,7 +771,7 @@ function getFlagGroupSwitches(flags: string): FlagGroupSwitches {
   return Object.keys(obj).length ? obj : null;
 }
 
-function getFlagsObj(flags: string) {
+function getFlagsObj(flags: string): RegexFlags {
   if (!/^[imxDPSW]*$/.test(flags)) {
     throw new Error(`Flags "${flags}" includes unsupported value`);
   }
@@ -784,7 +804,7 @@ function getFlagsObj(flags: string) {
 
 // - Unenclosed `\xNN` above 0x7F is handled elsewhere as a UTF-8 encoded byte sequence
 // - Enclosed `\x{}` with value above 0x10FFFF is allowed here; handled in the parser
-function getValidatedHexCharCode(raw: string) {
+function getValidatedHexCharCode(raw: string): number {
   // Note: Onig (tested 6.9.8) has a bug where bare `\u` and `\x` are identity escapes if they
   // appear at the very end of the pattern, so e.g. `\u` matches `u`, but `\u0`, `\u.`, and `[\u]`
   // are all errors, and `\x.` and `[\x]` aren't errors but instead the `\x` is equivalent to `\0`.
@@ -797,7 +817,7 @@ function getValidatedHexCharCode(raw: string) {
   }
   // Might include leading 0s
   const hex = raw[2] === '{' ?
-    /^\\x\{\s*(?<hex>\p{AHex}+)/u.exec(raw).groups.hex :
+    /^\\x\{\s*(?<hex>\p{AHex}+)/u.exec(raw)!.groups!.hex :
     raw.slice(2);
   const dec = parseInt(hex, 16);
   return dec;
@@ -805,7 +825,7 @@ function getValidatedHexCharCode(raw: string) {
 
 // Value is 1-3 digits, which can be a backref (possibly invalid), null, octal, or identity escape,
 // possibly followed by 1-2 literal digits
-function splitEscapedNumToken(token: Token, numCaptures: number) {
+function splitEscapedNumToken(token: Token, numCaptures: number): Array<Token> {
   const {raw, inCharClass} = token;
   // Keep any leading 0s since they indicate octal
   const value = raw.slice(1);
@@ -822,7 +842,7 @@ function splitEscapedNumToken(token: Token, numCaptures: number) {
   }
   const tokens: Array<Token> = [];
   // Returns 1-3 matches; the first (only) might be octal
-  const matches = value.match(/^[0-7]+|\d/g);
+  const matches = value.match(/^[0-7]+|\d/g)!;
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i];
     let value;

@@ -3,9 +3,9 @@ import type {Node, NodeType, OnigurumaAst, RegexNode} from '../parser/parse.js';
 
 type Path = {
   node: Node;
-  parent: Node;
-  key: number | string;
-  container: Array<Node>;
+  parent: Node | null;
+  key: number | string | null;
+  container: Array<Node> | null;
   root: RegexNode; // Same as `OnigurumaAst`
   remove: () => void;
   removeAllNextSiblings: () => Array<Node>;
@@ -14,7 +14,7 @@ type Path = {
   replaceWithMultiple: (newNodes: Array<Node>, options?: {traverse?: boolean}) => void;
   skip: () => void;
 };
-type State = {[key: string]: any};
+type State = {[key: string]: any} | null;
 type Transformer = (path: Path, state: State) => void;
 type Visitor = {
   [key in ('*' | NodeType)]?: Transformer | {
@@ -24,7 +24,7 @@ type Visitor = {
 };
 
 function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
-  function traverseArray(array: Path['container'], parent: Path['parent']) {
+  function traverseArray(array: NonNullable<Path['container']>, parent: Path['parent']) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);
       i = Math.max(-1, i + keyShift);
@@ -50,19 +50,19 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
       root: ast,
       remove() {
         assertIsNumber(key);
-        container.splice(Math.max(0, key + keyShift), 1);
+        container?.splice(Math.max(0, key + keyShift), 1);
         keyShift--;
         skipTraversingKidsOfPath = true;
       },
-      removeAllNextSiblings() {
+      removeAllNextSiblings(): Array<Node> {
         assertIsNumber(key);
-        return container.splice(key + 1);
+        return container!.splice(key + 1); // Assuming container is not undefined
       },
-      removeAllPrevSiblings() {
+      removeAllPrevSiblings(): Array<Node> {
         assertIsNumber(key);
         const shifted = key + keyShift;
         keyShift -= shifted;
-        return container.splice(0, Math.max(0, shifted));
+        return container!.splice(0, Math.max(0, shifted)); // Assuming container is not undefined
       },
       replaceWith(newNode, options = {}) {
         const traverseNew = !!options.traverse;
@@ -81,7 +81,7 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
       replaceWithMultiple(newNodes, options = {}) {
         const traverseNew = !!options.traverse;
         assertIsNumber(key);
-        container.splice(Math.max(0, key + keyShift), 1, ...newNodes);
+        container?.splice(Math.max(0, key + keyShift), 1, ...newNodes);
         keyShift += newNodes.length - 1;
         if (traverseNew) {
           let keyShiftInLoop = 0;

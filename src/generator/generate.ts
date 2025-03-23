@@ -10,7 +10,7 @@ type OnigurumaRegex = {
 };
 type State = {
   inCharClass: boolean;
-  lastNode: Node;
+  lastNode: Node | null;
   parent: Node;
 };
 
@@ -19,9 +19,9 @@ Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
 */
 function generate(ast: OnigurumaAst): OnigurumaRegex {
   const parentStack: Array<Node> = [ast];
-  let lastNode: Node = null;
-  let parent: Node = null;
-  const state = {
+  let lastNode: Node | null = null;
+  let parent: Node = null!;
+  const state: State = {
     inCharClass: false,
     lastNode,
     parent,
@@ -40,9 +40,9 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
     const result = fn(node, state, gen);
     if (state.parent && getLastChild(state.parent) === node) {
       parentStack.pop();
-      state.parent = parentStack.at(-1);
+      state.parent = parentStack.at(-1)!; // Assuming array not empty
     }
-    return <OnigurumaRegex>result;
+    return result as OnigurumaRegex;
   }
   return gen(ast);
 }
@@ -51,8 +51,8 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
   Regex({pattern, flags}: RegexNode, _: State, gen: Gen): OnigurumaRegex {
     // Final result is an object; other node types return strings
     return {
-      pattern: <string>gen(pattern),
-      flags: <string>gen(flags),
+      pattern: gen(pattern) as string,
+      flags: gen(flags) as string,
     };
   },
 
@@ -99,11 +99,11 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     return `(${nameWrapper}${alternatives.map(gen).join('|')})`;
   },
 
-  Character(node: CharacterNode, {inCharClass, lastNode, parent}: State): string {
+  Character(node: CharacterNode, {inCharClass, lastNode, parent}: State & {parent: CharacterClassNode}): string {
     const {value} = node;
-    const escDigit = lastNode.type === NodeTypes.Backreference;
+    const escDigit = lastNode?.type === NodeTypes.Backreference;
     if (CharCodeEscapeMap.has(value)) {
-      return CharCodeEscapeMap.get(value);
+      return CharCodeEscapeMap.get(value)!;
     }
     if (
       // Control chars, etc.; condition modeled on the Chrome developer console's display for strings
@@ -204,9 +204,9 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
 
   Directive({kind, flags}: DirectiveNode): string {
     if (kind === NodeDirectiveKinds.flags) {
-      const {enable = {}, disable = {}} = flags;
-      const enableStr = getFlagsStr(<RegexFlags>enable);
-      const disableStr = getFlagsStr(<RegexFlags>disable);
+      const {enable = {}, disable = {}} = flags!;
+      const enableStr = getFlagsStr(enable as RegexFlags);
+      const disableStr = getFlagsStr(disable as RegexFlags);
       return (enableStr || disableStr) ? `(?${enableStr}${disableStr ? `-${disableStr}` : ''})` : '';
     }
     if (kind === NodeDirectiveKinds.keep) {
@@ -412,21 +412,21 @@ function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, 
   }`;
 }
 
-function getGroupPrefix(atomic: boolean, flagMods: FlagGroupModifiers) {
+function getGroupPrefix(atomic: GroupNode['atomic'], flagMods?: GroupNode['flags']): string {
   if (atomic) {
     return '>';
   }
   let mods = '';
   if (flagMods) {
     const {enable = {}, disable = {}} = flagMods;
-    const enableStr = getFlagsStr(<RegexFlags>enable);
-    const disableStr = getFlagsStr(<RegexFlags>disable);
+    const enableStr = getFlagsStr(enable as RegexFlags);
+    const disableStr = getFlagsStr(disable as RegexFlags);
     mods = `${enableStr}${disableStr ? `-${disableStr}` : ''}`;
   }
   return `${mods}:`;
 }
 
-function isDigitCharCode(value: number) {
+function isDigitCharCode(value: number): boolean {
   return value > 47 && value < 58;
 }
 

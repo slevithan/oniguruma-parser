@@ -18,8 +18,8 @@ const useShorthands = {
     if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'Decimal_Number' || value === 'Nd') &&
-        // [TODO] Also need to check whether these flags are set in local context, when the parser
-        // supports these flags on mode modifiers
+        // [TODO] Also need to check whether these flags are set in local context,
+        // when the parser supports these flags on mode modifiers
         !root.flags.digitIsAscii &&
         !root.flags.posixIsAscii
       ) ||
@@ -40,8 +40,8 @@ const useShorthands = {
     } else if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'White_Space' || value === 'WSpace') &&
-        // [TODO] Also need to check whether these flags are set in local context, when the parser
-        // supports these flags on mode modifiers
+        // [TODO] Also need to check whether these flags are set in local context,
+        // when the parser supports these flags on mode modifiers
         !root.flags.spaceIsAscii &&
         !root.flags.posixIsAscii
       ) ||
@@ -51,7 +51,7 @@ const useShorthands = {
     ) {
       newNode = createCharacterSet(NodeCharacterSetKinds.space, {negate});
     } else if (
-      parent.type !== NodeTypes.CharacterClass &&
+      parent?.type !== NodeTypes.CharacterClass &&
       kind === NodeCharacterSetKinds.property &&
       !negate &&
       value === 'Any'
@@ -97,8 +97,8 @@ const useShorthands = {
     }
     if (
       (has.unicodeL && has.unicodeM && has.unicodeN && has.unicodePc) &&
-      // [TODO] Also need to check whether these flags are set in local context, when the parser
-      // supports these flags on mode modifiers
+      // [TODO] Also need to check whether these flags are set in local context,
+      // when the parser supports these flags on mode modifiers
       !root.flags.wordIsAscii &&
       !root.flags.posixIsAscii
     ) {
@@ -121,8 +121,8 @@ function isRange(node: CharacterClassElementNode, min: number, max: number) {
 function isUnicode(
   node: CharacterClassElementNode,
   value: string | Array<string>,
-  options: {supercategories?: boolean; subcategories?: boolean;} = {}
-) {
+  options: {supercategories?: boolean; subcategories?: boolean} = {}
+): boolean {
   if (
     node.type !== NodeTypes.CharacterSet ||
     node.kind !== NodeCharacterSetKinds.property ||
@@ -131,23 +131,23 @@ function isUnicode(
     return false;
   }
   const names = Array.isArray(value) ? value : [value];
-  const expanded = [];
+  const expanded: Array<string> = [];
   for (const v of names) {
     expanded.push(v);
     if (fullNames.has(v)) {
-      expanded.push(fullNames.get(v));
+      expanded.push(fullNames.get(v)!); // TypeSystem fails on Map 6x
     }
     if (options.supercategories && supercategories.has(v)) {
-      expanded.push(supercategories.get(v));
-      if (fullNames.has(supercategories.get(v))) {
-        expanded.push(fullNames.get(supercategories.get(v)));
+      expanded.push(supercategories.get(v)!);
+      if (fullNames.has(supercategories.get(v)!)) {
+        expanded.push(fullNames.get(supercategories.get(v)!)!);
       }
     }
     if (options.subcategories && subcategories.has(v)) {
-      expanded.push(...subcategories.get(v));
+      expanded.push(...subcategories.get(v)!);
     }
   }
-  return expanded.includes(node.value);
+  return expanded.includes(node.value!); // Assuming value is string
 }
 
 const fullNames = new Map([

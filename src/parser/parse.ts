@@ -1,5 +1,6 @@
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
 import type {FlagGroupSwitches, RegexFlags, Token} from '../tokenizer/tokenize.js';
+import {OnigUnicodePropertyMap} from '../unicode.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
 
 const NodeTypes = {
@@ -131,7 +132,7 @@ type Context = {
   token: Token;
   tokens: Array<Token>;
   unicodePropertyMap: Map<string, string> | null;
-  walk: Function;
+  walk(parent: AlternativeNode | CharacterClassNode, state: State): Node; // TODO: How to link this directly to parse.walk?
 };
 
 type State = {
@@ -151,7 +152,7 @@ type ParserOptions = {
   skipBackrefValidation?: boolean;
   skipLookbehindValidation?: boolean;
   skipPropertyNameValidation?: boolean;
-  unicodePropertyMap?: Map<string, string>;
+  unicodePropertyMap?: typeof OnigUnicodePropertyMap;
 };
 function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
   const opts: Required<ParserOptions> = {
@@ -160,7 +161,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
     skipBackrefValidation: false,
     skipLookbehindValidation: false,
     skipPropertyNameValidation: false,
-    unicodePropertyMap: null,
+    unicodePropertyMap: null!, // Assuming we assign it in time
     ...options,
     rules: {
       captureGroup: false, // `ONIG_OPTION_CAPTURE_GROUP`
@@ -182,17 +183,17 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
     hasNumberedRef: false,
     namedGroupsByName: new Map(),
     normalizeUnknownPropertyNames: opts.normalizeUnknownPropertyNames,
-    parent: null,
+    parent: null!, // Assuming we assign it in time
     skipBackrefValidation: opts.skipBackrefValidation,
     skipLookbehindValidation: opts.skipLookbehindValidation,
     skipPropertyNameValidation: opts.skipPropertyNameValidation,
     subroutines: [],
-    token: null,
+    token: null!, // Assuming we assign it in time
     tokens: tokenized.tokens,
     unicodePropertyMap: opts.unicodePropertyMap,
     walk,
   };
-  function walk(parent: AlternativeNode | CharacterClassNode, state: State) {
+  function walk(parent: AlternativeNode | CharacterClassNode, state: State): Node {
     const token = tokenized.tokens[context.current];
     context.parent = parent;
     context.token = token;
@@ -207,7 +208,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
       case TokenTypes.Backreference:
         return parseBackreference(context);
       case TokenTypes.Character:
-        return createCharacter(<number>token.value, {useLastValid: !!state.isCheckingRangeEnd});
+        return createCharacter(token.value as number, {useLastValid: !!state.isCheckingRangeEnd});
       case TokenTypes.CharacterClassHyphen:
         return parseCharacterClassHyphen(context, state);
       case TokenTypes.CharacterClassOpen:
@@ -232,12 +233,12 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
   const ast = createRegex(createPattern(), createFlags(tokenized.flags));
   let top = ast.pattern.alternatives[0];
   while (context.current < tokenized.tokens.length) {
-    const node = <AlternativeNode | AlternativeElementNode>walk(top, {});
+    const node = walk(top, {});
     if (node.type === NodeTypes.Alternative) {
-      ast.pattern.alternatives.push(<AlternativeNode>node);
-      top = <AlternativeNode>node;
+      ast.pattern.alternatives.push(node);
+      top = node;
     } else {
-      top.elements.push(<AlternativeElementNode>node);
+      top.elements.push(node as AlternativeElementNode);
     }
   }
   // `context` updated by preceding `walk` loop
@@ -254,7 +255,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
       }
     } else if (!namedGroupsByName.has(ref)) {
       throw new Error(r`Subroutine uses a group name that's not defined "\g<${ref}>"`);
-    } else if (namedGroupsByName.get(ref).length > 1) {
+    } else if (namedGroupsByName.get(ref)!.length > 1) { // TypeSystem fails on Map
       throw new Error(r`Subroutine uses a duplicate group name "\g<${ref}>"`);
     }
   }
@@ -275,7 +276,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
 // Backrefs in Onig use multiplexing for duplicate group names (the rules can be complicated when
 // overlapping with subroutines), but a `Backreference`'s simple `ref` prop doesn't capture these
 // details so multiplexed ref pointers need to be derived when working with the AST
-function parseBackreference(context: Context) {
+function parseBackreference(context: Context): BackreferenceNode {
   const {raw} = context.token;
   const hasKWrapper = /^\\k[<']/.test(raw);
   const ref = hasKWrapper ? raw.slice(3, -1) : raw.slice(1);
@@ -310,7 +311,7 @@ function parseBackreference(context: Context) {
   if (hasKWrapper) {
     const numberedRef = /^(?<sign>-?)0*(?<num>[1-9]\d*)$/.exec(ref);
     if (numberedRef) {
-      return fromNum(+numberedRef.groups.num, !!numberedRef.groups.sign);
+      return fromNum(+numberedRef.groups!.num, !!numberedRef.groups!.sign);
     }
     // Invalid in a backref name even when valid in a group name
     if (/[-+]/.test(ref)) {
@@ -324,8 +325,8 @@ function parseBackreference(context: Context) {
   return fromNum(+ref);
 }
 
-function parseCharacterClassHyphen(context: Context, state: State) {
-  const {parent, tokens, walk} = context;
+function parseCharacterClassHyphen(context: Context, state: State): CharacterNode | CharacterClassRangeNode {
+  const {parent, tokens, walk} = context as Context & {parent: CharacterClassNode };
   const prevSiblingNode = parent.elements.at(-1);
   const nextToken = tokens[context.current];
   if (
@@ -352,7 +353,7 @@ function parseCharacterClassHyphen(context: Context, state: State) {
   return createCharacter(45);
 }
 
-function parseCharacterClassOpen(context: Context, state: State) {
+function parseCharacterClassOpen(context: Context, state: State): CharacterClassNode {
   const {token, tokens, walk} = context;
   const firstClassToken = tokens[context.current];
   const intersections = [createCharacterClass()];
@@ -363,8 +364,8 @@ function parseCharacterClassOpen(context: Context, state: State) {
       // Skip the intersector
       context.current++;
     } else {
-      const cc = intersections.at(-1);
-      cc.elements.push(walk(cc, state));
+      const cc = intersections.at(-1)!; // Assuming array not empty
+      cc.elements.push(walk(cc, state) as CharacterClassElementNode);
     }
     nextToken = throwIfUnclosedCharacterClass(tokens[context.current], firstClassToken);
   }
@@ -381,15 +382,15 @@ function parseCharacterClassOpen(context: Context, state: State) {
 }
 
 function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNameValidation, unicodePropertyMap}: Context) {
-  let {kind, negate, value} = token;
+  let {kind, negate, value} = token as Token & {kind: CharacterSetNode['kind']; value: string};
   if (kind === TokenCharacterSetKinds.property) {
-    const normalized = slug(<string>value);
+    const normalized = slug(value);
     // Don't treat as POSIX if it's in the provided list of Unicode property names
     if (PosixClassNames.has(normalized) && !unicodePropertyMap?.has(normalized)) {
       kind = TokenCharacterSetKinds.posix;
       value = normalized;
     } else {
-      return createUnicodeProperty(<string>value, {
+      return createUnicodeProperty(value, {
         negate,
         normalizeUnknownPropertyNames,
         skipPropertyNameValidation,
@@ -398,12 +399,12 @@ function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNa
     }
   }
   if (kind === TokenCharacterSetKinds.posix) {
-    return createPosixClass(<string>value, {negate});
+    return createPosixClass(value, {negate});
   }
-  return createCharacterSet(<UnnamedCharacterSetNode['kind']>kind, {negate});
+  return createCharacterSet(kind, {negate});
 }
 
-function parseGroupOpen(context: Context, state: State) {
+function parseGroupOpen(context: Context, state: State): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
   const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context;
   let node = createByGroupKind(token);
   const isAbsentFunction = node.type === NodeTypes.AbsentFunction;
@@ -429,13 +430,13 @@ function parseGroupOpen(context: Context, state: State) {
       // Skip the alternator
       context.current++;
     } else {
-      const alt = node.alternatives.at(-1);
+      const alt = node.alternatives.at(-1)!; // Assuming array not empty
       const child = walk(alt, {
         ...state,
         isInAbsentFunction: state.isInAbsentFunction || isAbsentFunction,
         isInLookbehind: state.isInLookbehind || isLookbehind,
         isInNegLookbehind: state.isInNegLookbehind || isNegLookbehind,
-      });
+      }) as AlternativeElementNode;
       alt.elements.push(child);
       // Centralized validation of lookbehind contents
       if ((isLookbehind || state.isInLookbehind) && !skipLookbehindValidation) {
@@ -446,8 +447,8 @@ function parseGroupOpen(context: Context, state: State) {
         if (isNegLookbehind || state.isInNegLookbehind) {
           // - Invalid: `(?=…)`, `(?!…)`, capturing groups
           // - Valid: `(?<=…)`, `(?<!…)`
-          if (
-            child.kind === NodeLookaroundAssertionKinds.lookahead ||
+          if ( // TODO: child.type === 'LookaroundAssertion' &&
+            (child as LookaroundAssertionNode).kind === NodeLookaroundAssertionKinds.lookahead ||
             child.type === NodeTypes.CapturingGroup
           ) {
             throw new Error(msg);
@@ -456,8 +457,8 @@ function parseGroupOpen(context: Context, state: State) {
           // - Invalid: `(?=…)`, `(?!…)`, `(?<!…)`
           // - Valid: `(?<=…)`, capturing groups
           if (
-            child.kind === NodeLookaroundAssertionKinds.lookahead ||
-            (child.kind === NodeLookaroundAssertionKinds.lookbehind && child.negate)
+            (child as LookaroundAssertionNode).kind === NodeLookaroundAssertionKinds.lookahead ||
+            ((child as LookaroundAssertionNode).kind === NodeLookaroundAssertionKinds.lookbehind && (child as LookaroundAssertionNode).negate)
           ) {
             throw new Error(msg);
           }
@@ -471,9 +472,10 @@ function parseGroupOpen(context: Context, state: State) {
   return node;
 }
 
-function parseQuantifier({token, parent}: Context) {
+function parseQuantifier(context: Context ): QuantifierNode {
+  const {token, parent} = context as Context & {parent: AlternativeNode};
   const {min, max, kind} = token;
-  const quantifiedNode = parent.elements.at(-1) as AlternativeElementNode;
+  const quantifiedNode = parent.elements.at(-1);
   if (
     !quantifiedNode ||
     quantifiedNode.type === NodeTypes.Assertion ||
@@ -484,8 +486,8 @@ function parseQuantifier({token, parent}: Context) {
   }
   const node = createQuantifier(
     quantifiedNode,
-    min,
-    max,
+    min!,
+    max!,
     throwIfNot(NodeQuantifierKinds[<keyof typeof NodeQuantifierKinds>kind], `Unexpected quantifier kind "${kind}"`)
   );
   parent.elements.pop();
@@ -520,19 +522,19 @@ function parseQuantifier({token, parent}: Context) {
 //   - Ex: With `(?<a>(?<b>[123]))\g<a>\g<a>(?<b>0)\k<b>`, the backref `\k<b>` can only match `0`
 //     or whatever was matched by the most recently matched subroutine. If you took out `(?<b>0)`,
 //     no multiplexing would occur.
-function parseSubroutine(context: Context) {
+function parseSubroutine(context: Context): SubroutineNode {
   const {token, capturingGroups, subroutines} = context;
   let ref: (string | number) = token.raw.slice(3, -1);
   const numberedRef = /^(?<sign>[-+]?)0*(?<num>[1-9]\d*)$/.exec(ref);
   if (numberedRef) {
-    const num = +numberedRef.groups.num;
+    const num = +numberedRef.groups!.num;
     const numCapturesToLeft = capturingGroups.length;
     context.hasNumberedRef = true;
     ref = {
       '': num,
       '+': numCapturesToLeft + num,
       '-': numCapturesToLeft + 1 - num,
-    }[numberedRef.groups.sign];
+    }[numberedRef.groups!.sign]!;
     if (ref < 1) {
       throw new Error('Invalid subroutine number');
     }
@@ -590,7 +592,8 @@ function createAssertion(kind: keyof typeof NodeAssertionKinds, options: {
   return node;
 }
 
-function createAssertionFromToken({kind}: Token) {
+function createAssertionFromToken(token: Token): AssertionNode {
+  const {kind} = token as Token & {kind: string};
   return createAssertion(
     throwIfNot({
       '^': NodeAssertionKinds.line_start,
@@ -603,7 +606,7 @@ function createAssertionFromToken({kind}: Token) {
       '\\Y': NodeAssertionKinds.grapheme_boundary,
       '\\z': NodeAssertionKinds.string_end,
       '\\Z': NodeAssertionKinds.string_end_newline,
-    }[kind], `Unexpected assertion kind "${kind}"`),
+    }[kind]!, `Unexpected assertion kind "${kind}"`),
     {negate: kind === r`\B` || kind === r`\Y`}
   );
 }
@@ -624,14 +627,14 @@ function createBackreference(ref: string | number, options?: {
   };
 }
 
-function createByGroupKind({flags, kind, name, negate, number}: Token) {
+function createByGroupKind({flags, kind, name, negate, number}: Token): AbsentFunctionNode | GroupNode | CapturingGroupNode | LookaroundAssertionNode {
   switch (kind) {
     case TokenGroupKinds.absent_repeater:
       return createAbsentFunction(NodeAbsentFunctionKinds.repeater);
     case TokenGroupKinds.atomic:
       return createGroup({atomic: true});
     case TokenGroupKinds.capturing:
-      return createCapturingGroup(number, name);
+      return createCapturingGroup(number as number, name as string);
     case TokenGroupKinds.group:
       return createGroup({flags});
     case TokenGroupKinds.lookahead:
@@ -783,7 +786,7 @@ function createDirective(kind: keyof typeof NodeDirectiveKinds, options?: {
   // the open group or pattern in it, because the flag modifier's effect might extend across
   // alternation. Ex: `a(?i)b|c` is equivalent to `a(?i:b)|(?i:c)`, not `a(?i:b|c)`
   if (kind === NodeDirectiveKinds.flags) {
-    node.flags = options.flags;
+    node.flags = options?.flags;
   }
   return node;
 }

@@ -28,7 +28,7 @@ const preventReDoS = {
     if (!hasOnlyChild(firstAlt, {type: NodeTypes.Quantifier})) {
       return;
     }
-    const nestedQuantifier = <QuantifierNode>firstAlt.elements[0];
+    const nestedQuantifier = firstAlt.elements[0] as QuantifierNode;
     if (
       // No benefit with possessive quantifiers
       nestedQuantifier.kind === NodeQuantifierKinds.possessive ||
