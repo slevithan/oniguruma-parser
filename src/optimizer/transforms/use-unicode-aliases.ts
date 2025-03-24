@@ -7,11 +7,11 @@ Use Unicode property aliases.
 */
 const useUnicodeAliases: Visitor = {
   CharacterSet(path: Path) {
-    const {node} = path as Path & {node: CharacterSetNode};
+    const {node} = path as Path<CharacterSetNode>;
     if (node.kind !== NodeCharacterSetKinds.property) {
       return;
     }
-    const alias = OnigUnicodeAliasMap.get(node.value!); // Assuming value is string
+    const alias = OnigUnicodeAliasMap.get(node.value);
     if (alias) {
       node.value = alias;
     }

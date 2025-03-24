@@ -12,7 +12,7 @@ const unnestUselessClasses: Visitor = {
     const {kind, negate, elements} = node as CharacterClassNode;
     if (
       // Don't use this to unwrap outermost classes; see `unwrapUselessClasses` for that
-      parent?.type !== NodeTypes.CharacterClass ||
+      parent!.type !== NodeTypes.CharacterClass ||
       kind !== NodeCharacterClassKinds.union ||
       !elements.length
     ) {

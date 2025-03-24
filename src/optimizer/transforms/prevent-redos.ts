@@ -8,7 +8,7 @@ Remove identified ReDoS vulnerabilities without changing matches.
 */
 const preventReDoS: Visitor = {
   Quantifier(path: Path){
-    const {node} = path as Path & {node: QuantifierNode};
+    const {node} = path as Path<QuantifierNode>;
     // Prevent a common cause of catastrophic backtracking by removing an unneeded nested
     // quantifier from the first alternative of infinitely-quantified groups. Can't remove nested
     // quantifiers from other alternatives or if the first alternative has more than one element,

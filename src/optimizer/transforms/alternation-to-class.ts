@@ -8,7 +8,7 @@ Use character classes for adjacent alternatives with single-length values.
 */
 const alternationToClass: Visitor = {
   '*'(path: Path) {
-    const {node} = path as Path & {node: AlternativeContainerNode};
+    const {node} = path as Path<AlternativeContainerNode>;
     if (!alternativeContainerTypes.has(node.type)) {
       return;
     }

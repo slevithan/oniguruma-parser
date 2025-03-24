@@ -12,7 +12,7 @@ Also works within groups.
 */
 const extractPrefix: Visitor = {
   '*'(path: Path){
-    const {node} = path as Path & {node: AlternativeContainerNode};
+    const {node} = path as Path<AlternativeContainerNode>;
     if (!alternativeContainerTypes.has(node.type) || node.alternatives.length < 2) {
       return;
     }
@@ -57,7 +57,7 @@ function isAllowedSimpleType(type: NodeType) {
 }
 
 // [TODO] Add support for more node types and move to `src/parser/`
-function isNodeEqual(a: Node, b: Node) {
+function isNodeEqual(a: Node, b: Node): boolean {
   if (a.type !== b.type) {
     return false;
   }

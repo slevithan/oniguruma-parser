@@ -1,8 +1,9 @@
 import {NodeTypes} from '../parser/parse.js';
 import type {Node, NodeType, OnigurumaAst, RegexNode} from '../parser/parse.js';
+import {throwIfNot} from '../utils.js';
 
-type Path = {
-  node: Node;
+type Path<T = Node> = {
+  node: T;
   parent: Node | null;
   key: number | string | null;
   container: Array<Node> | null;
@@ -35,11 +36,7 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
     parent: Path['parent'] = null,
     key: Path['key'] = null,
     container: Path['container'] = null
-  ) {
-    const keyIsNumber = typeof key === 'number';
-    if ((keyIsNumber && !container) || (!keyIsNumber && container)) { // XOR
-      throw new Error('Container expected with numeric key');
-    }
+  ): number {
     let keyShift = 0;
     let skipTraversingKidsOfPath = false;
     const path: Path = {
@@ -49,29 +46,25 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
       container,
       root: ast,
       remove() {
-        assertIsNumber(key);
-        container?.splice(Math.max(0, key + keyShift), 1);
+        arrayContainer(container).splice(Math.max(0, numericKey(key) + keyShift), 1);
         keyShift--;
         skipTraversingKidsOfPath = true;
       },
-      removeAllNextSiblings(): Array<Node> {
-        assertIsNumber(key);
-        return container!.splice(key + 1); // Assuming container is not undefined
+      removeAllNextSiblings() {
+        return arrayContainer(container).splice(numericKey(key) + 1);
       },
-      removeAllPrevSiblings(): Array<Node> {
-        assertIsNumber(key);
-        const shifted = key + keyShift;
+      removeAllPrevSiblings() {
+        const shifted = numericKey(key) + keyShift;
         keyShift -= shifted;
-        return container!.splice(0, Math.max(0, shifted)); // Assuming container is not undefined
+        return arrayContainer(container).splice(0, Math.max(0, shifted));
       },
       replaceWith(newNode, options = {}) {
         const traverseNew = !!options.traverse;
         if (container) {
-          assertIsNumber(key);
-          container[Math.max(0, key + keyShift)] = newNode;
+          container[Math.max(0, numericKey(key) + keyShift)] = newNode;
         } else {
           // @ts-expect-error
-          parent[key] = newNode;
+          throwIfNot(parent, `Can't replace root node`)[key] = newNode;
         }
         if (traverseNew) {
           traverseNode(newNode, parent, key, container);
@@ -80,13 +73,12 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
       },
       replaceWithMultiple(newNodes, options = {}) {
         const traverseNew = !!options.traverse;
-        assertIsNumber(key);
-        container?.splice(Math.max(0, key + keyShift), 1, ...newNodes);
+        arrayContainer(container).splice(Math.max(0, numericKey(key) + keyShift), 1, ...newNodes);
         keyShift += newNodes.length - 1;
         if (traverseNew) {
           let keyShiftInLoop = 0;
           for (let i = 0; i < newNodes.length; i++) {
-            keyShiftInLoop += traverseNode(newNodes[i], parent, key + i + keyShiftInLoop, container);
+            keyShiftInLoop += traverseNode(newNodes[i], parent, numericKey(key) + i + keyShiftInLoop, container);
           }
         }
         skipTraversingKidsOfPath = true;
@@ -140,7 +132,7 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
           traverseNode(node.element, node, 'element');
           break;
         default:
-          // @ts-expect-error
+          // @ts-expect-error `type` is `never` because all node types already handled
           throw new Error(`Unexpected node type "${node.type}"`);
       }
     }
@@ -154,10 +146,18 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
   traverseNode(ast);
 }
 
-function assertIsNumber(value: unknown): asserts value is number {
+function arrayContainer(value: unknown): Array<Node> {
+  if (!Array.isArray(value)) {
+    throw new Error('Container expected');
+  }
+  return value;
+}
+
+function numericKey(value: unknown): number {
   if (typeof value !== 'number') {
     throw new Error('Numeric key expected');
   }
+  return value;
 }
 
 export {

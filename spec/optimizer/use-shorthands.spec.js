@@ -119,7 +119,7 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
-  it(r`should use \w when possible`, () => {
+  it(r`should use \w when all conditions met`, () => {
     const cases = [
       [r`[\p{L}\p{M}\p{N}\p{Pc}]`, r`[\w]`],
       [r`[^\p{L}\p{M}\p{N}\p{Pc}]`, r`[^\w]`],
@@ -130,12 +130,26 @@ describe('Optimizer: useShorthands', () => {
     }
   });
 
+  it(r`should not use \w when not all conditions met`, () => {
+    const cases = [
+      [r`[\p{L}\p{M}\p{N}]`],
+      [r`[\p{LC}\p{M}\p{N}\p{Pc}]`],
+      [r`[\p{L}\p{M}\p{Nd}\p{Pc}]`, r`[\p{L}\p{M}\d\p{Pc}]`],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected ?? input);
+    }
+  });
+
   it(r`should handle Unicode name variations for \w`, () => {
     const cases = [
       // Full names of supercategories are supported
       [r`[\p{Letter}\p{Mark}\p{Number}\p{Pc}]`, r`[\w]`],
       // Supercategories of required subcategories are supported and not stripped
       [r`[\p{L}\p{M}\p{N}\p{P}]`, r`[\p{P}\w]`],
+      [r`[\p{L}\p{M}\p{N}\p{Punctuation}]`, r`[\p{Punctuation}\w]`],
+      // Peer categories are not stripped
+      [r`[\p{L}\p{M}\p{N}\p{Pd}\p{Pc}]`, r`[\p{Pd}\w]`],
       // Only including a subcategory of a required supercategory is not enough
       [r`[\p{Ll}\p{M}\p{N}\p{Pc}]`, r`[\p{Ll}\p{M}\p{N}\p{Pc}]`],
       // Negated categories don't count

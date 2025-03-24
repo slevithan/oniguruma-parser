@@ -25,11 +25,11 @@ const unwrapNegationWrappers: Visitor = {
       // Might unnest into a class or unwrap into a non-class
       replaceWith(kid);
     } else if (
-      parent?.type !== NodeTypes.CharacterClass &&
+      parent!.type !== NodeTypes.CharacterClass &&
       kid.type === NodeTypes.Character &&
       kid.value === 10 // '\n'
     ) {
-      if (parent?.type === NodeTypes.Quantifier && parent.kind !== NodeQuantifierKinds.lazy) {
+      if (parent!.type === NodeTypes.Quantifier && parent.kind !== NodeQuantifierKinds.lazy) {
         // Avoid introducing a trigger for an Oniguruma bug; see <github.com/rosshamish/kuskus/issues/209>
         return;
       }

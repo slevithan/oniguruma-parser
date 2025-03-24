@@ -27,7 +27,7 @@ function parse(
     skipBackrefValidation?: boolean;
     skipLookbehindValidation?: boolean;
     skipPropertyNameValidation?: boolean;
-    unicodePropertyMap?: Map<string, string>?;
+    unicodePropertyMap?: Map<string, string> | null;
   }
 ): OnigurumaAst;
 ```

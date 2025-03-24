@@ -16,8 +16,7 @@ const useUnicodeProps: Visitor = {
     if (
       kind === NodeCharacterSetKinds.posix &&
       value === 'cntrl' &&
-      // [TODO] Also need to check whether this flag is set in local context, when the parser
-      // supports this flag on mode modifiers
+      // [TODO] Also check local context, after the parser supports this flag on mode modifiers
       !root.flags.posixIsAscii
     ) {
       newNode = createUnicodeProperty('Cc', {negate});
@@ -28,8 +27,7 @@ const useUnicodeProps: Visitor = {
     }
   },
 
-  CharacterClassRange(path: Path) {
-    const {node, replaceWith} = path as Path & {node: CharacterClassRangeNode};
+  CharacterClassRange({node, replaceWith}: Path) {
     if (isRange(node, 0, 0x10FFFF)) {
       replaceWith(createUnicodeProperty('Any'));
     }

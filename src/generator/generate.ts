@@ -1,5 +1,5 @@
 import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes} from '../parser/parse.js';
-import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterNode, CharacterClassNode, CharacterClassRangeNode, CharacterSetNode, DirectiveNode, FlagGroupModifiers, FlagsNode, GroupNode, LookaroundAssertionNode, Node, NodeType, OnigurumaAst, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
+import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterNode, CharacterClassNode, CharacterClassRangeNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, NodeType, OnigurumaAst, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNot} from '../utils.js';
 
@@ -10,8 +10,8 @@ type OnigurumaRegex = {
 };
 type State = {
   inCharClass: boolean;
-  lastNode: Node | null;
-  parent: Node;
+  lastNode: Node | null; // `null` for root node
+  parent: Node | null; // `null` for root node
 };
 
 /**
@@ -19,8 +19,8 @@ Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
 */
 function generate(ast: OnigurumaAst): OnigurumaRegex {
   const parentStack: Array<Node> = [ast];
-  let lastNode: Node | null = null;
-  let parent: Node = null!;
+  let lastNode: State['lastNode'] = null;
+  let parent: State['parent'] = null;
   const state: State = {
     inCharClass: false,
     lastNode,
@@ -40,7 +40,8 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
     const result = fn(node, state, gen);
     if (state.parent && getLastChild(state.parent) === node) {
       parentStack.pop();
-      state.parent = parentStack.at(-1)!; // Assuming array not empty
+      // Always at least the root node in the stack
+      state.parent = parentStack.at(-1)!;
     }
     return result as OnigurumaRegex;
   }
@@ -100,13 +101,13 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
 
   CapturingGroup(node: Node, _: State, gen: Gen): string {
     const {name, alternatives} = node as CapturingGroupNode;
-    const nameWrapper = name ? `?${name.includes('>') ? `'${name}'` : `<${name}>`}` : '';
-    return `(${nameWrapper}${alternatives.map(gen).join('|')})`;
+    const enclosedName = name ? `?${name.includes('>') ? `'${name}'` : `<${name}>`}` : '';
+    return `(${enclosedName}${alternatives.map(gen).join('|')})`;
   },
 
   Character(node: Node, {inCharClass, lastNode, parent}: State): string {
     const {value} = node as CharacterNode;
-    const escDigit = lastNode?.type === NodeTypes.Backreference;
+    const escDigit = lastNode!.type === NodeTypes.Backreference;
     if (CharCodeEscapeMap.has(value)) {
       return CharCodeEscapeMap.get(value)!;
     }
@@ -126,7 +127,7 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     const char = cp(value);
     let escape = false;
     if (inCharClass) {
-      const isDirectClassKid = parent.type === NodeTypes.CharacterClass;
+      const isDirectClassKid = parent!.type === NodeTypes.CharacterClass;
       const isFirst = isDirectClassKid && parent.elements[0] === node;
       const isLast = isDirectClassKid && parent.elements.at(-1) === node;
       // Avoid escaping in some optional special cases when escaping isn't needed due to position
@@ -151,7 +152,7 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     const {kind, negate, elements} = node as CharacterClassNode;
     function genClass() {
       if (
-        state.parent.type === NodeTypes.CharacterClass &&
+        state.parent!.type === NodeTypes.CharacterClass &&
         state.parent.kind === NodeCharacterClassKinds.intersection &&
         kind === NodeCharacterClassKinds.union &&
         !elements.length
@@ -214,8 +215,8 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     const {kind, flags} = node as DirectiveNode;
     if (kind === NodeDirectiveKinds.flags) {
       const {enable = {}, disable = {}} = flags!;
-      const enableStr = getFlagsStr(enable as RegexFlags);
-      const disableStr = getFlagsStr(disable as RegexFlags);
+      const enableStr = getFlagsStr(enable);
+      const disableStr = getFlagsStr(disable);
       return (enableStr || disableStr) ? `(?${enableStr}${disableStr ? `-${disableStr}` : ''})` : '';
     }
     if (kind === NodeDirectiveKinds.keep) {
@@ -263,19 +264,12 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     if (min > max) {
       throw new Error(`Invalid quantifier: min "${min}" > max "${max}"`);
     }
-    function isSymbolCandidate({min, max}: QuantifierNode): boolean {
-      return (
-        (!min && max === 1) || // `?`
-        (!min && max === Infinity) || // `*`
-        (min === 1 && max === Infinity) // `+`
-      );
-    }
     const kidIsGreedyQuantifier = (
       element.type === NodeTypes.Quantifier &&
       element.kind === NodeQuantifierKinds.greedy
     );
     const parentIsPossessivePlus = (
-      parent.type === NodeTypes.Quantifier &&
+      parent!.type === NodeTypes.Quantifier &&
       parent.kind === NodeQuantifierKinds.possessive &&
       parent.min === 1 &&
       parent.max === Infinity
@@ -287,7 +281,7 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     // is also safe since it can use the alternative `{1,0}` representation (which is possessive)
     const forcedInterval = kind === NodeQuantifierKinds.greedy && parentIsPossessivePlus;
     let base;
-    if (isSymbolCandidate(node as QuantifierNode) && !forcedInterval) {
+    if (isSymbolQuantifierCandidate(node as QuantifierNode) && !forcedInterval) {
       if (
         !min && max === 1 &&
         // Can't chain a base of `?` to any greedy quantifier since that would make it lazy
@@ -298,9 +292,8 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
         base = '*';
       } else if (
         min === 1 && max === Infinity &&
-        (
-          // Can't chain a base of `+` to greedy `?`/`*`/`+` since that would make them possessive
-          !(kidIsGreedyQuantifier && isSymbolCandidate(element)) ||
+        ( // Can't chain a base of `+` to greedy `?`/`*`/`+` since that would make them possessive
+          !(kidIsGreedyQuantifier && isSymbolQuantifierCandidate(element)) ||
           // ...but, we're forced to use `+` (and change the kid's rendering) if this is possessive
           // `++` since you can't use a possessive reversed range with `Infinity`
           kind === NodeQuantifierKinds.possessive
@@ -407,7 +400,7 @@ function getLastChild(node: Node) {
   return null;
 }
 
-function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}: RegexFlags): string {
+function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, spaceIsAscii, wordIsAscii}: Partial<RegexFlags>): string {
   return `${
     ignoreCase ? 'i' : ''
   }${
@@ -425,15 +418,15 @@ function getFlagsStr({ignoreCase, dotAll, extended, digitIsAscii, posixIsAscii, 
   }`;
 }
 
-function getGroupPrefix(atomic: GroupNode['atomic'], flagMods?: GroupNode['flags']): string {
+function getGroupPrefix(atomic: GroupNode['atomic'], flags?: GroupNode['flags']): string {
   if (atomic) {
     return '>';
   }
   let mods = '';
-  if (flagMods) {
-    const {enable = {}, disable = {}} = flagMods;
-    const enableStr = getFlagsStr(enable as RegexFlags);
-    const disableStr = getFlagsStr(disable as RegexFlags);
+  if (flags) {
+    const {enable = {}, disable = {}} = flags;
+    const enableStr = getFlagsStr(enable);
+    const disableStr = getFlagsStr(disable);
     mods = `${enableStr}${disableStr ? `-${disableStr}` : ''}`;
   }
   return `${mods}:`;
@@ -441,6 +434,14 @@ function getGroupPrefix(atomic: GroupNode['atomic'], flagMods?: GroupNode['flags
 
 function isDigitCharCode(value: number): boolean {
   return value > 47 && value < 58;
+}
+
+function isSymbolQuantifierCandidate({min, max}: QuantifierNode): boolean {
+  return (
+    (!min && max === 1) || // `?`
+    (!min && max === Infinity) || // `*`
+    (min === 1 && max === Infinity) // `+`
+  );
 }
 
 export {

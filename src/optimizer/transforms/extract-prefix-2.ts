@@ -11,7 +11,7 @@ Also works within groups.
 */
 const extractPrefix2: Visitor = {
   '*'(path: Path) {
-    const {node} = path as Path & {node: AlternativeContainerNode};
+    const {node} = path as Path<AlternativeContainerNode>;
     if (!alternativeContainerTypes.has(node.type)) {
       return;
     }
@@ -31,7 +31,7 @@ const extractPrefix2: Visitor = {
           if (
             !nextNode ||
             !isAllowedSimpleType(nextNode.type) ||
-            !isPrefixNodeShared(nextNode, node.alternatives, {prefixI, nodeI, numDiffPrefixes})
+            !isPrefixNodeShared(nextNode, node.alternatives, prefixI, nodeI, numDiffPrefixes)
           ) {
             prefixIsFinishedByI[prefixI] = true;
           } else {
@@ -92,8 +92,10 @@ const extractPrefix2: Visitor = {
 function isPrefixNodeShared(
   node: AlternativeElementNode,
   alts: Array<AlternativeNode>,
-  {prefixI, nodeI, numDiffPrefixes}: {prefixI: number; nodeI: number; numDiffPrefixes: number}
-) {
+  prefixI: number,
+  nodeI: number,
+  numDiffPrefixes: number
+): boolean {
   for (let i = prefixI; i < alts.length; i += numDiffPrefixes) {
     const alt = alts[i];
     const bNode = alt.elements[nodeI];

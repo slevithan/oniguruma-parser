@@ -1,5 +1,5 @@
 import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
-import type {CharacterClassElementNode, CharacterClassNode, CharacterSetNode} from '../../parser/parse.js';
+import type {CharacterClassNode, CharacterSetNode, Node} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
@@ -18,8 +18,7 @@ const useShorthands: Visitor = {
     if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'Decimal_Number' || value === 'Nd') &&
-        // [TODO] Also need to check whether these flags are set in local context,
-        // when the parser supports these flags on mode modifiers
+        // [TODO] Also check local context, after the parser supports these flags on mode modifiers
         !root.flags.digitIsAscii &&
         !root.flags.posixIsAscii
       ) ||
@@ -40,8 +39,7 @@ const useShorthands: Visitor = {
     } else if (
       ( kind === NodeCharacterSetKinds.property &&
         (value === 'White_Space' || value === 'WSpace') &&
-        // [TODO] Also need to check whether these flags are set in local context,
-        // when the parser supports these flags on mode modifiers
+        // [TODO] Also check local context, after the parser supports these flags on mode modifiers
         !root.flags.spaceIsAscii &&
         !root.flags.posixIsAscii
       ) ||
@@ -51,7 +49,7 @@ const useShorthands: Visitor = {
     ) {
       newNode = createCharacterSet(NodeCharacterSetKinds.space, {negate});
     } else if (
-      parent?.type !== NodeTypes.CharacterClass &&
+      parent!.type !== NodeTypes.CharacterClass &&
       kind === NodeCharacterSetKinds.property &&
       !negate &&
       value === 'Any'
@@ -65,7 +63,7 @@ const useShorthands: Visitor = {
   },
 
   CharacterClass(path: Path) {
-    const {node, root} = path as Path & {node: CharacterClassNode};
+    const {node, root} = path as Path<CharacterClassNode>;
     if (node.kind !== NodeCharacterClassKinds.union) {
       return;
     }
@@ -87,7 +85,7 @@ const useShorthands: Visitor = {
         has.unicodeL ||= isUnicode(kid, 'L');
         has.unicodeM ||= isUnicode(kid, 'M');
         has.unicodeN ||= isUnicode(kid, 'N');
-        has.unicodePc ||= isUnicode(kid, 'Pc', {supercategories: true});
+        has.unicodePc ||= isUnicode(kid, 'Pc', {includeSupercategories: true});
       }
     }
     if (has.rangeDigit0To9 && has.rangeAToFUpper && has.rangeAToFLower) {
@@ -98,20 +96,19 @@ const useShorthands: Visitor = {
     }
     if (
       (has.unicodeL && has.unicodeM && has.unicodeN && has.unicodePc) &&
-      // [TODO] Also need to check whether these flags are set in local context,
-      // when the parser supports these flags on mode modifiers
+      // [TODO] Also check local context, after the parser supports these flags on mode modifiers
       !root.flags.wordIsAscii &&
       !root.flags.posixIsAscii
     ) {
       node.elements = node.elements.filter(kid => !isUnicode(kid, ['L', 'M', 'N', 'Pc'], {
-        subcategories: true,
+        includeSubcategories: true,
       }));
       node.elements.push(createCharacterSet(NodeCharacterSetKinds.word));
     }
   },
 };
 
-function isRange(node: CharacterClassElementNode, min: number, max: number) {
+function isRange(node: Node, min: number, max: number): boolean {
   return (
     node.type === NodeTypes.CharacterClassRange &&
     node.min.value === min &&
@@ -120,9 +117,9 @@ function isRange(node: CharacterClassElementNode, min: number, max: number) {
 }
 
 function isUnicode(
-  node: CharacterClassElementNode,
+  node: Node,
   value: string | Array<string>,
-  options: {supercategories?: boolean; subcategories?: boolean} = {}
+  options: {includeSupercategories?: boolean; includeSubcategories?: boolean} = {}
 ): boolean {
   if (
     node.type !== NodeTypes.CharacterSet ||
@@ -135,38 +132,44 @@ function isUnicode(
   const expanded: Array<string> = [];
   for (const v of names) {
     expanded.push(v);
-    if (fullNames.has(v)) {
-      expanded.push(fullNames.get(v)!); // TypeSystem fails on Map 6x
+    const supercategoryFullName = categories[v as SupercategoryShortName]?.full;
+    const supercategoryShortName = supercategories[v as SubcategoryShortName];
+    const subcategoryShortNames = categories[v as SupercategoryShortName]?.sub;
+    if (supercategoryFullName) {
+      expanded.push(supercategoryFullName);
     }
-    if (options.supercategories && supercategories.has(v)) {
-      expanded.push(supercategories.get(v)!);
-      if (fullNames.has(supercategories.get(v)!)) {
-        expanded.push(fullNames.get(supercategories.get(v)!)!);
+    if (options.includeSupercategories && supercategoryShortName) {
+      expanded.push(supercategoryShortName);
+      const resolvedSupercategoryFullName = categories[supercategoryShortName].full;
+      if (resolvedSupercategoryFullName) {
+        expanded.push(resolvedSupercategoryFullName);
       }
     }
-    if (options.subcategories && subcategories.has(v)) {
-      expanded.push(...subcategories.get(v)!);
+    if (options.includeSubcategories && subcategoryShortNames) {
+      expanded.push(...subcategoryShortNames);
     }
   }
-  return expanded.includes(node.value!); // Assuming value is string
+  return expanded.includes(node.value);
 }
 
-const fullNames = new Map([
-  ['L', 'Letter'],
-  ['M', 'Mark'],
-  ['N', 'Number'],
-  ['P', 'Punctuation'],
-]);
-
-const subcategories = new Map([
-  ['L', ['Ll', 'Lm', 'Lo', 'Lt', 'Lu']],
-  ['M', ['Mc', 'Me', 'Mn']],
-  ['N', ['Nd', 'Nl', 'No']],
-]);
-
-const supercategories = new Map([
-  ['Pc', 'P'],
-]);
+type SupercategoryShortName = 'L' | 'M' | 'N' | 'P';
+type SubcategoryShortName = typeof subL[number] | typeof subM[number] | typeof subN[number] | typeof subP[number];
+const subL = ['Ll', 'Lm', 'Lo', 'Lt', 'Lu'] as const;
+const subM = ['Mc', 'Me', 'Mn'] as const;
+const subN = ['Nd', 'Nl', 'No'] as const;
+const subP = ['Pc', 'Pd', 'Pe', 'Pf', 'Pi', 'Po', 'Ps'] as const;
+const categories: {[key in SupercategoryShortName]: {full: string; sub: ReadonlyArray<SubcategoryShortName>}} = {
+  L: {full: 'Letter', sub: subL},
+  M: {full: 'Mark', sub: subM},
+  N: {full: 'Number', sub: subN},
+  P: {full: 'Punctuation', sub: subP},
+};
+const supercategories = {} as {[key in SubcategoryShortName]: SupercategoryShortName};
+for (const key of Object.keys(categories) as Array<SupercategoryShortName>) {
+  for (const sub of categories[key].sub) {
+    supercategories[sub] = key;
+  }
+}
 
 export {
   isRange,

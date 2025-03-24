@@ -7,7 +7,7 @@ Remove duplicate characters, sets, and ranges from character classes.
 */
 const dedupeClasses: Visitor = {
   CharacterClass(path: Path) {
-    const {node} = path as Path & {node: CharacterClassNode};
+    const {node} = path as Path<CharacterClassNode>;
     const {kind, elements} = node;
     if (kind !== NodeCharacterClassKinds.union) {
       return;

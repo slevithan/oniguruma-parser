@@ -1,4 +1,3 @@
-import type {FlagGroupModifiers} from '../parser/parse.js';
 import {PosixClassNames, r} from '../utils.js';
 
 const TokenTypes = {
@@ -132,6 +131,11 @@ type RegexFlags = {
   wordIsAscii: boolean;
 };
 
+type FlagGroupModifiers = {
+  enable?: FlagGroupSwitches;
+  disable?: FlagGroupSwitches;
+};
+
 type FlagGroupSwitches = {
   ignoreCase?: true;
   dotAll?: true;
@@ -193,7 +197,8 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
   const xStack = [flagsObj.extended];
   const context: Context = {
     captureGroup: opts.rules.captureGroup,
-    getCurrentModX(): boolean {return xStack.at(-1)!},
+    // Always at least has the top-level flag x
+    getCurrentModX() {return xStack.at(-1)!},
     numOpenGroups: 0,
     popModX() {xStack.pop()},
     pushModX(isXOn) {xStack.push(isXOn)},
@@ -246,24 +251,17 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
 }
 
 function getTokenWithDetails(context: Context, pattern: string, m: string, lastIndex: number): {
-  // Array of all of the char class's tokens
+  token?: never;
   tokens: Array<Token>;
-  // Jump forward to the end of the char class
-  lastIndex: number; token?: undefined;
+  lastIndex?: number;
 } | {
   token: Token;
-  tokens?: undefined;
-  // Jump forward to after the closing paren
-  lastIndex?: undefined;
+  tokens?: never;
+  lastIndex?: number;
 } | {
-  tokens: Array<Token>;
-  // Jump forward to after the closing paren
-  lastIndex?: undefined; token?: undefined;
-} | {
-  // Jump forward to after the closing paren
+  token?: never;
+  tokens?: never;
   lastIndex: number;
-  tokens?: undefined;
-  token?: undefined;
 } {
   const [m0, m1] = m;
 
@@ -439,22 +437,24 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     };
   }
 
-  if (m === '#' && context.getCurrentModX()) {
-    // Onig's only line break char is line feed
-    const end = pattern.indexOf('\n', lastIndex);
-    return {
-      // Jump forward to the end of the comment
-      lastIndex: end === -1 ? pattern.length : end,
-    };
-  }
-  if (/^\s$/.test(m) && context.getCurrentModX()) {
-    const re = /\s+/y;
-    re.lastIndex = lastIndex;
-    const rest = re.exec(pattern);
-    return {
-      // Jump forward to the end of the whitespace
-      lastIndex: rest ? re.lastIndex : lastIndex,
-    };
+  if (context.getCurrentModX()) {
+    if (m === '#') {
+      // Onig's only line break char is line feed
+      const end = pattern.indexOf('\n', lastIndex);
+      return {
+        // Jump forward to the end of the comment
+        lastIndex: end === -1 ? pattern.length : end,
+      };
+    }
+    if (/^\s$/.test(m)) {
+      const re = /\s+/y;
+      re.lastIndex = lastIndex;
+      const rest = re.exec(pattern);
+      return {
+        // Jump forward to the end of the whitespace
+        lastIndex: rest ? re.lastIndex : lastIndex,
+      };
+    }
   }
 
   if (m === '.') {
@@ -497,7 +497,10 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
   };
 }
 
-function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: number): {tokens: Array<Token>; lastIndex: number} {
+function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: number): {
+  tokens: Array<Token>;
+  lastIndex: number;
+} {
   const tokens = [createToken(TokenTypes.CharacterClassOpen, opener, {
     negate: opener[1] === '^',
   })];
@@ -514,7 +517,8 @@ function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: nu
         negate: m[1] === '^',
       }));
     } else if (m === ']') {
-      if (tokens.at(-1)?.type === TokenTypes.CharacterClassOpen) {
+      // Always at least includes the char class opener
+      if (tokens.at(-1)!.type === TokenTypes.CharacterClassOpen) {
         // Allow unescaped `]` as leading char
         tokens.push(createToken(TokenTypes.Character, m, {
           value: 93,
@@ -714,8 +718,7 @@ function createTokenForQuantifier(raw: string): Token {
   if (raw[0] === '{') {
     const {min, max} = /^\{(?<min>\d*)(?:,(?<max>\d*))?/.exec(raw)!.groups as {min: string, max: string | undefined};
     const limit = 100_000;
-    // @ts-expect-error +undefined is NaN
-    if (+min > limit || +max > limit) {
+    if (+min > limit || (max && +max > limit)) {
       throw new Error('Quantifier value unsupported in Oniguruma');
     }
     data.min = +min;
@@ -745,7 +748,7 @@ function createTokenForShorthandCharClass(raw: string): Token {
   });
 }
 
-function createTokenForUnicodeProperty(raw: string) {
+function createTokenForUnicodeProperty(raw: string): Token {
   const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw)!.groups!;
   const negate = (p === 'P' && !neg) || (p === 'p' && !!neg);
   return createToken(TokenTypes.CharacterSet, raw, {
@@ -785,7 +788,7 @@ function getFlagsObj(flags: string): RegexFlags {
     wordIsAscii: false,
   };
   for (const char of flags) {
-    flagsObj[<keyof RegexFlags>{
+    flagsObj[{
       i: 'ignoreCase',
       // Flag m is called `multiline` in Onig, but that has a different meaning in JS. Onig flag m
       // is equivalent to JS flag s
@@ -797,7 +800,7 @@ function getFlagsObj(flags: string): RegexFlags {
       P: 'posixIsAscii',
       S: 'spaceIsAscii',
       W: 'wordIsAscii',
-    }[char]] = true;
+    }[char] as keyof RegexFlags] = true;
   }
   return flagsObj;
 }
@@ -805,13 +808,14 @@ function getFlagsObj(flags: string): RegexFlags {
 // - Unenclosed `\xNN` above 0x7F is handled elsewhere as a UTF-8 encoded byte sequence
 // - Enclosed `\x{}` with value above 0x10FFFF is allowed here; handled in the parser
 function getValidatedHexCharCode(raw: string): number {
-  // Note: Onig (tested 6.9.8) has a bug where bare `\u` and `\x` are identity escapes if they
+  // Note: Onig (v6.9.8 tested) has a bug where bare `\u` and `\x` are identity escapes if they
   // appear at the very end of the pattern, so e.g. `\u` matches `u`, but `\u0`, `\u.`, and `[\u]`
   // are all errors, and `\x.` and `[\x]` aren't errors but instead the `\x` is equivalent to `\0`.
-  // Don't emulate these bugs (see #21), and just treat these cases as errors. Also, Onig treats
-  // incomplete `\x{` (with the brace and not immediately followed by a hex digit) as an identity
-  // escape, so e.g. `\x{` matches `x{` and `^\x{,2}$` matches `xx`, but `\x{2,}` and `\x{0,2}` are
-  // errors. Don't emulate this pointless ambiguity; just treat incomplete `\x{` as an error
+  // Don't emulate these bugs (see <github.com/slevithan/oniguruma-to-es/issues/21>), and just
+  // treat these cases as errors. Also, Onig treats incomplete `\x{` (with the brace and not
+  // immediately followed by a hex digit) as an identity escape, so e.g. `\x{` matches `x{` and
+  // `^\x{,2}$` matches `xx`, but `\x{2,}` and `\x{0,2}` are errors. Don't implement this pointless
+  // ambiguity; just treat incomplete `\x{` as an error
   if (/^(?:\\u(?!\p{AHex}{4})|\\x(?!\p{AHex}{1,2}|\{\p{AHex}{1,8}\}))/u.test(raw)) {
     throw new Error(`Incomplete or invalid escape "${raw}"`);
   }
@@ -876,6 +880,7 @@ export {
   TokenGroupKinds,
   TokenQuantifierKinds,
   TokenTypes,
+  type FlagGroupModifiers,
   type FlagGroupSwitches,
   type RegexFlags,
   type Token,

@@ -6,9 +6,11 @@ import {OnigUnicodePropertyMap} from '../unicode.js';
 import {optimizations} from './optimizations.js';
 import type {OptimizationName} from './optimizations.js';
 
+type OptimizationStates = {[key in OptimizationName]: boolean};
+
 type OptimizerOptions = {
   flags?: string;
-  override?: {[key in OptimizationName]?: boolean};
+  override?: Partial<OptimizationStates>;
   rules?: {
     allowOrphanBackrefs?: boolean;
     captureGroup?: boolean;
@@ -31,12 +33,12 @@ function optimize(pattern: string, options?: OptimizerOptions): OnigurumaRegex {
     unicodePropertyMap: OnigUnicodePropertyMap,
   });
   const active = Object.assign(getOptionalOptimizations(), opts.override);
-  (Object.keys(active) as Array<OptimizationName>).forEach((key: OptimizationName) => {
+  for (const key of optimizations.keys()) {
     if (!active[key]) {
       delete active[key];
     }
-  });
-  const names = <Array<OptimizationName>>Object.keys(active);
+  }
+  const names = Object.keys(active) as Array<OptimizationName>;
   let optimized: OnigurumaRegex = {pattern, flags: opts.flags};
   let counter = 0;
   do {
@@ -45,7 +47,7 @@ function optimize(pattern: string, options?: OptimizerOptions): OnigurumaRegex {
     }
     pattern = optimized.pattern;
     for (const name of names) {
-      traverse(ast, optimizations.get(name)!); // TypeSystem fails on Map
+      traverse(ast, optimizations.get(name)!);
     }
     optimized = generate(ast);
   } while (
@@ -55,7 +57,7 @@ function optimize(pattern: string, options?: OptimizerOptions): OnigurumaRegex {
   return optimized;
 }
 
-function getOptions(options: OptimizerOptions = {}) {
+function getOptions(options: OptimizerOptions = {}): Required<OptimizerOptions> {
   return {
     // Oniguruma flags; a string with `imxDPSW` in any order (all optional). Oniguruma's `m` is
     // equivalent to JavaScript's `s` (`dotAll`).
@@ -77,14 +79,12 @@ function getOptions(options: OptimizerOptions = {}) {
   };
 }
 
-type OptimizationNames = {[key in OptimizationName]: boolean};
-
-function getOptionalOptimizations({disable}: {disable?: boolean} = {}) {
-  const obj: Partial<OptimizationNames> = {};
+function getOptionalOptimizations({disable}: {disable?: boolean} = {}): OptimizationStates {
+  const obj = {} as OptimizationStates;
   for (const key of optimizations.keys()) {
     obj[key] = !disable;
   }
-  return obj as OptimizationNames;
+  return obj;
 }
 
 export {
