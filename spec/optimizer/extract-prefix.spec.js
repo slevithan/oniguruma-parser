@@ -22,7 +22,21 @@ describe('Optimizer: extractPrefix', () => {
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
-      expect(thisOptimization(`(${input})`)).toBe(`(${expected})`);
+    }
+  });
+
+  it('should apply within groups', () => {
+    const cases = [
+      ['(aa|ab)', '(a(?:a|b))'],
+      ['(?<n>aa|ab)', '(?<n>a(?:a|b))'],
+      ['(?:aa|ab)', '(?:a(?:a|b))'],
+      ['(?i:aa|ab)', '(?i:a(?:a|b))'],
+      ['(?>aa|ab)', '(?>a(?:a|b))'],
+      ['(?=aa|ab)', '(?=a(?:a|b))'],
+      ['(?~aa|ab)', '(?~a(?:a|b))'],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
     }
   });
 
