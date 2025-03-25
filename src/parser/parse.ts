@@ -591,7 +591,7 @@ type AssertionNode = {
   kind: keyof typeof NodeAssertionKinds;
   negate?: boolean;
 };
-function createAssertion(kind: keyof typeof NodeAssertionKinds, options: {
+function createAssertion(kind: keyof typeof NodeAssertionKinds, options?: {
   negate?: boolean;
 }): AssertionNode {
   const node: AssertionNode = {

@@ -31,16 +31,38 @@ type State = {
 } | null;
 ```
 
-> **Note:** `VisitorNode() {…}` is shorthand for `VisitorNode: {enter() {…}}`.
+> **Note:** `VisitorNode() {…}` is shorthand for `VisitorNode: {enter() {…}}`. Type `Path` contains a variety of properties (`node`, `parent`, etc.) and methods (`remove`, `replaceWith`, etc.).
 
 ## Examples
 
 ### Add a `parent` property to every node
 
 ```js
+import {traverse} from 'oniguruma-parser/traverser';
+
 traverse(ast, {
   '*'({node, parent}) {
     node.parent = parent;
+  },
+});
+```
+
+### Swap all `^` and `.` nodes
+
+```js
+import {traverse} from 'oniguruma-parser/traverser';
+import {createAssertion, createCharacterSet} from 'oniguruma-parser/parser';
+
+traverse(ast, {
+  Assertion({node, replaceWith}) {
+    if (node.kind === 'line_start') {
+      replaceWith(createCharacterSet('dot'));
+    }
+  },
+  CharacterSet({node, replaceWith}) {
+    if (node.kind === 'dot') {
+      replaceWith(createAssertion('line_start'));
+    }
   },
 });
 ```
