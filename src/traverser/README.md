@@ -26,9 +26,7 @@ type Visitor = {
 
 type VisitorNode = (path: Path, state: State) => void;
 
-type State = {
-  [key: string]: any;
-} | null;
+type State = {[key: string]: any};
 ```
 
 > **Note:** `VisitorNode() {…}` is shorthand for `VisitorNode: {enter() {…}}`. Type `Path` contains a variety of properties (`node`, `parent`, etc.) and methods (`remove`, `replaceWith`, etc.).
@@ -38,8 +36,10 @@ type State = {
 ### Add a `parent` property to every node
 
 ```js
+import {toOnigurumaAst} from 'oniguruma-parser';
 import {traverse} from 'oniguruma-parser/traverser';
 
+const ast = toOnigurumaAst('^.');
 traverse(ast, {
   '*'({node, parent}) {
     node.parent = parent;
@@ -47,21 +47,24 @@ traverse(ast, {
 });
 ```
 
-### Swap all `^` and `.` nodes
+### Swap all `a` and `.` nodes
 
 ```js
+import {toOnigurumaAst} from 'oniguruma-parser';
+import {createCharacter, createCharacterSet} from 'oniguruma-parser/parser';
 import {traverse} from 'oniguruma-parser/traverser';
-import {createAssertion, createCharacterSet} from 'oniguruma-parser/parser';
 
+const charCode = 'a'.codePointAt(0);
+const ast = toOnigurumaAst('a.');
 traverse(ast, {
-  Assertion({node, replaceWith}) {
-    if (node.kind === 'line_start') {
+  Character({node, replaceWith}) {
+    if (node.value === charCode) {
       replaceWith(createCharacterSet('dot'));
     }
   },
   CharacterSet({node, replaceWith}) {
     if (node.kind === 'dot') {
-      replaceWith(createAssertion('line_start'));
+      replaceWith(createCharacter(charCode));
     }
   },
 });

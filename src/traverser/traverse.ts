@@ -15,20 +15,25 @@ type Path<T = Node> = {
   replaceWithMultiple: (newNodes: Array<Node>, options?: {traverse?: boolean}) => void;
   skip: () => void;
 };
-type State = {[key: string]: any} | null;
-type VisitorNode = (path: Path, state: State) => void;
+
+// Default state is an empty object, but can provide custom state when calling `traverse`
+type State = {[key: string]: any};
+
 type Visitor = {
   [key in ('*' | NodeType)]?: VisitorNode | {
     enter?: VisitorNode;
     exit?: VisitorNode;
   }
 };
+
+type VisitorNode = (path: Path, state: State) => void;
+
 type ContainerElementNode =
   AlternativeNode | // Within `alternatives` container of any `AlternativeContainerNode`
   AlternativeElementNode | // Within `elements` container of `AlternativeNode`
   CharacterClassElementNode; // Within `elements` container of `CharacterClassNode`
 
-function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
+function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = {}) {
   function traverseArray(array: NonNullable<Path['container']>, parent: Path['parent']) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);
