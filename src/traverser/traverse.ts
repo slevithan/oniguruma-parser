@@ -1,12 +1,12 @@
 import {NodeTypes} from '../parser/parse.js';
-import type {Node, NodeType, OnigurumaAst, RegexNode} from '../parser/parse.js';
+import type {AlternativeElementNode, AlternativeNode, CharacterClassElementNode, Node, NodeType, OnigurumaAst, ParentNode, RegexNode} from '../parser/parse.js';
 import {throwIfNot} from '../utils.js';
 
 type Path<T = Node> = {
   node: T;
-  parent: Node | null;
+  parent: ParentNode | null;
   key: number | string | null;
-  container: Array<Node> | null;
+  container: Array<ContainerElementNode> | null;
   root: RegexNode; // Same as `OnigurumaAst`
   remove: () => void;
   removeAllNextSiblings: () => Array<Node>;
@@ -23,6 +23,10 @@ type Visitor = {
     exit?: Transformer;
   }
 };
+type ContainerElementNode =
+  AlternativeNode | // Within `alternatives` container of any `AlternativeContainerNode`
+  AlternativeElementNode | // Within `elements` container of `AlternativeNode`
+  CharacterClassElementNode; // Within `elements` container of `CharacterClassNode`
 
 function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
   function traverseArray(array: NonNullable<Path['container']>, parent: Path['parent']) {
@@ -61,10 +65,14 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = null) {
       replaceWith(newNode, options = {}) {
         const traverseNew = !!options.traverse;
         if (container) {
-          container[Math.max(0, numericKey(key) + keyShift)] = newNode;
+          container[Math.max(0, numericKey(key) + keyShift)] = newNode as ContainerElementNode;
         } else {
+          // `key` will be one of:
+          // - For `CharacterClassRangeNode`: 'min', 'max'
+          // - For `QuantifierNode`: 'element'
+          // - For `RegexNode`: 'pattern', 'flags'
           // @ts-expect-error
-          throwIfNot(parent, `Can't replace root node`)[key] = newNode;
+          throwIfNot(parent, `Can't replace root node`)[key as string] = newNode;
         }
         if (traverseNew) {
           traverseNode(newNode, parent, key, container);

@@ -79,10 +79,10 @@ function getOptions(options: OptimizerOptions = {}): Required<OptimizerOptions> 
   };
 }
 
-function getOptionalOptimizations({disable}: {disable?: boolean} = {}): OptimizationStates {
+function getOptionalOptimizations(options: {disable?: boolean} = {}): OptimizationStates {
   const obj = {} as OptimizationStates;
   for (const key of optimizations.keys()) {
-    obj[key] = !disable;
+    obj[key] = !options.disable;
   }
   return obj;
 }

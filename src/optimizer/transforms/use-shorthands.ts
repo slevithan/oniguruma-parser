@@ -140,10 +140,7 @@ function isUnicode(
     }
     if (options.includeSupercategories && supercategoryShortName) {
       expanded.push(supercategoryShortName);
-      const resolvedSupercategoryFullName = categories[supercategoryShortName].full;
-      if (resolvedSupercategoryFullName) {
-        expanded.push(resolvedSupercategoryFullName);
-      }
+      expanded.push(categories[supercategoryShortName].full);
     }
     if (options.includeSubcategories && subcategoryShortNames) {
       expanded.push(...subcategoryShortNames);

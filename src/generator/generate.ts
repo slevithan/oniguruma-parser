@@ -1,5 +1,5 @@
 import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes} from '../parser/parse.js';
-import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterNode, CharacterClassNode, CharacterClassRangeNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, NodeType, OnigurumaAst, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
+import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, NodeType, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNot} from '../utils.js';
 
@@ -11,14 +11,14 @@ type OnigurumaRegex = {
 type State = {
   inCharClass: boolean;
   lastNode: Node | null; // `null` for root node
-  parent: Node | null; // `null` for root node
+  parent: ParentNode | null; // `null` for root node
 };
 
 /**
 Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
 */
 function generate(ast: OnigurumaAst): OnigurumaRegex {
-  const parentStack: Array<Node> = [ast];
+  const parentStack: Array<ParentNode> = [ast];
   let lastNode: State['lastNode'] = null;
   let parent: State['parent'] = null;
   const state: State = {
@@ -30,7 +30,7 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
     state.lastNode = lastNode;
     lastNode = node;
     if (state.lastNode && getFirstChild(state.lastNode) === node) {
-      state.parent = state.lastNode;
+      state.parent = state.lastNode as ParentNode;
       parentStack.push(state.parent);
     }
     const fn = generator[node.type];

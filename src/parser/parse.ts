@@ -48,6 +48,14 @@ type Node =
   RegexNode |
   SubroutineNode;
 
+type ParentNode =
+  AlternativeContainerNode |
+  AlternativeNode |
+  CharacterClassNode |
+  CharacterClassRangeNode |
+  QuantifierNode |
+  RegexNode;
+
 type AlternativeContainerNode =
   AbsentFunctionNode |
   CapturingGroupNode |
@@ -119,7 +127,7 @@ const NodeLookaroundAssertionKinds = {
 
 type UnicodePropertyMap = Map<string, string>;
 
-type Walk = (parent: Node, state: State) => Node;
+type Walk = (parent: ParentNode, state: State) => Node;
 
 type Context = {
   capturingGroups: Array<CapturingGroupNode>;
@@ -127,7 +135,7 @@ type Context = {
   hasNumberedRef: boolean;
   namedGroupsByName: Map<string, Array<CapturingGroupNode>>;
   normalizeUnknownPropertyNames: boolean;
-  parent: Node;
+  parent: ParentNode;
   skipBackrefValidation: boolean;
   skipLookbehindValidation: boolean;
   skipPropertyNameValidation: boolean;
@@ -138,6 +146,7 @@ type Context = {
   walk: Walk;
 };
 
+// Top-level `walk` calls are given empty state; nested calls can add data specific to their `walk`
 type State = {
   isCheckingRangeEnd?: boolean;
   isInAbsentFunction?: boolean;
@@ -216,6 +225,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
         throw new Error(`Unexpected token type "${token.type}"`);
     }
   }
+  // Data shared by parser functions; includes options and up-to-date metadata
   const context: Context = {
     capturingGroups: [],
     current: 0,
@@ -1063,6 +1073,7 @@ export {
   type Node,
   type NodeType,
   type OnigurumaAst,
+  type ParentNode,
   type PatternNode,
   type QuantifiableNode,
   type QuantifierNode,
