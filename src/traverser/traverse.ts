@@ -16,11 +16,11 @@ type Path<T = Node> = {
   skip: () => void;
 };
 type State = {[key: string]: any} | null;
-type Transformer = (path: Path, state: State) => void;
+type VisitorNode = (path: Path, state: State) => void;
 type Visitor = {
-  [key in ('*' | NodeType)]?: Transformer | {
-    enter?: Transformer;
-    exit?: Transformer;
+  [key in ('*' | NodeType)]?: VisitorNode | {
+    enter?: VisitorNode;
+    exit?: VisitorNode;
   }
 };
 type ContainerElementNode =
