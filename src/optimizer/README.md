@@ -1,8 +1,8 @@
 # `oniguruma-parser`: Optimizer module
 
-[Oniguruma](https://github.com/kkos/oniguruma) is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, Shiki, etc. for syntax highlighting), and many other tools.
+[Oniguruma](https://github.com/kkos/oniguruma) is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, [Shiki](https://shiki.style/), etc. for syntax highlighting), and many other tools.
 
-`oniguruma-parser`'s optimizer is a JavaScript library that transforms Oniguruma patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match *exactly* the same strings.
+`oniguruma-parser`'s optimizer is a JavaScript library that transforms Oniguruma patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match exactly the same strings and include exactly the same subpattern matches.
 
 Example:
 
@@ -18,6 +18,17 @@ Becomes:
 
 ## [Try the Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/)
 
+## Contents
+
+- [Benefits](#benefits)
+- [Install and use](#install-and-use)
+- [Type definition](#type-definition)
+- [Flags](#flags)
+- [Optimizations](#optimizations)
+- [Disable specific optimizations](#disable-specific-optimizations)
+- [Enable only specific, optional optimizations](#enable-only-specific-optional-optimizations)
+- [Contributing](#contributing)
+
 ## Benefits
 
 - Optimized regexes are shorter. Good for minification.
@@ -26,12 +37,19 @@ Becomes:
 
 In rare cases, results might be slightly longer than the input.
 
-The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which is used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
+The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which is used by Shiki to process tens of thousands of real-world Oniguruma regexes.
 
-## Import
+## Install and use
+
+```sh
+npm install oniguruma-parser
+```
 
 ```js
 import {optimize} from 'oniguruma-parser/optimizer';
+
+optimize('[a]');
+// → {pattern: 'a', flags: ''}
 ```
 
 ## Type definition
@@ -54,7 +72,7 @@ function optimize(
 };
 ```
 
-### Flags
+## Flags
 
 Although the optimizer takes provided flags into account and includes a `flags` property on the returned object, it never changes top-level flags in ways that would change the meaning of the regex if you didn't provide the updated flags to Oniguruma. As a result, the optimized pattern can be used in situations when you aren't able to change flags. For example, the optimizer removes `x` from the returned flags (since its effects are always applied), but it doesn't add flags.
 

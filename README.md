@@ -4,7 +4,7 @@
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![bundle][bundle-src]][bundle-href]
 
-[Oniguruma](https://github.com/kkos/oniguruma) is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, Shiki, etc. for syntax highlighting), and many other tools.
+[Oniguruma](https://github.com/kkos/oniguruma) is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, [Shiki](https://shiki.style/), etc. for syntax highlighting), and many other tools.
 
 `oniguruma-parser` is a JavaScript library that can be used to parse, validate, traverse, transform, and optimize Oniguruma regular expressions.
 
@@ -25,16 +25,69 @@ function toOnigurumaAst(
 
 An error is thrown if the pattern isn't valid in Oniguruma.
 
-Additional exports are available that provide access to the [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md) (which includes more options), [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md), [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md), and [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md) modules.
+`oniguruma-parser` has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which are used by Shiki to process tens of thousands of real-world Oniguruma regexes.
+
+## Install and use
+
+```sh
+npm install oniguruma-parser
+```
+
+```js
+import {toOnigurumaAst} from 'oniguruma-parser';
+
+const ast = toOnigurumaAst('.*');
+ast.pattern.alternatives[0].elements[0];
+/* → {
+  type: 'Quantifier',
+  kind: 'greedy',
+  min: 0,
+  max: Infinity,
+  element: {
+    type: 'CharacterSet',
+    kind: 'dot',
+  },
+} */
+```
+
+The following modules are additionally available:
+
+- [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md) module.
+  - Includes more options for specialized use, and many more exports for constructing and working with `OnigurumaAst`s.
+  - Import from `'oniguruma-parser/parser'`.
+  - The Unicode data automatically provided to the parser by `toOnigurumaAst` is available from `'oniguruma-parser/unicode'`.
+- [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md) module.
+  - Convert an `OnigurumaAst` to pattern and flags strings.
+  - Import from `'oniguruma-parser/generator'`.
+- [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md) module.
+  - Minify and improve the performance of Oniguruma regexes.
+  - Import from `'oniguruma-parser/optimizer'`
+- [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md) module.
+  - Traverse and transform an `OnigurumaAst`.
+  - Import from `'oniguruma-parser/traverser'`
+
+## Regex optimizer
+
+The [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md) module improves Oniguruma regexes by both minifying them and improving their performance. An additional benefit is that minified regexes are typically more readable and consistent. Optimized regexes always match exactly the same strings.
+
+Example:
+
+```
+(?x) (?:\!{1,}) (\p{Nd}aa|\p{Nd}ab|\p{Nd}az) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
+```
+
+Becomes:
+
+```
+!+(\da[abz])[\H\p{L}]\w
+```
 
 > [!TIP]
-> Try the [optimizer/generator demo](https://slevithan.github.io/oniguruma-parser/demo/).
-
-`oniguruma-parser` has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which are used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
+> Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
 
 ## Known differences
 
-Known differences will be resolved in future versions. Contributions are welcome.
+Known differences will be resolved in future versions.
 
 <details>
   <summary><b>Unsupported features</b></summary>
