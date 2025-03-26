@@ -18,14 +18,14 @@ const PosixClassNames = new Set([
   'xdigit',
 ]);
 
-function getOrInsert<Key extends any, Value extends any>(map: Map<Key, Value>, key: Key, defaultValue: Value): Value {
+function getOrInsert<Key, Value>(map: Map<Key, Value>, key: Key, defaultValue: Value): Value {
   if (!map.has(key)) {
     map.set(key, defaultValue);
   }
   return map.get(key)!;
 }
 
-function throwIfNot<Value extends any>(value: Value, msg?: string): Value {
+function throwIfNot<Value>(value: Value, msg?: string): Value {
   if (!value) {
     throw new Error(msg ?? 'Value expected');
   }

@@ -16,24 +16,22 @@ type Path<T = Node> = {
   skip: () => void;
 };
 
-// Default state is an empty object, but can provide custom state when calling `traverse`
-type State = {[key: string]: any};
-
-type Visitor = {
-  [key in ('*' | NodeType)]?: VisitorNode | {
-    enter?: VisitorNode;
-    exit?: VisitorNode;
-  }
+type Visitor<State> = {
+  [key in ('*' | NodeType)]?: VisitorNode<State> | {
+    enter?: VisitorNode<State>;
+    exit?: VisitorNode<State>;
+  };
 };
 
-type VisitorNode = (path: Path, state: State) => void;
+type VisitorNode<State> = (path: Path, state: State) => void;
 
 type ContainerElementNode =
   AlternativeNode | // Within `alternatives` container of any `AlternativeContainerNode`
   AlternativeElementNode | // Within `elements` container of `AlternativeNode`
   CharacterClassElementNode; // Within `elements` container of `CharacterClassNode`
 
-function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = {}) {
+// Received `state` is passed through to `VisitorNode` functions
+function traverse<State = undefined>(ast: OnigurumaAst, visitor: Visitor<State>, state?: State) {
   function traverseArray(array: NonNullable<Path['container']>, parent: Path['parent']) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);
@@ -105,8 +103,8 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = {}) {
     const thisType = visitor[node.type];
     const enterAllFn = typeof anyType === 'function' ? anyType : anyType?.enter;
     const enterThisFn = typeof thisType === 'function' ? thisType : thisType?.enter;
-    enterAllFn?.(path, state);
-    enterThisFn?.(path, state);
+    enterAllFn?.(path, state!);
+    enterThisFn?.(path, state!);
 
     if (!skipTraversingKidsOfPath) {
       switch (node.type) {
@@ -150,10 +148,8 @@ function traverse(ast: OnigurumaAst, visitor: Visitor, state: State = {}) {
       }
     }
 
-    // @ts-expect-error
-    anyType?.exit?.(path, state);
-    // @ts-expect-error
-    thisType?.exit?.(path, state);
+    (anyType as Exclude<typeof anyType, Function>)?.exit?.(path, state!);
+    (thisType as Exclude<typeof thisType, Function>)?.exit?.(path, state!);
     return keyShift;
   }
   traverseNode(ast);
