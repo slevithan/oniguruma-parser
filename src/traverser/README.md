@@ -1,6 +1,6 @@
 # `oniguruma-parser`: Traverser module
 
-Provides a traversal API (using the vistor pattern) for Oniguruma regex ASTs. Useful for modifying ASTs.
+Provides a traversal and transformation API (using the vistor pattern) for Oniguruma regex ASTs.
 
 ## Import
 
@@ -17,17 +17,17 @@ function traverse<State = undefined>(
   state?: State
 ): void;
 
-type Visitor<State> = {
-  [key in ('*' | NodeType)]?: VisitorNode<State> | {
-    enter?: VisitorNode<State>;
-    exit?: VisitorNode<State>;
+type Visitor<State = undefined> = {
+  [key in ('*' | NodeType)]?: VisitorNodeFn<State> | {
+    enter?: VisitorNodeFn<State>;
+    exit?: VisitorNodeFn<State>;
   };
 };
 
-type VisitorNode<State> = (path: Path, state: State) => void;
+type VisitorNodeFn<State> = (path: Path, state: State) => void;
 ```
 
-> **Note:** `VisitorNode() {…}` is shorthand for `VisitorNode: {enter() {…}}`. Type `Path` contains a variety of properties (`node`, `parent`, etc.) and methods (`remove`, `replaceWith`, etc.).
+> **Note:** `VisitorNodeFn() {…}` is shorthand for `VisitorNodeFn: {enter() {…}}`. Type `Path` contains a variety of properties (`node`, `parent`, etc.) and methods (`remove`, `replaceWith`, etc.).
 
 ## Examples
 

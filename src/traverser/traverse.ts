@@ -17,20 +17,20 @@ type Path<T = Node> = {
 };
 
 type Visitor<State = undefined> = {
-  [key in ('*' | NodeType)]?: VisitorNode<State> | {
-    enter?: VisitorNode<State>;
-    exit?: VisitorNode<State>;
+  [key in ('*' | NodeType)]?: VisitorNodeFn<State> | {
+    enter?: VisitorNodeFn<State>;
+    exit?: VisitorNodeFn<State>;
   };
 };
 
-type VisitorNode<State> = (path: Path, state: State) => void;
+type VisitorNodeFn<State> = (path: Path, state: State) => void;
 
 type ContainerElementNode =
   AlternativeNode | // Within `alternatives` container of any `AlternativeContainerNode`
   AlternativeElementNode | // Within `elements` container of `AlternativeNode`
   CharacterClassElementNode; // Within `elements` container of `CharacterClassNode`
 
-// Received `state` is passed through to `VisitorNode` functions
+// `state` is passed through to all `VisitorNodeFn` functions
 function traverse<State = undefined>(ast: OnigurumaAst, visitor: Visitor<State>, state?: State) {
   function traverseArray(array: NonNullable<Path['container']>, parent: Path['parent']) {
     for (let i = 0; i < array.length; i++) {
