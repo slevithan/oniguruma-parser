@@ -1,4 +1,4 @@
-import {PosixClassNames, r, throwIfNot} from '../utils.js';
+import {PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 const TokenTypes = {
   Alternator: 'Alternator',
@@ -752,7 +752,7 @@ function createDirectiveToken(kind: 'keep' | 'flags', raw: string, options: {fla
   return {
     type: TokenTypes.Directive,
     kind,
-    flags: throwIfNot(options.flags),
+    flags: throwIfNullable(options.flags),
     raw,
   };
 }

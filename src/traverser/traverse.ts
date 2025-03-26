@@ -1,6 +1,6 @@
 import {NodeTypes} from '../parser/parse.js';
 import type {AlternativeElementNode, AlternativeNode, CharacterClassElementNode, Node, NodeType, OnigurumaAst, ParentNode, RegexNode} from '../parser/parse.js';
-import {throwIfNot} from '../utils.js';
+import {throwIfNullable} from '../utils.js';
 
 type Path<T = Node> = {
   node: T;
@@ -75,7 +75,7 @@ function traverse<State = undefined>(ast: OnigurumaAst, visitor: Visitor<State>,
           // - For `QuantifierNode`: 'element'
           // - For `RegexNode`: 'pattern', 'flags'
           // @ts-expect-error
-          throwIfNot(parent, `Can't replace root node`)[key as string] = newNode;
+          throwIfNullable(parent, `Can't replace root node`)[key as string] = newNode;
         }
         if (traverseNew) {
           traverseNode(newNode, parent, key, container);

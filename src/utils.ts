@@ -25,8 +25,7 @@ function getOrInsert<Key, Value>(map: Map<Key, Value>, key: Key, defaultValue: V
   return map.get(key)!;
 }
 
-// TODO: Rename as `throwIfNullable`
-function throwIfNot<Value>(value: Value, msg?: string): NonNullable<Value> {
+function throwIfNullable<Value>(value: Value, msg?: string): NonNullable<Value> {
   if (value == null) {
     throw new Error(msg ?? 'Value expected');
   }
@@ -38,5 +37,5 @@ export {
   getOrInsert,
   PosixClassNames,
   r,
-  throwIfNot,
+  throwIfNullable,
 };

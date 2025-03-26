@@ -1,7 +1,7 @@
 import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes} from '../parser/parse.js';
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
-import {cp, r, throwIfNot} from '../utils.js';
+import {cp, r, throwIfNullable} from '../utils.js';
 
 type Gen = (node: NonRootNode) => string;
 type NonRootNode = Exclude<Node, RegexNode>;
@@ -75,7 +75,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     if (kind === NodeAssertionKinds.word_boundary) {
       return negate ? r`\B` : r`\b`;
     }
-    return throwIfNot({
+    return throwIfNullable({
       line_end: '$',
       line_start: '^',
       search_start: r`\G`,
@@ -200,7 +200,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     if (kind === NodeCharacterSetKinds.word) {
       return negate ? r`\W` : r`\w`;
     }
-    return throwIfNot({
+    return throwIfNullable({
       any: r`\O`,
       dot: '.',
       grapheme: r`\X`,

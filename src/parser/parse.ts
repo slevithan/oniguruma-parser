@@ -1,6 +1,6 @@
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
 import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, DirectiveToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token} from '../tokenizer/tokenize.js';
-import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
+import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 const NodeTypes = {
   AbsentFunction: 'AbsentFunction',
@@ -501,7 +501,7 @@ function parseQuantifier(context: Context): QuantifierNode {
     quantifiedNode,
     min,
     max,
-    throwIfNot(NodeQuantifierKinds[kind], `Unexpected quantifier kind "${kind}"`)
+    throwIfNullable(NodeQuantifierKinds[kind], `Unexpected quantifier kind "${kind}"`)
   );
   parent.elements.pop();
   return node;
@@ -607,7 +607,7 @@ function createAssertion(kind: keyof typeof NodeAssertionKinds, options?: {
 
 function createAssertionFromToken({kind}: AssertionToken): AssertionNode {
   return createAssertion(
-    throwIfNot({
+    throwIfNullable({
       '^': NodeAssertionKinds.line_start,
       '$': NodeAssertionKinds.line_end,
       '\\A': NodeAssertionKinds.string_start,
@@ -770,7 +770,7 @@ function createCharacterSet(kind: UnnamedCharacterSetNode['kind'], options?: {
   const negate = !!options?.negate;
   const node: UnnamedCharacterSetNode = {
     type: NodeTypes.CharacterSet,
-    kind: throwIfNot(NodeCharacterSetKinds[kind], `Unexpected character set kind "${kind}"`),
+    kind: throwIfNullable(NodeCharacterSetKinds[kind], `Unexpected character set kind "${kind}"`),
   };
   if (
     kind === TokenCharacterSetKinds.digit ||
@@ -813,12 +813,12 @@ function createDirective(kind: 'keep' | 'flags', options: {flags?: FlagGroupModi
   return {
     type: NodeTypes.Directive,
     kind,
-    flags: throwIfNot(options.flags),
+    flags: throwIfNullable(options.flags),
   };
 }
 
 function createDirectiveFromToken({kind, flags}: DirectiveToken): DirectiveNode {
-  throwIfNot(NodeDirectiveKinds[kind], `Unexpected directive kind "${kind}"`);
+  throwIfNullable(NodeDirectiveKinds[kind], `Unexpected directive kind "${kind}"`);
   return kind === TokenDirectiveKinds.flags ?
     createDirective(kind, {flags}) :
     createDirective(kind);
@@ -1018,7 +1018,7 @@ function slug(name: string): string {
 }
 
 function throwIfUnclosedCharacterClass<T>(token: T, firstClassToken?: Token): NonNullable<T> {
-  return throwIfNot(
+  return throwIfNullable(
     token,
     // Easier to understand the error if it says "empty" when the unclosed class starts with
     // literal `]`; ex: `[]` or `[]a`
@@ -1028,7 +1028,7 @@ function throwIfUnclosedCharacterClass<T>(token: T, firstClassToken?: Token): No
 }
 
 function throwIfUnclosedGroup<T>(token: T): NonNullable<T> {
-  return throwIfNot(token, 'Unclosed group');
+  return throwIfNullable(token, 'Unclosed group');
 }
 
 export {
