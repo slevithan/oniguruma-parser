@@ -10,7 +10,7 @@ Thanks for lending a hand 👋
 
 ## Testing
 
-- `oniguruma-parser` uses [Jasmine](https://jasmine.github.io/) to test the codebase. Run `pnpm test` to build the package and start the test runner.
+- `oniguruma-parser` uses [Jasmine](https://jasmine.github.io/) to test the codebase. Run `pnpm test` to start the test runner.
 - Tests live in `./spec`.
 - Please include tests alongside changes and new features.
 
@@ -33,6 +33,7 @@ A demo REPL for the optimizer is included in this library and [available online]
 
 - [Main](https://github.com/slevithan/oniguruma-parser/blob/main/README.md).
 - [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md).
+- [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md).
 - [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md).
 - [Tokenizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/tokenizer/README.md).
 - [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md).
