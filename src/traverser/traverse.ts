@@ -16,7 +16,7 @@ type Path<T = Node> = {
   skip: () => void;
 };
 
-type Visitor<State> = {
+type Visitor<State = undefined> = {
   [key in ('*' | NodeType)]?: VisitorNode<State> | {
     enter?: VisitorNode<State>;
     exit?: VisitorNode<State>;
