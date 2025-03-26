@@ -22,9 +22,17 @@ Part of the reason for the currently limited tests is that this library's tokeni
 
 This library also receives extensive test coverage prior to new releases via the `tm-grammars` and `shiki` libraries, which test all parts of this library against ~55k real-world Oniguruma regexes used in TextMate grammars.
 
-### Manual testing via the demo page
+## Demo page
 
-A demo REPL for the optimizer (and also for the generator if you enable the "Don't optimize (show generator output)" option) is included in this library and available online via GitHub Pages: [Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/). It can also be used to test other parts of the library via the console.
+A demo REPL for the optimizer is included in this library and [available online](https://slevithan.github.io/oniguruma-parser/demo/). It shows results as you type and can be helpful for quick manual testing. It can also be used to test the generator if you enable the "Don't optimize (show generator output)" option, as well as other parts of this library via the console.
 
 > [!WARNING]
 > The demo uses the last published version of the library. To use local changes, you currently have to uncomment the relevant script tags in `./demo/index.html`. Make sure to run `pnpm build` to include your changes in the local bundle.
+
+## Readmes
+
+- [Main](https://github.com/slevithan/oniguruma-parser/blob/main/README.md).
+- [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md).
+- [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md).
+- [Tokenizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/tokenizer/README.md).
+- [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md).

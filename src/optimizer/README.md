@@ -288,6 +288,8 @@ const optimized = optimize(pattern, {
 
 ## Contributing
 
+See this library's [contributing guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md).
+
 Adding new optimization transforms is straightforward:
 
 - Add your optimization in a new file, e.g. `src/optimizer/transforms/foo.js`.
@@ -301,7 +303,7 @@ Optimizations should be independently useful and can compliment each other; you 
 
 Created by [Steven Levithan](https://github.com/slevithan) and [contributors](https://github.com/slevithan/oniguruma-parser/graphs/contributors).
 
-If you want to support this project, I'd love your help by contributing improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
+If you want to support this project, I'd love your help by [contributing](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md) improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
 Inspiration for the optimizer module included [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
 
