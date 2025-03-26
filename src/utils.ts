@@ -25,8 +25,9 @@ function getOrInsert<Key, Value>(map: Map<Key, Value>, key: Key, defaultValue: V
   return map.get(key)!;
 }
 
-function throwIfNot<Value>(value: Value, msg?: string): Value {
-  if (!value) {
+// TODO: Rename as `throwIfNullable`
+function throwIfNot<Value>(value: Value, msg?: string): NonNullable<Value> {
+  if (value == null) {
     throw new Error(msg ?? 'Value expected');
   }
   return value;

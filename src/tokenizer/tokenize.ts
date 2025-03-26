@@ -1,4 +1,4 @@
-import {PosixClassNames, r} from '../utils.js';
+import {PosixClassNames, r, throwIfNot} from '../utils.js';
 
 const TokenTypes = {
   Alternator: 'Alternator',
@@ -13,11 +13,29 @@ const TokenTypes = {
   Directive: 'Directive',
   GroupClose: 'GroupClose',
   GroupOpen: 'GroupOpen',
-  Subroutine: 'Subroutine',
   Quantifier: 'Quantifier',
-  // Intermediate representation not included in results
+  Subroutine: 'Subroutine',
+  // Intermediate representation only
   EscapedNumber: 'EscapedNumber',
 } as const;
+
+type Token =
+  AlternatorToken |
+  AssertionToken |
+  BackreferenceToken |
+  CharacterToken |
+  CharacterClassCloseToken |
+  CharacterClassHyphenToken |
+  CharacterClassIntersectorToken |
+  CharacterClassOpenToken |
+  CharacterSetToken |
+  DirectiveToken |
+  GroupCloseToken |
+  GroupOpenToken |
+  QuantifierToken |
+  SubroutineToken;
+
+type TokenIncludingIntermediate = Token | EscapedNumberToken;
 
 const TokenCharacterSetKinds = {
   any: 'any',
@@ -142,21 +160,6 @@ type FlagGroupSwitches = {
   extended?: true;
 };
 
-type Token = {
-  type: keyof typeof TokenTypes;
-  raw: string;
-  // Token-type-specific properties
-  flags?: FlagGroupModifiers;
-  inCharClass?: boolean;
-  kind?: string;
-  max?: number;
-  min?: number;
-  name?: string;
-  negate?: boolean;
-  number?: number;
-  value?: string | number;
-};
-
 type Context = {
   captureGroup: boolean;
   getCurrentModX(): boolean;
@@ -205,7 +208,7 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
     replaceCurrentModX(isXOn) {xStack[xStack.length - 1] = isXOn},
     singleline: opts.rules.singleline,
   };
-  let tokens: Array<Token> = [];
+  let tokens: Array<TokenIncludingIntermediate> = [];
   let match: RegExpExecArray | null;
   tokenRe.lastIndex = 0;
   while ((match = tokenRe.exec(pattern))) {
@@ -220,15 +223,13 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
     }
   }
 
-  const potentialUnnamedCaptureTokens: Array<Token> = [];
+  const potentialUnnamedCaptureTokens: Array<GroupOpenToken> = [];
   let numNamedAndOptInUnnamedCaptures = 0;
-  tokens.forEach(t => {
-    if (t.type === TokenTypes.GroupOpen) {
-      if (t.kind === TokenGroupKinds.capturing) {
-        t.number = ++numNamedAndOptInUnnamedCaptures;
-      } else if (t.raw === '(') {
-        potentialUnnamedCaptureTokens.push(t);
-      }
+  tokens.filter(t => t.type === TokenTypes.GroupOpen).forEach(t => {
+    if (t.kind === TokenGroupKinds.capturing) {
+      t.number = ++numNamedAndOptInUnnamedCaptures;
+    } else if (t.raw === '(') {
+      potentialUnnamedCaptureTokens.push(t);
     }
   });
   // Enable unnamed capturing groups if no named captures (when `captureGroup` not enabled)
@@ -240,22 +241,22 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
   }
   const numCaptures = numNamedAndOptInUnnamedCaptures || potentialUnnamedCaptureTokens.length;
   // Can now split escaped nums accurately, accounting for number of captures
-  tokens = tokens.map(
-    t => t.type === TokenTypes.EscapedNumber ? splitEscapedNumToken(t, numCaptures) : t
+  const tokensWithoutIntermediate = tokens.map(
+    t => t.type === TokenTypes.EscapedNumber ? splitEscapedNumberToken(t, numCaptures) : t
   ).flat();
 
   return {
-    tokens,
+    tokens: tokensWithoutIntermediate,
     flags: flagsObj,
   };
 }
 
 function getTokenWithDetails(context: Context, pattern: string, m: string, lastIndex: number): {
   token?: never;
-  tokens: Array<Token>;
+  tokens: Array<TokenIncludingIntermediate>;
   lastIndex?: number;
 } | {
-  token: Token;
+  token: TokenIncludingIntermediate;
   tokens?: never;
   lastIndex?: number;
 } | {
@@ -265,7 +266,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
 } {
   const [m0, m1] = m;
 
-  if (m0 === '[') {
+  if (m === '[' || m === '[^') {
     const result = getAllTokensForCharClass(pattern, m, lastIndex);
     return {
       // Array of all of the char class's tokens
@@ -278,9 +279,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
   if (m0 === '\\') {
     if ('AbBGyYzZ'.includes(m1)) {
       return {
-        token: createToken(TokenTypes.Assertion, m, {
-          kind: m,
-        }),
+        token: createAssertionToken(m, m),
       };
     }
     if (/^\\g[<']/.test(m)) {
@@ -288,7 +287,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
         throw new Error(`Invalid group name "${m}"`);
       }
       return {
-        token: createToken(TokenTypes.Subroutine, m),
+        token: createSubroutineToken(m),
       };
     }
     if (/^\\k[<']/.test(m)) {
@@ -296,20 +295,17 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
         throw new Error(`Invalid group name "${m}"`);
       }
       return {
-        token: createToken(TokenTypes.Backreference, m),
+        token: createBackreferenceToken(m),
       };
     }
     if (m1 === 'K') {
       return {
-        token: createToken(TokenTypes.Directive, m, {
-          kind: TokenDirectiveKinds.keep,
-        }),
+        token: createDirectiveToken(TokenDirectiveKinds.keep, m),
       };
     }
     if (m1 === 'N' || m1 === 'R') {
       return {
-        token: createToken(TokenTypes.CharacterSet, m, {
-          kind: TokenCharacterSetKinds.newline,
+        token: createCharacterSetToken(TokenCharacterSetKinds.newline, m, {
           // `\N` and `\R` are not actually opposites since the former only excludes `\n`
           negate: m1 === 'N',
         }),
@@ -317,16 +313,12 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     }
     if (m1 === 'O') {
       return {
-        token: createToken(TokenTypes.CharacterSet, m, {
-          kind: TokenCharacterSetKinds.any,
-        }),
+        token: createCharacterSetToken(TokenCharacterSetKinds.any, m),
       };
     }
     if (m1 === 'X') {
       return {
-        token: createToken(TokenTypes.CharacterSet, m, {
-          kind: TokenCharacterSetKinds.grapheme,
-        }),
+        token: createCharacterSetToken(TokenCharacterSetKinds.grapheme, m),
       };
     }
     // Run last since it assumes an identity escape as final condition
@@ -369,25 +361,20 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
       m === '(?:'
     ) {
       return {
-        token: createToken(TokenTypes.GroupOpen, m, {
-          // For `(`, will later change to `capturing` and add `number` prop if no named captures
-          kind: TokenGroupKinds.group,
-        }),
+        // For `(`, will later change to `capturing` and add `number` prop if no named captures
+        token: createGroupOpenToken(TokenGroupKinds.group, m),
       };
     }
     // Atomic group
     if (m === '(?>') {
       return {
-        token: createToken(TokenTypes.GroupOpen, m, {
-          kind: TokenGroupKinds.atomic,
-        }),
+        token: createGroupOpenToken(TokenGroupKinds.atomic, m),
       };
     }
     // Lookaround
     if (m === '(?=' || m === '(?!' || m === '(?<=' || m === '(?<!') {
       return {
-        token: createToken(TokenTypes.GroupOpen, m, {
-          kind: m[2] === '<' ? TokenGroupKinds.lookbehind : TokenGroupKinds.lookahead,
+        token: createGroupOpenToken(m[2] === '<' ? TokenGroupKinds.lookbehind : TokenGroupKinds.lookahead, m, {
           negate: m.endsWith('!'),
         }),
       };
@@ -399,15 +386,11 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
       (m.startsWith('(?<') && m.endsWith('>')) ||
       (m.startsWith("(?'") && m.endsWith("'"))
     ) {
-      const token = createToken(TokenTypes.GroupOpen, m, {
-        kind: TokenGroupKinds.capturing,
-        // Will add `number` prop in a second pass
-      });
-      if (m !== '(') {
-        token.name = m.slice(3, -1);
-      }
       return {
-        token,
+        token: createGroupOpenToken(TokenGroupKinds.capturing, m, {
+          // Will add `number` prop in a second pass
+          ...(m !== '(' && {name: m.slice(3, -1)}),
+        }),
       };
     }
     if (m.startsWith('(?~')) {
@@ -415,9 +398,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
         throw new Error(`Unsupported absent function kind "${m}"`);
       }
       return {
-        token: createToken(TokenTypes.GroupOpen, m, {
-          kind: TokenGroupKinds.absent_repeater,
-        }),
+        token: createGroupOpenToken(TokenGroupKinds.absent_repeater, m),
       };
     }
     if (m === '(?(') {
@@ -433,7 +414,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
       throw new Error('Unmatched ")"');
     }
     return {
-      token: createToken(TokenTypes.GroupClose, m),
+      token: createGroupCloseToken(m),
     };
   }
 
@@ -459,9 +440,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
 
   if (m === '.') {
     return {
-      token: createToken(TokenTypes.CharacterSet, m, {
-        kind: TokenCharacterSetKinds.dot,
-      }),
+      token: createCharacterSetToken(TokenCharacterSetKinds.dot, m),
     };
   }
 
@@ -471,15 +450,13 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
       '$': r`\Z`,
     }[m] : m;
     return {
-      token: createToken(TokenTypes.Assertion, m, {
-        kind,
-      }),
+      token: createAssertionToken(kind, m),
     };
   }
 
   if (m === '|') {
     return {
-      token: createToken(TokenTypes.Alternator, m),
+      token: createAlternatorToken(m),
     };
   }
 
@@ -491,19 +468,15 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
 
   assertSingleCodePoint(m);
   return {
-    token: createToken(TokenTypes.Character, m, {
-      value: m.codePointAt(0),
-    }),
+    token: createCharacterToken(m.codePointAt(0)!, m),
   };
 }
 
-function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: number): {
-  tokens: Array<Token>;
+function getAllTokensForCharClass(pattern: string, opener: CharacterClassOpener, lastIndex: number): {
+  tokens: Array<TokenIncludingIntermediate>;
   lastIndex: number;
 } {
-  const tokens = [createToken(TokenTypes.CharacterClassOpen, opener, {
-    negate: opener[1] === '^',
-  })];
+  const tokens: Array<TokenIncludingIntermediate> = [createCharacterClassOpenToken(opener[1] === '^', opener)];
   let numCharClassesOpen = 1;
   let match: RegExpExecArray | null;
   charClassTokenRe.lastIndex = lastIndex;
@@ -513,19 +486,15 @@ function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: nu
     // POSIX classes are handled as a single token; not as a nested char class
     if (m[0] === '[' && m[1] !== ':') {
       numCharClassesOpen++;
-      tokens.push(createToken(TokenTypes.CharacterClassOpen, m, {
-        negate: m[1] === '^',
-      }));
+      tokens.push(createCharacterClassOpenToken(m[1] === '^', m as CharacterClassOpener));
     } else if (m === ']') {
       // Always at least includes the char class opener
       if (tokens.at(-1)!.type === TokenTypes.CharacterClassOpen) {
         // Allow unescaped `]` as leading char
-        tokens.push(createToken(TokenTypes.Character, m, {
-          value: 93,
-        }));
+        tokens.push(createCharacterToken(93, m));
       } else {
         numCharClassesOpen--;
-        tokens.push(createToken(TokenTypes.CharacterClassClose, m));
+        tokens.push(createCharacterClassCloseToken(m));
         if (!numCharClassesOpen) {
           break;
         }
@@ -545,7 +514,7 @@ function getAllTokensForCharClass(pattern: string, opener: string, lastIndex: nu
   };
 }
 
-function createTokenForAnyTokenWithinCharClass(raw: string): Token | Array<Token> {
+function createTokenForAnyTokenWithinCharClass(raw: string): TokenIncludingIntermediate | Array<Token> {
   if (raw[0] === '\\') {
     // Assumes an identity escape as final condition
     return createTokenForSharedEscape(raw, {inCharClass: true});
@@ -556,33 +525,30 @@ function createTokenForAnyTokenWithinCharClass(raw: string): Token | Array<Token
     if (!posix || !PosixClassNames.has(posix.groups!.name)) {
       throw new Error(`Invalid POSIX class "${raw}"`);
     }
-    return createToken(TokenTypes.CharacterSet, raw, {
-      kind: TokenCharacterSetKinds.posix,
+    return createCharacterSetToken(TokenCharacterSetKinds.posix, raw, {
       value: posix.groups!.name,
       negate: !!posix.groups!.negate,
     });
   }
   // Range (possibly invalid) or literal hyphen
   if (raw === '-') {
-    return createToken(TokenTypes.CharacterClassHyphen, raw);
+    return createCharacterClassHyphenToken(raw);
   }
   if (raw === '&&') {
-    return createToken(TokenTypes.CharacterClassIntersector, raw);
+    return createCharacterClassIntersectorToken(raw);
   }
   assertSingleCodePoint(raw);
-  return createToken(TokenTypes.Character, raw, {
-    value: raw.codePointAt(0),
-  });
+  return createCharacterToken(raw.codePointAt(0)!, raw);
 }
 
 // Tokens shared by base syntax and char class syntax that start with `\`
-function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}): Token | Array<Token> {
+function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}): TokenIncludingIntermediate | Array<Token> {
   const char1 = raw[1];
   if (char1 === 'c' || char1 === 'C') {
     return createTokenForControlChar(raw);
   }
   if ('dDhHsSwW'.includes(char1)) {
-    return createTokenForShorthandCharClass(raw);
+    return createTokenForShorthand(raw);
   }
   if (raw.startsWith(r`\o{`)) {
     throw new Error(`Incomplete, invalid, or unsupported octal code point "${raw}"`);
@@ -605,9 +571,7 @@ function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: bo
       const tokens = [...decoded].map(char => {
         // Since this regenerates `raw`, it might have different casing for hex A-F than the input
         const raw = [...encoder.encode(char)].map(byte => `\\x${byte.toString(16)}`).join('');
-        return createToken(TokenTypes.Character, raw, {
-          value: char.codePointAt(0),
-        });
+        return createCharacterToken(char.codePointAt(0)!, raw);
       });
       return tokens;
     } catch {
@@ -615,21 +579,15 @@ function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: bo
     }
   }
   if (char1 === 'u' || char1 === 'x') {
-    return createToken(TokenTypes.Character, raw, {
-      value: getValidatedHexCharCode(raw),
-    });
+    return createCharacterToken(getValidatedHexCharCode(raw), raw);
   }
   if (EscapeCharCodes.has(char1)) {
-    return createToken(TokenTypes.Character, raw, {
-      value: EscapeCharCodes.get(char1),
-    });
+    return createCharacterToken(EscapeCharCodes.get(char1)!, raw);
   }
   // Escaped number: backref (possibly invalid), null, octal, or identity escape, possibly followed
   // by 1-2 literal digits
   if (/\d/.test(char1)) {
-    return createToken(TokenTypes.EscapedNumber, raw, {
-      inCharClass,
-    });
+    return createEscapedNumberToken(inCharClass, raw);
   }
   if (raw === '\\') {
     throw new Error(r`Incomplete escape "\"`);
@@ -644,35 +602,269 @@ function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: bo
   }
   // Identity escape; count code point length
   if ([...raw].length === 2) {
-    return createToken(TokenTypes.Character, raw, {
-      value: raw.codePointAt(1),
-    });
+    return createCharacterToken(raw.codePointAt(1)!, raw);
   }
   throw new Error(`Unexpected escape "${raw}"`);
 }
 
-function createToken(type: keyof typeof TokenTypes, raw: string, data?: Omit<Token, 'type' | 'raw'>): Token {
+// --------------------------------
+// --- Token creation and types ---
+// --------------------------------
+
+type AlternatorToken = {
+  type: 'Alternator';
+  raw: '|';
+};
+function createAlternatorToken(raw: '|'): AlternatorToken {
   return {
-    type,
+    type: TokenTypes.Alternator,
     raw,
-    ...data,
   };
 }
 
+type AssertionToken = {
+  type: 'Assertion';
+  kind: string;
+  raw: string;
+};
+function createAssertionToken(kind: string, raw: string): AssertionToken {
+  return {
+    type: TokenTypes.Assertion,
+    kind,
+    raw,
+  };
+}
+
+type BackreferenceToken = {
+  type: 'Backreference';
+  raw: string;
+};
+function createBackreferenceToken(raw: string): BackreferenceToken {
+  return {
+    type: TokenTypes.Backreference,
+    raw,
+  };
+}
+
+type CharacterToken = {
+  type: 'Character';
+  value: number;
+  raw: string;
+};
+function createCharacterToken(value: number, raw: string): CharacterToken {
+  return {
+    type: TokenTypes.Character,
+    value,
+    raw,
+  };
+}
+
+type CharacterClassCloseToken = {
+  type: 'CharacterClassClose';
+  raw: ']';
+};
+function createCharacterClassCloseToken(raw: ']'): CharacterClassCloseToken {
+  return {
+    type: TokenTypes.CharacterClassClose,
+    raw,
+  };
+}
+
+type CharacterClassHyphenToken = {
+  type: 'CharacterClassHyphen';
+  raw: '-';
+};
+function createCharacterClassHyphenToken(raw: '-'): CharacterClassHyphenToken {
+  return {
+    type: TokenTypes.CharacterClassHyphen,
+    raw,
+  };
+}
+
+type CharacterClassIntersectorToken = {
+  type: 'CharacterClassIntersector';
+  raw: '&&';
+};
+function createCharacterClassIntersectorToken(raw: '&&'): CharacterClassIntersectorToken {
+  return {
+    type: TokenTypes.CharacterClassIntersector,
+    raw,
+  };
+}
+
+type CharacterClassOpenToken = {
+  type: 'CharacterClassOpen';
+  negate: boolean;
+  raw: CharacterClassOpener;
+};
+type CharacterClassOpener = '[' | '[^';
+function createCharacterClassOpenToken(negate: boolean, raw: CharacterClassOpener): CharacterClassOpenToken {
+  return {
+    type: TokenTypes.CharacterClassOpen,
+    negate,
+    raw,
+  };
+}
+
+type CharacterSetToken = {
+  type: 'CharacterSet';
+  kind: keyof typeof TokenCharacterSetKinds;
+  value?: string;
+  negate?: boolean;
+  raw: string;
+};
+function createCharacterSetToken(
+  kind: CharacterSetToken['kind'],
+  raw: string,
+  options: {
+    value?: string;
+    negate?: boolean;
+  } = {}
+): CharacterSetToken {
+  return {
+    type: TokenTypes.CharacterSet,
+    kind,
+    ...options,
+    raw,
+  };
+}
+
+type DirectiveToken = {
+  type: 'Directive';
+  raw: string;
+} & ({
+  kind: 'keep';
+  flags?: never;
+} | {
+  kind: 'flags';
+  flags: FlagGroupModifiers;
+});
+function createDirectiveToken(kind: 'keep', raw: string): DirectiveToken;
+function createDirectiveToken(kind: 'flags', raw: string, options: {flags: FlagGroupModifiers}): DirectiveToken;
+function createDirectiveToken(kind: 'keep' | 'flags', raw: string, options: {flags?: FlagGroupModifiers} = {}): DirectiveToken {
+  if (kind === TokenDirectiveKinds.keep) {
+    return {
+      type: TokenTypes.Directive,
+      kind,
+      raw,
+    };
+  }
+  return {
+    type: TokenTypes.Directive,
+    kind,
+    flags: throwIfNot(options.flags),
+    raw,
+  };
+}
+
+// Intermediate representation only
+type EscapedNumberToken = {
+  type: 'EscapedNumber';
+  inCharClass: boolean;
+  raw: string;
+};
+function createEscapedNumberToken(inCharClass: boolean, raw: string): EscapedNumberToken {
+  return {
+    type: TokenTypes.EscapedNumber,
+    inCharClass,
+    raw,
+  };
+}
+
+type GroupCloseToken = {
+  type: 'GroupClose';
+  raw: ')';
+};
+function createGroupCloseToken(raw: ')'): GroupCloseToken {
+  return {
+    type: TokenTypes.GroupClose,
+    raw,
+  };
+}
+
+type GroupOpenToken = {
+  type: 'GroupOpen';
+  kind: keyof typeof TokenGroupKinds;
+  flags?: FlagGroupModifiers;
+  name?: string;
+  number?: number;
+  negate?: boolean;
+  raw: string;
+};
+function createGroupOpenToken(
+  kind: GroupOpenToken['kind'],
+  raw: string,
+  options: {
+    flags?: FlagGroupModifiers;
+    name?: string;
+    number?: number;
+    negate?: boolean;
+  } = {}
+): GroupOpenToken {
+  return {
+    type: TokenTypes.GroupOpen,
+    kind,
+    ...options,
+    raw,
+  };
+}
+
+type QuantifierToken = {
+  type: 'Quantifier';
+  kind: keyof typeof TokenQuantifierKinds;
+  min: number;
+  max: number;
+  raw: string;
+};
+function createQuantifierToken(
+  kind: QuantifierToken['kind'],
+  min: number,
+  max: number,
+  raw: string
+): QuantifierToken {
+  return {
+    type: TokenTypes.Quantifier,
+    kind,
+    min,
+    max,
+    raw,
+  };
+}
+
+type SubroutineToken = {
+  type: 'Subroutine';
+  raw: string;
+};
+function createSubroutineToken(raw: string): SubroutineToken {
+  return {
+    type: TokenTypes.Subroutine,
+    raw,
+  };
+}
+
+// ------------------------
+// --- Helper functions ---
+// ------------------------
+
+function assertSingleCodePoint(raw: string) {
+  // Count code point length
+  if ([...raw].length !== 1) {
+    throw new Error(`Expected "${raw}" to be a single code point`);
+  }
+}
+
 // Expects `\cx` or `\C-x`
-function createTokenForControlChar(raw: string): Token {
+function createTokenForControlChar(raw: string): CharacterToken {
   const char = raw[1] === 'c' ? raw[2] : raw[3];
   if (!char || !/[A-Za-z]/.test(char)) {
     // Unlike JS, Onig allows any char to follow `\c` or `\C-`, but this is an extreme edge case
     // Supportable; see <github.com/kkos/oniguruma/blob/master/doc/SYNTAX.md#11-onig_syn_op2_esc_capital_c_bar_control-enable-c-x>, <github.com/kkos/oniguruma/blob/43a8c3f3daf263091f3a74019d4b32ebb6417093/src/regparse.c#L4695>
     throw new Error(`Unsupported control character "${raw}"`);
   }
-  return createToken(TokenTypes.Character, raw, {
-    value: char.toUpperCase().codePointAt(0)! - 64,
-  });
+  return createCharacterToken(char.toUpperCase().codePointAt(0)! - 64, raw);
 }
 
-function createTokenForFlagMod(raw: string, context: Context): Token {
+function createTokenForFlagMod(raw: string, context: Context): DirectiveToken | GroupOpenToken {
   // Allows multiple `-` and solo `-` without `on` or `off` flags
   let {on, off} = /^\(\?(?<on>[imx]*)(?:-(?<off>[-imx]*))?/.exec(raw)!.groups as {on: string, off: string | undefined};
   off ??= '';
@@ -688,8 +880,7 @@ function createTokenForFlagMod(raw: string, context: Context): Token {
     // Replace flag x value until the end of the current group
     context.replaceCurrentModX(isXOn);
     // Can't remove flag directives without flags like `(?-)`; they affect following quantifiers
-    return createToken(TokenTypes.Directive, raw, {
-      kind: TokenDirectiveKinds.flags,
+    return createDirectiveToken(TokenDirectiveKinds.flags, raw, {
       flags: flagChanges,
     });
   }
@@ -697,62 +888,54 @@ function createTokenForFlagMod(raw: string, context: Context): Token {
   if (raw.endsWith(':')) {
     context.pushModX(isXOn);
     context.numOpenGroups++;
-    const token = createToken(TokenTypes.GroupOpen, raw, {
-      kind: TokenGroupKinds.group,
+    return createGroupOpenToken(TokenGroupKinds.group, raw, {
+      ...((enabledFlags || disabledFlags) && {flags: flagChanges}),
     });
-    if (enabledFlags || disabledFlags) {
-      token.flags = flagChanges;
-    }
-    return token;
   }
   throw new Error(`Unexpected flag modifier "${raw}"`);
 }
 
-function createTokenForQuantifier(raw: string): Token {
-  // TODO: Create TS types for specific token types
-  const data: {
-    min?: number;
-    max?: number;
-    kind?: keyof typeof TokenQuantifierKinds;
-  } = {};
+function createTokenForQuantifier(raw: string): QuantifierToken {
+  let kind: keyof typeof TokenQuantifierKinds;
+  let min: number;
+  let max: number;
   if (raw[0] === '{') {
-    const {min, max} = /^\{(?<min>\d*)(?:,(?<max>\d*))?/.exec(raw)!.groups as {min: string, max: string | undefined};
+    const {minStr, maxStr} =
+      /^\{(?<minStr>\d*)(?:,(?<maxStr>\d*))?/.exec(raw)!.groups as {minStr: string, maxStr: string | undefined};
     const limit = 100_000;
-    if (+min > limit || (max && +max > limit)) {
+    if (+minStr > limit || (maxStr && +maxStr > limit)) {
       throw new Error('Quantifier value unsupported in Oniguruma');
     }
-    data.min = +min;
-    data.max = max === undefined ? +min : (max === '' ? Infinity : +max);
+    min = +minStr;
+    max = maxStr === undefined ? +minStr : (maxStr === '' ? Infinity : +maxStr);
     // By default, Onig doesn't support making interval quantifiers possessive with a `+` suffix
-    data.kind = raw.endsWith('?') ? TokenQuantifierKinds.lazy : TokenQuantifierKinds.greedy;
+    kind = raw.endsWith('?') ? TokenQuantifierKinds.lazy : TokenQuantifierKinds.greedy;
   } else {
-    data.min = raw[0] === '+' ? 1 : 0;
-    data.max = raw[0] === '?' ? 1 : Infinity;
-    data.kind = raw[1] === '+' ?
+    min = raw[0] === '+' ? 1 : 0;
+    max = raw[0] === '?' ? 1 : Infinity;
+    kind = raw[1] === '+' ?
       TokenQuantifierKinds.possessive :
       (raw[1] === '?' ? TokenQuantifierKinds.lazy : TokenQuantifierKinds.greedy);
   }
-  return createToken(TokenTypes.Quantifier, raw, data);
+  return createQuantifierToken(kind, min, max, raw);
 }
 
-function createTokenForShorthandCharClass(raw: string): Token {
+function createTokenForShorthand(raw: string): CharacterSetToken {
   const lower = raw[1].toLowerCase();
-  return createToken(TokenTypes.CharacterSet, raw, {
-    kind: {
-      'd': TokenCharacterSetKinds.digit,
-      'h': TokenCharacterSetKinds.hex,
-      's': TokenCharacterSetKinds.space,
-      'w': TokenCharacterSetKinds.word,
-    }[lower],
+  return createCharacterSetToken({
+    'd': TokenCharacterSetKinds.digit,
+    'h': TokenCharacterSetKinds.hex,
+    's': TokenCharacterSetKinds.space,
+    'w': TokenCharacterSetKinds.word,
+  }[lower]!, raw, {
     negate: raw[1] !== lower,
   });
 }
 
-function createTokenForUnicodeProperty(raw: string): Token {
+function createTokenForUnicodeProperty(raw: string): CharacterSetToken {
   const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw)!.groups!;
   const negate = (p === 'P' && !neg) || (p === 'p' && !!neg);
-  return createToken(TokenTypes.CharacterSet, raw, {
-    kind: TokenCharacterSetKinds.property,
+  return createCharacterSetToken(TokenCharacterSetKinds.property, raw, {
     value,
     negate,
   });
@@ -823,13 +1006,12 @@ function getValidatedHexCharCode(raw: string): number {
   const hex = raw[2] === '{' ?
     /^\\x\{\s*(?<hex>\p{AHex}+)/u.exec(raw)!.groups!.hex :
     raw.slice(2);
-  const dec = parseInt(hex, 16);
-  return dec;
+  return parseInt(hex, 16);
 }
 
 // Value is 1-3 digits, which can be a backref (possibly invalid), null, octal, or identity escape,
 // possibly followed by 1-2 literal digits
-function splitEscapedNumToken(token: Token, numCaptures: number): Array<Token> {
+function splitEscapedNumberToken(token: EscapedNumberToken, numCaptures: number): Array<BackreferenceToken> | Array<CharacterToken> {
   const {raw, inCharClass} = token;
   // Keep any leading 0s since they indicate octal
   const value = raw.slice(1);
@@ -842,14 +1024,14 @@ function splitEscapedNumToken(token: Token, numCaptures: number): Array<Token> {
       (value[0] !== '0' && +value <= numCaptures)
     )
   ) {
-    return [createToken(TokenTypes.Backreference, raw)];
+    return [createBackreferenceToken(raw)];
   }
-  const tokens: Array<Token> = [];
+  const tokens: Array<CharacterToken> = [];
   // Returns 1-3 matches; the first (only) might be octal
   const matches = value.match(/^[0-7]+|\d/g)!;
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i];
-    let value;
+    let value: number;
     // Octal digits are 0-7
     if (i === 0 && m !== '8' && m !== '9') {
       value = parseInt(m, 8);
@@ -858,19 +1040,11 @@ function splitEscapedNumToken(token: Token, numCaptures: number): Array<Token> {
         throw new Error(r`Octal encoded byte above 177 unsupported "${raw}"`);
       }
     } else {
-      value = m.codePointAt(0);
+      value = m.codePointAt(0)!;
     }
-    tokens.push(createToken(TokenTypes.Character, (i === 0 ? '\\' : '') + m, {
-      value,
-    }));
+    tokens.push(createCharacterToken(value, (i === 0 ? '\\' : '') + m));
   }
   return tokens;
-}
-
-function assertSingleCodePoint(raw: string) {
-  if ([...raw].length !== 1) {
-    throw new Error(`Expected "${raw}" to be a single code point`);
-  }
 }
 
 export {
@@ -880,8 +1054,22 @@ export {
   TokenGroupKinds,
   TokenQuantifierKinds,
   TokenTypes,
+  type AlternatorToken,
+  type AssertionToken,
+  type BackreferenceToken,
+  type CharacterToken,
+  type CharacterClassCloseToken,
+  type CharacterClassHyphenToken,
+  type CharacterClassIntersectorToken,
+  type CharacterClassOpenToken,
+  type CharacterSetToken,
+  type DirectiveToken,
   type FlagGroupModifiers,
   type FlagGroupSwitches,
+  type GroupCloseToken,
+  type GroupOpenToken,
+  type QuantifierToken,
   type RegexFlags,
+  type SubroutineToken,
   type Token,
 };

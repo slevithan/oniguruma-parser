@@ -1,5 +1,5 @@
 import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
-import type {FlagGroupModifiers, RegexFlags, Token} from '../tokenizer/tokenize.js';
+import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, DirectiveToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNot} from '../utils.js';
 
 const NodeTypes = {
@@ -129,7 +129,7 @@ type UnicodePropertyMap = Map<string, string>;
 
 type Walk = (parent: ParentNode, state: State) => Node;
 
-type Context = {
+type Context<T = Token> = {
   capturingGroups: Array<CapturingGroupNode>;
   current: number;
   hasNumberedRef: boolean;
@@ -140,7 +140,7 @@ type Context = {
   skipLookbehindValidation: boolean;
   skipPropertyNameValidation: boolean;
   subroutines: Array<SubroutineNode>;
-  token: Token;
+  token: T;
   tokens: Array<Token>;
   unicodePropertyMap: UnicodePropertyMap | null;
   walk: Walk;
@@ -206,7 +206,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
       case TokenTypes.Backreference:
         return parseBackreference(context);
       case TokenTypes.Character:
-        return createCharacter(token.value as number, {useLastValid: !!state.isCheckingRangeEnd});
+        return createCharacter(token.value, {useLastValid: !!state.isCheckingRangeEnd});
       case TokenTypes.CharacterClassHyphen:
         return parseCharacterClassHyphen(context, state);
       case TokenTypes.CharacterClassOpen:
@@ -343,7 +343,7 @@ function parseBackreference(context: Context): BackreferenceNode {
 }
 
 function parseCharacterClassHyphen(context: Context, state: State): CharacterNode | CharacterClassRangeNode {
-  const {parent, tokens, walk} = context as Context & {parent: CharacterClassNode};
+  const {parent, tokens, walk} = context as Context<CharacterClassHyphenToken> & {parent: CharacterClassNode};
   const prevSiblingNode = parent.elements.at(-1);
   const nextToken = tokens[context.current];
   if (
@@ -371,7 +371,7 @@ function parseCharacterClassHyphen(context: Context, state: State): CharacterNod
 }
 
 function parseCharacterClassOpen(context: Context, state: State): CharacterClassNode {
-  const {token, tokens, walk} = context;
+  const {token, tokens, walk} = context as Context<CharacterClassOpenToken>;
   const firstClassToken = tokens[context.current];
   const intersections = [createCharacterClass()];
   let nextToken = throwIfUnclosedCharacterClass(firstClassToken);
@@ -398,16 +398,17 @@ function parseCharacterClassOpen(context: Context, state: State): CharacterClass
   return node;
 }
 
-function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNameValidation, unicodePropertyMap}: Context): CharacterSetNode {
-  let {kind, negate, value} = token as Token & {kind: CharacterSetNode['kind']; value: string};
+function parseCharacterSet(context: Context): CharacterSetNode {
+  const {token, normalizeUnknownPropertyNames, skipPropertyNameValidation, unicodePropertyMap} = context as Context<CharacterSetToken>;
+  let {kind, negate, value} = token;
   if (kind === TokenCharacterSetKinds.property) {
-    const normalized = slug(value);
+    const normalized = slug(value!);
     // Don't treat as POSIX if it's in the provided list of Unicode property names
     if (PosixClassNames.has(normalized) && !unicodePropertyMap?.has(normalized)) {
       kind = TokenCharacterSetKinds.posix;
       value = normalized;
     } else {
-      return createUnicodeProperty(value, {
+      return createUnicodeProperty(value!, {
         negate,
         normalizeUnknownPropertyNames,
         skipPropertyNameValidation,
@@ -416,13 +417,13 @@ function parseCharacterSet({token, normalizeUnknownPropertyNames, skipPropertyNa
     }
   }
   if (kind === TokenCharacterSetKinds.posix) {
-    return createPosixClass(value, {negate});
+    return createPosixClass(value!, {negate});
   }
   return createCharacterSet(kind, {negate});
 }
 
 function parseGroupOpen(context: Context, state: State): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
-  const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context;
+  const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context as Context<GroupOpenToken>;
   let node = createByGroupKind(token);
   const isThisAbsentFunction = node.type === NodeTypes.AbsentFunction;
   const isThisLookbehind = isLookbehind(node);
@@ -484,7 +485,7 @@ function parseGroupOpen(context: Context, state: State): AbsentFunctionNode | Ca
 }
 
 function parseQuantifier(context: Context): QuantifierNode {
-  const {token, parent} = context as Context & {parent: AlternativeNode};
+  const {token, parent} = context as Context<QuantifierToken> & {parent: AlternativeNode};
   const {min, max, kind} = token;
   const quantifiedNode = parent.elements.at(-1);
   if (
@@ -498,9 +499,9 @@ function parseQuantifier(context: Context): QuantifierNode {
   }
   const node = createQuantifier(
     quantifiedNode,
-    min!,
-    max!,
-    throwIfNot(NodeQuantifierKinds[kind as keyof typeof TokenQuantifierKinds], `Unexpected quantifier kind "${kind}"`)
+    min,
+    max,
+    throwIfNot(NodeQuantifierKinds[kind], `Unexpected quantifier kind "${kind}"`)
   );
   parent.elements.pop();
   return node;
@@ -604,8 +605,7 @@ function createAssertion(kind: keyof typeof NodeAssertionKinds, options?: {
   return node;
 }
 
-function createAssertionFromToken(token: Token): AssertionNode {
-  const {kind} = token as Token & {kind: string};
+function createAssertionFromToken({kind}: AssertionToken): AssertionNode {
   return createAssertion(
     throwIfNot({
       '^': NodeAssertionKinds.line_start,
@@ -618,7 +618,7 @@ function createAssertionFromToken(token: Token): AssertionNode {
       '\\Y': NodeAssertionKinds.grapheme_boundary,
       '\\z': NodeAssertionKinds.string_end,
       '\\Z': NodeAssertionKinds.string_end_newline,
-    }[kind]!, `Unexpected assertion kind "${kind}"`),
+    }[kind], `Unexpected assertion kind "${kind}"`),
     {negate: kind === r`\B` || kind === r`\Y`}
   );
 }
@@ -639,14 +639,14 @@ function createBackreference(ref: string | number, options?: {
   };
 }
 
-function createByGroupKind({flags, kind, name, negate, number}: Token): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
+function createByGroupKind({flags, kind, name, negate, number}: GroupOpenToken): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
   switch (kind) {
     case TokenGroupKinds.absent_repeater:
       return createAbsentFunction(NodeAbsentFunctionKinds.repeater);
     case TokenGroupKinds.atomic:
       return createGroup({atomic: true});
     case TokenGroupKinds.capturing:
-      return createCapturingGroup(number as number, name as string);
+      return createCapturingGroup(number!, name);
     case TokenGroupKinds.group:
       return createGroup({flags});
     case TokenGroupKinds.lookahead:
@@ -761,6 +761,9 @@ type UnnamedCharacterSetNode = {
   variableLength?: boolean;
 };
 type CharacterSetNode = NamedCharacterSetNode | UnnamedCharacterSetNode;
+/**
+Use `createUnicodeProperty` and `createPosixClass` for `kind` values of `'property'` and `'posix'`.
+*/
 function createCharacterSet(kind: UnnamedCharacterSetNode['kind'], options?: {
   negate?: boolean;
 }): UnnamedCharacterSetNode {
@@ -789,33 +792,35 @@ function createCharacterSet(kind: UnnamedCharacterSetNode['kind'], options?: {
 
 type DirectiveNode = {
   type: 'Directive';
-  kind: keyof typeof NodeDirectiveKinds;
-  flags?: FlagGroupModifiers;
-};
-function createDirective(kind: 'flags', options: {flags: FlagGroupModifiers}): DirectiveNode;
+} & ({
+  kind: 'keep';
+  flags?: never;
+} | {
+  kind: 'flags';
+  flags: FlagGroupModifiers;
+});
 function createDirective(kind: 'keep'): DirectiveNode;
-function createDirective(
-  kind: keyof typeof NodeDirectiveKinds,
-  options: {flags?: FlagGroupModifiers} = {}
-): DirectiveNode {
-  const node: DirectiveNode = {
+function createDirective(kind: 'flags', options: {flags: FlagGroupModifiers}): DirectiveNode;
+function createDirective(kind: 'keep' | 'flags', options: {flags?: FlagGroupModifiers} = {}): DirectiveNode {
+  if (kind === NodeDirectiveKinds.keep) {
+    return {
+      type: NodeTypes.Directive,
+      kind,
+    };
+  }
+  // Note: Flag effects might extend across alternation; ex: `a(?i)b|c` is equivalent to
+  // `a(?i:b)|(?i:c)`, not `a(?i:b|c)`
+  return {
     type: NodeTypes.Directive,
     kind,
+    flags: throwIfNot(options.flags),
   };
-  // Can't optimize by simply creating a `Group` with a `flags` prop and wrapping the remainder of
-  // the open group or pattern in it, because the flag modifier's effect might extend across
-  // alternation. Ex: `a(?i)b|c` is equivalent to `a(?i:b)|(?i:c)`, not `a(?i:b|c)`
-  if (kind === NodeDirectiveKinds.flags) {
-    node.flags = throwIfNot(options.flags);
-  }
-  return node;
 }
 
-function createDirectiveFromToken(token: Token): DirectiveNode {
-  const {kind, flags} = token as Token & {kind: keyof typeof TokenDirectiveKinds};
+function createDirectiveFromToken({kind, flags}: DirectiveToken): DirectiveNode {
   throwIfNot(NodeDirectiveKinds[kind], `Unexpected directive kind "${kind}"`);
   return kind === TokenDirectiveKinds.flags ?
-    createDirective(kind, {flags: flags!}) :
+    createDirective(kind, {flags}) :
     createDirective(kind);
 }
 
@@ -1012,15 +1017,17 @@ function slug(name: string): string {
   return name.replace(/[- _]+/g, '').toLowerCase();
 }
 
-function throwIfUnclosedCharacterClass(token: Token, firstClassToken?: Token): Token {
+function throwIfUnclosedCharacterClass<T>(token: T, firstClassToken?: Token): NonNullable<T> {
   return throwIfNot(
     token,
-    // Easier to understand error when applicable
-    `${firstClassToken?.value === 93 ? 'Empty' : 'Unclosed'} character class`
+    // Easier to understand the error if it says "empty" when the unclosed class starts with
+    // literal `]`; ex: `[]` or `[]a`
+    `${firstClassToken?.type === TokenTypes.Character && firstClassToken.value === 93 ?
+      'Empty' : 'Unclosed'} character class`
   );
 }
 
-function throwIfUnclosedGroup(token: Token): Token {
+function throwIfUnclosedGroup<T>(token: T): NonNullable<T> {
   return throwIfNot(token, 'Unclosed group');
 }
 
