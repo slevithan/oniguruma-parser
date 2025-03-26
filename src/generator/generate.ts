@@ -3,33 +3,33 @@ import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNo
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNot} from '../utils.js';
 
-type Gen = (node: Node) => OnigurumaRegex | string;
+type Gen = (node: NonRootNode) => string;
+type NonRootNode = Exclude<Node, RegexNode>;
 type OnigurumaRegex = {
   pattern: string;
   flags: string;
 };
 type State = {
   inCharClass: boolean;
-  lastNode: Node | null; // `null` for root node
-  parent: ParentNode | null; // `null` for root node
+  lastNode: Node;
+  parent: ParentNode;
 };
 
 /**
 Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
 */
 function generate(ast: OnigurumaAst): OnigurumaRegex {
-  const parentStack: Array<ParentNode> = [ast];
-  let lastNode: State['lastNode'] = null;
-  let parent: State['parent'] = null;
+  const parentStack: Array<ParentNode> = [];
+  let lastNode: Node = ast;
   const state: State = {
     inCharClass: false,
     lastNode,
-    parent,
+    parent: ast,
   };
-  function gen(node: Node): OnigurumaRegex {
+  const gen: Gen = node => {
     state.lastNode = lastNode;
-    lastNode = node;
-    if (state.lastNode && getFirstChild(state.lastNode) === node) {
+    lastNode = node; // For the next iteration
+    if (getFirstChild(state.lastNode) === node) {
       state.parent = state.lastNode as ParentNode;
       parentStack.push(state.parent);
     }
@@ -38,26 +38,22 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
       throw new Error(`Unexpected node type "${node.type}"`);
     }
     const result = fn(node, state, gen);
-    if (state.parent && getLastChild(state.parent) === node) {
+    if (getLastChild(state.parent) === node) {
       parentStack.pop();
-      // Always at least the root node in the stack
-      state.parent = parentStack.at(-1)!;
-    }
-    return result as OnigurumaRegex;
-  }
-  return gen(ast);
+      state.parent = parentStack.at(-1) ?? ast;
+    };
+    return result;
+  };
+  const pattern = gen(ast.pattern);
+  lastNode = ast; // Reset for flags
+  const flags = gen(ast.flags);
+  return {
+    pattern,
+    flags,
+  };
 }
 
-const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => OnigurumaRegex | string} = {
-  Regex(node: Node, _: State, gen: Gen): OnigurumaRegex {
-    const {pattern, flags} = node as RegexNode;
-    // Final result is an object; other node types return strings
-    return {
-      pattern: gen(pattern) as string,
-      flags: gen(flags) as string,
-    };
-  },
-
+const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: Gen) => string} = {
   AbsentFunction(node: Node, _: State, gen: Gen): string {
     const {kind, alternatives} = node as AbsentFunctionNode;
     if (kind !== NodeAbsentFunctionKinds.repeater) {
@@ -107,7 +103,7 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
 
   Character(node: Node, {inCharClass, lastNode, parent}: State): string {
     const {value} = node as CharacterNode;
-    const escDigit = lastNode!.type === NodeTypes.Backreference;
+    const escDigit = lastNode.type === NodeTypes.Backreference;
     if (CharCodeEscapeMap.has(value)) {
       return CharCodeEscapeMap.get(value)!;
     }
@@ -127,7 +123,7 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     const char = cp(value);
     let escape = false;
     if (inCharClass) {
-      const isDirectClassKid = parent!.type === NodeTypes.CharacterClass;
+      const isDirectClassKid = parent.type === NodeTypes.CharacterClass;
       const isFirst = isDirectClassKid && parent.elements[0] === node;
       const isLast = isDirectClassKid && parent.elements.at(-1) === node;
       // Avoid escaping in some optional special cases when escaping isn't needed due to position
@@ -152,7 +148,7 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
     const {kind, negate, elements} = node as CharacterClassNode;
     function genClass() {
       if (
-        state.parent!.type === NodeTypes.CharacterClass &&
+        state.parent.type === NodeTypes.CharacterClass &&
         state.parent.kind === NodeCharacterClassKinds.intersection &&
         kind === NodeCharacterClassKinds.union &&
         !elements.length
@@ -269,7 +265,7 @@ const generator: {[key in NodeType]: (node: Node, state: State, gen: Gen) => Oni
       element.kind === NodeQuantifierKinds.greedy
     );
     const parentIsPossessivePlus = (
-      parent!.type === NodeTypes.Quantifier &&
+      parent.type === NodeTypes.Quantifier &&
       parent.kind === NodeQuantifierKinds.possessive &&
       parent.min === 1 &&
       parent.max === Infinity
@@ -383,7 +379,7 @@ function getFirstChild(node: Node) {
 
 function getLastChild(node: Node) {
   if ('alternatives' in node) {
-    return node.alternatives.at(-1);
+    return node.alternatives.at(-1)!; // Always at least one
   }
   if ('elements' in node) {
     return node.elements.at(-1) ?? null;
