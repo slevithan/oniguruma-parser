@@ -38,7 +38,7 @@ console.log(ast.pattern.alternatives[0].elements[0]);
 } */
 ```
 
-In addition to the root `'oniguruma-parser'` export which includes `toOnigurumaAst`, the following modules are available:
+The following modules are available in addition to the root `'oniguruma-parser'` export:
 
 - [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes `parse` with more options for specialized use, plus numerous functions, types, etc. for constructing and working with `OnigurumaAst` nodes.
 - [Generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
@@ -62,7 +62,7 @@ function toOnigurumaAst(
 ): OnigurumaAst;
 ```
 
-An error is thrown if the pattern isn't valid in Oniguruma.
+An error is thrown if the pattern or flags aren't valid in Oniguruma.
 
 ## Regex optimizer
 
@@ -93,15 +93,15 @@ Known differences will be resolved in future versions.
 
 The following rarely-used features throw errors since they aren't yet supported:
 
-- Rarely-used character specifiers: Non-A-Za-z with `\cx`, `\C-x`; meta `\M-x`, `\M-\C-x`; bracketed octals `\o{…}`; octal UTF-8 encoded bytes (≥ `\200`).
+- Rarely-used character specifiers: Non-A-Za-z with `\cx` `\C-x`, meta `\M-x` `\M-\C-x`, bracketed octals `\o{…}`, and octal UTF-8 encoded bytes (≥ `\200`).
 - Code point sequences: `\x{H H …}`, `\o{O O …}`.
 - Absent expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.
 - Callouts: `(?{…})`, `(*…)`, etc.
-- Numbered *forward* backreferences (including relative `\k<+n>`), and backreferences with recursion level (`\k<n+n>`, etc.).
+- Numbered *forward* backreferences (including relative `\k<+N>`) and backreferences with recursion level (`\k<N+N>`, etc.).
 - Flags `y{g}`/`y{w}` (grapheme boundary modes); whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest); flags `D`, `P`, `S`, `W` (digit/POSIX/space/word is ASCII) within mode modifiers.
 
-Despite these gaps, more than 99.99% of real-world Oniguruma regexes are supported, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all). Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub.
+Despite these gaps, **more than 99.99% of real-world Oniguruma regexes are supported**, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all). Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub.
 
 <details>
   <summary>More details about numbered forward backreferences</summary>
@@ -119,7 +119,7 @@ The following don't yet throw errors, but should:
 
 - Special characters that are invalid in backreference names when referencing a valid group with that name.
   - Named backreferences should use a more restricted set of allowed characters than named groups and subroutines.
-  - Note that an error is already thrown for backreference *names* that include `-` or `+`.
+  - Note that an error is already thrown for backreference names that include `-` or `+` (separate from relative *numbered* backreferences).
 - Subroutines used in ways that resemble infinite recursion ([#5](https://github.com/slevithan/oniguruma-parser/issues/5)).
   - Such subroutines error at compile time in Oniguruma.
 
