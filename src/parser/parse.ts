@@ -1,4 +1,4 @@
-import {TokenGroupKinds, tokenize} from '../tokenizer/tokenize.js';
+import {tokenize} from '../tokenizer/tokenize.js';
 import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
@@ -616,18 +616,18 @@ function createBackreference(ref: string | number, options?: {
 
 function createByGroupKind({flags, kind, name, negate, number}: GroupOpenToken): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
   switch (kind) {
-    case TokenGroupKinds.absent_repeater:
+    case 'absent_repeater':
       return createAbsentFunction('repeater');
-    case TokenGroupKinds.atomic:
+    case 'atomic':
       return createGroup({atomic: true});
-    case TokenGroupKinds.capturing:
+    case 'capturing':
       return createCapturingGroup(number!, name);
-    case TokenGroupKinds.group:
+    case 'group':
       return createGroup({flags});
-    case TokenGroupKinds.lookahead:
-    case TokenGroupKinds.lookbehind:
+    case 'lookahead':
+    case 'lookbehind':
       return createLookaroundAssertion({
-        behind: kind === TokenGroupKinds.lookbehind,
+        behind: kind === 'lookbehind',
         negate,
       });
     default:

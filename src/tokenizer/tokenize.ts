@@ -35,14 +35,13 @@ type TokenDirectiveKind =
   'flags' |
   'keep';
 
-const TokenGroupKinds = {
-  absent_repeater: 'absent_repeater',
-  atomic: 'atomic',
-  capturing: 'capturing',
-  group: 'group',
-  lookahead: 'lookahead',
-  lookbehind: 'lookbehind',
-} as const;
+type TokenGroupKind =
+  'absent_repeater' |
+  'atomic' |
+  'capturing' |
+  'group' |
+  'lookahead' |
+  'lookbehind';
 
 type TokenQuantifierKind =
   'greedy' |
@@ -205,7 +204,7 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
   const potentialUnnamedCaptureTokens: Array<GroupOpenToken> = [];
   let numNamedAndOptInUnnamedCaptures = 0;
   tokens.filter(t => t.type === 'GroupOpen').forEach(t => {
-    if (t.kind === TokenGroupKinds.capturing) {
+    if (t.kind === 'capturing') {
       t.number = ++numNamedAndOptInUnnamedCaptures;
     } else if (t.raw === '(') {
       potentialUnnamedCaptureTokens.push(t);
@@ -214,7 +213,7 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
   // Enable unnamed capturing groups if no named captures (when `captureGroup` not enabled)
   if (!numNamedAndOptInUnnamedCaptures) {
     potentialUnnamedCaptureTokens.forEach((t, i) => {
-      t.kind = TokenGroupKinds.capturing;
+      t.kind = 'capturing';
       t.number = i + 1;
     });
   }
@@ -341,19 +340,19 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     ) {
       return {
         // For `(`, will later change to `capturing` and add `number` prop if no named captures
-        token: createGroupOpenToken(TokenGroupKinds.group, m),
+        token: createGroupOpenToken('group', m),
       };
     }
     // Atomic group
     if (m === '(?>') {
       return {
-        token: createGroupOpenToken(TokenGroupKinds.atomic, m),
+        token: createGroupOpenToken('atomic', m),
       };
     }
     // Lookaround
     if (m === '(?=' || m === '(?!' || m === '(?<=' || m === '(?<!') {
       return {
-        token: createGroupOpenToken(m[2] === '<' ? TokenGroupKinds.lookbehind : TokenGroupKinds.lookahead, m, {
+        token: createGroupOpenToken(m[2] === '<' ? 'lookbehind' : 'lookahead', m, {
           negate: m.endsWith('!'),
         }),
       };
@@ -366,7 +365,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
       (m.startsWith("(?'") && m.endsWith("'"))
     ) {
       return {
-        token: createGroupOpenToken(TokenGroupKinds.capturing, m, {
+        token: createGroupOpenToken('capturing', m, {
           // Will add `number` prop in a second pass
           ...(m !== '(' && {name: m.slice(3, -1)}),
         }),
@@ -377,7 +376,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
         throw new Error(`Unsupported absent function kind "${m}"`);
       }
       return {
-        token: createGroupOpenToken(TokenGroupKinds.absent_repeater, m),
+        token: createGroupOpenToken('absent_repeater', m),
       };
     }
     if (m === '(?(') {
@@ -763,7 +762,7 @@ function createGroupCloseToken(raw: ')'): GroupCloseToken {
 
 type GroupOpenToken = {
   type: 'GroupOpen';
-  kind: keyof typeof TokenGroupKinds;
+  kind: TokenGroupKind;
   flags?: FlagGroupModifiers;
   name?: string;
   number?: number;
@@ -771,7 +770,7 @@ type GroupOpenToken = {
   raw: string;
 };
 function createGroupOpenToken(
-  kind: GroupOpenToken['kind'],
+  kind: TokenGroupKind,
   raw: string,
   options: {
     flags?: FlagGroupModifiers;
@@ -867,7 +866,7 @@ function createTokenForFlagMod(raw: string, context: Context): DirectiveToken | 
   if (raw.endsWith(':')) {
     context.pushModX(isXOn);
     context.numOpenGroups++;
-    return createGroupOpenToken(TokenGroupKinds.group, raw, {
+    return createGroupOpenToken('group', raw, {
       ...((enabledFlags || disabledFlags) && {flags: flagChanges}),
     });
   }
@@ -1026,7 +1025,6 @@ function splitEscapedNumberToken(token: EscapedNumberToken, numCaptures: number)
 
 export {
   tokenize,
-  TokenGroupKinds,
   type AlternatorToken,
   type AssertionToken,
   type BackreferenceToken,
@@ -1047,5 +1045,6 @@ export {
   type Token,
   type TokenCharacterSetKind,
   type TokenDirectiveKind,
+  type TokenGroupKind,
   type TokenQuantifierKind,
 };
