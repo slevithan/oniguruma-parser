@@ -1,4 +1,4 @@
-import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds, TokenTypes} from '../tokenizer/tokenize.js';
+import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds} from '../tokenizer/tokenize.js';
 import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, DirectiveToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
@@ -171,28 +171,28 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
     // Advance for the next iteration
     context.current++;
     switch (token.type) {
-      case TokenTypes.Alternator:
+      case 'Alternator':
         // Top-level only; groups handle their own alternators
         return createAlternative();
-      case TokenTypes.Assertion:
+      case 'Assertion':
         return createAssertionFromToken(token);
-      case TokenTypes.Backreference:
+      case 'Backreference':
         return parseBackreference(context);
-      case TokenTypes.Character:
+      case 'Character':
         return createCharacter(token.value, {useLastValid: !!state.isCheckingRangeEnd});
-      case TokenTypes.CharacterClassHyphen:
+      case 'CharacterClassHyphen':
         return parseCharacterClassHyphen(context, state);
-      case TokenTypes.CharacterClassOpen:
+      case 'CharacterClassOpen':
         return parseCharacterClassOpen(context, state);
-      case TokenTypes.CharacterSet:
+      case 'CharacterSet':
         return parseCharacterSet(context);
-      case TokenTypes.Directive:
+      case 'Directive':
         return createDirectiveFromToken(token);
-      case TokenTypes.GroupOpen:
+      case 'GroupOpen':
         return parseGroupOpen(context, state);
-      case TokenTypes.Quantifier:
+      case 'Quantifier':
         return parseQuantifier(context);
-      case TokenTypes.Subroutine:
+      case 'Subroutine':
         return parseSubroutine(context);
       default:
         throw new Error(`Unexpected token type "${token.type}"`);
@@ -325,9 +325,9 @@ function parseCharacterClassHyphen(context: Context, state: State): CharacterNod
     prevSiblingNode.type !== 'CharacterClass' &&
     prevSiblingNode.type !== 'CharacterClassRange' &&
     nextToken &&
-    nextToken.type !== TokenTypes.CharacterClassOpen &&
-    nextToken.type !== TokenTypes.CharacterClassClose &&
-    nextToken.type !== TokenTypes.CharacterClassIntersector
+    nextToken.type !== 'CharacterClassOpen' &&
+    nextToken.type !== 'CharacterClassClose' &&
+    nextToken.type !== 'CharacterClassIntersector'
   ) {
     const nextNode = walk(parent, {
       ...state,
@@ -348,8 +348,8 @@ function parseCharacterClassOpen(context: Context, state: State): CharacterClass
   const firstClassToken = tokens[context.current];
   const intersections = [createCharacterClass()];
   let nextToken = throwIfUnclosedCharacterClass(firstClassToken);
-  while (nextToken.type !== TokenTypes.CharacterClassClose) {
-    if (nextToken.type === TokenTypes.CharacterClassIntersector) {
+  while (nextToken.type !== 'CharacterClassClose') {
+    if (nextToken.type === 'CharacterClassIntersector') {
       intersections.push(createCharacterClass());
       // Skip the intersector
       context.current++;
@@ -415,8 +415,8 @@ function parseGroupOpen(context: Context, state: State): AbsentFunctionNode | Ca
     throw new Error('Nested absent function not supported by Oniguruma');
   }
   let nextToken = throwIfUnclosedGroup(tokens[context.current]);
-  while (nextToken.type !== TokenTypes.GroupClose) {
-    if (nextToken.type === TokenTypes.Alternator) {
+  while (nextToken.type !== 'GroupClose') {
+    if (nextToken.type === 'Alternator') {
       node.alternatives.push(createAlternative());
       // Skip the alternator
       context.current++;
@@ -995,7 +995,7 @@ function throwIfUnclosedCharacterClass<T>(token: T, firstClassToken?: Token): No
     token,
     // Easier to understand the error if it says "empty" when the unclosed class starts with
     // literal `]`; ex: `[]` or `[]a`
-    `${firstClassToken?.type === TokenTypes.Character && firstClassToken.value === 93 ?
+    `${firstClassToken?.type === 'Character' && firstClassToken.value === 93 ?
       'Empty' : 'Unclosed'} character class`
   );
 }

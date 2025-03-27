@@ -1,24 +1,5 @@
 import {PosixClassNames, r, throwIfNullable} from '../utils.js';
 
-const TokenTypes = {
-  Alternator: 'Alternator',
-  Assertion: 'Assertion',
-  Backreference: 'Backreference',
-  Character: 'Character',
-  CharacterClassClose: 'CharacterClassClose',
-  CharacterClassHyphen: 'CharacterClassHyphen',
-  CharacterClassIntersector: 'CharacterClassIntersector',
-  CharacterClassOpen: 'CharacterClassOpen',
-  CharacterSet: 'CharacterSet',
-  Directive: 'Directive',
-  GroupClose: 'GroupClose',
-  GroupOpen: 'GroupOpen',
-  Quantifier: 'Quantifier',
-  Subroutine: 'Subroutine',
-  // Intermediate representation only
-  EscapedNumber: 'EscapedNumber',
-} as const;
-
 type Token =
   AlternatorToken |
   AssertionToken |
@@ -226,7 +207,7 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
 
   const potentialUnnamedCaptureTokens: Array<GroupOpenToken> = [];
   let numNamedAndOptInUnnamedCaptures = 0;
-  tokens.filter(t => t.type === TokenTypes.GroupOpen).forEach(t => {
+  tokens.filter(t => t.type === 'GroupOpen').forEach(t => {
     if (t.kind === TokenGroupKinds.capturing) {
       t.number = ++numNamedAndOptInUnnamedCaptures;
     } else if (t.raw === '(') {
@@ -243,7 +224,7 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
   const numCaptures = numNamedAndOptInUnnamedCaptures || potentialUnnamedCaptureTokens.length;
   // Can now split escaped nums accurately, accounting for number of captures
   const tokensWithoutIntermediate = tokens.map(
-    t => t.type === TokenTypes.EscapedNumber ? splitEscapedNumberToken(t, numCaptures) : t
+    t => t.type === 'EscapedNumber' ? splitEscapedNumberToken(t, numCaptures) : t
   ).flat();
 
   return {
@@ -490,7 +471,7 @@ function getAllTokensForCharClass(pattern: string, opener: CharacterClassOpener,
       tokens.push(createCharacterClassOpenToken(m[1] === '^', m as CharacterClassOpener));
     } else if (m === ']') {
       // Always at least includes the char class opener
-      if (tokens.at(-1)!.type === TokenTypes.CharacterClassOpen) {
+      if (tokens.at(-1)!.type === 'CharacterClassOpen') {
         // Allow unescaped `]` as leading char
         tokens.push(createCharacterToken(93, m));
       } else {
@@ -618,7 +599,7 @@ type AlternatorToken = {
 };
 function createAlternatorToken(raw: '|'): AlternatorToken {
   return {
-    type: TokenTypes.Alternator,
+    type: 'Alternator',
     raw,
   };
 }
@@ -630,7 +611,7 @@ type AssertionToken = {
 };
 function createAssertionToken(kind: string, raw: string): AssertionToken {
   return {
-    type: TokenTypes.Assertion,
+    type: 'Assertion',
     kind,
     raw,
   };
@@ -642,7 +623,7 @@ type BackreferenceToken = {
 };
 function createBackreferenceToken(raw: string): BackreferenceToken {
   return {
-    type: TokenTypes.Backreference,
+    type: 'Backreference',
     raw,
   };
 }
@@ -654,7 +635,7 @@ type CharacterToken = {
 };
 function createCharacterToken(value: number, raw: string): CharacterToken {
   return {
-    type: TokenTypes.Character,
+    type: 'Character',
     value,
     raw,
   };
@@ -666,7 +647,7 @@ type CharacterClassCloseToken = {
 };
 function createCharacterClassCloseToken(raw: ']'): CharacterClassCloseToken {
   return {
-    type: TokenTypes.CharacterClassClose,
+    type: 'CharacterClassClose',
     raw,
   };
 }
@@ -677,7 +658,7 @@ type CharacterClassHyphenToken = {
 };
 function createCharacterClassHyphenToken(raw: '-'): CharacterClassHyphenToken {
   return {
-    type: TokenTypes.CharacterClassHyphen,
+    type: 'CharacterClassHyphen',
     raw,
   };
 }
@@ -688,7 +669,7 @@ type CharacterClassIntersectorToken = {
 };
 function createCharacterClassIntersectorToken(raw: '&&'): CharacterClassIntersectorToken {
   return {
-    type: TokenTypes.CharacterClassIntersector,
+    type: 'CharacterClassIntersector',
     raw,
   };
 }
@@ -701,7 +682,7 @@ type CharacterClassOpenToken = {
 type CharacterClassOpener = '[' | '[^';
 function createCharacterClassOpenToken(negate: boolean, raw: CharacterClassOpener): CharacterClassOpenToken {
   return {
-    type: TokenTypes.CharacterClassOpen,
+    type: 'CharacterClassOpen',
     negate,
     raw,
   };
@@ -723,7 +704,7 @@ function createCharacterSetToken(
   } = {}
 ): CharacterSetToken {
   return {
-    type: TokenTypes.CharacterSet,
+    type: 'CharacterSet',
     kind,
     ...options,
     raw,
@@ -745,28 +726,30 @@ function createDirectiveToken(kind: 'flags', raw: string, options: {flags: FlagG
 function createDirectiveToken(kind: 'keep' | 'flags', raw: string, options: {flags?: FlagGroupModifiers} = {}): DirectiveToken {
   if (kind === TokenDirectiveKinds.keep) {
     return {
-      type: TokenTypes.Directive,
+      type: 'Directive',
       kind,
       raw,
     };
   }
   return {
-    type: TokenTypes.Directive,
+    type: 'Directive',
     kind,
     flags: throwIfNullable(options.flags),
     raw,
   };
 }
 
-// Intermediate representation only
 type EscapedNumberToken = {
   type: 'EscapedNumber';
   inCharClass: boolean;
   raw: string;
 };
+/**
+Intermediate representation only; will become a `Backreference` or one or more `Character`s.
+*/
 function createEscapedNumberToken(inCharClass: boolean, raw: string): EscapedNumberToken {
   return {
-    type: TokenTypes.EscapedNumber,
+    type: 'EscapedNumber',
     inCharClass,
     raw,
   };
@@ -778,7 +761,7 @@ type GroupCloseToken = {
 };
 function createGroupCloseToken(raw: ')'): GroupCloseToken {
   return {
-    type: TokenTypes.GroupClose,
+    type: 'GroupClose',
     raw,
   };
 }
@@ -803,7 +786,7 @@ function createGroupOpenToken(
   } = {}
 ): GroupOpenToken {
   return {
-    type: TokenTypes.GroupOpen,
+    type: 'GroupOpen',
     kind,
     ...options,
     raw,
@@ -824,7 +807,7 @@ function createQuantifierToken(
   raw: string
 ): QuantifierToken {
   return {
-    type: TokenTypes.Quantifier,
+    type: 'Quantifier',
     kind,
     min,
     max,
@@ -838,7 +821,7 @@ type SubroutineToken = {
 };
 function createSubroutineToken(raw: string): SubroutineToken {
   return {
-    type: TokenTypes.Subroutine,
+    type: 'Subroutine',
     raw,
   };
 }
@@ -1054,7 +1037,6 @@ export {
   TokenDirectiveKinds,
   TokenGroupKinds,
   TokenQuantifierKinds,
-  TokenTypes,
   type AlternatorToken,
   type AssertionToken,
   type BackreferenceToken,
