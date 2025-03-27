@@ -1,4 +1,3 @@
-import {NodeDirectiveKinds} from '../../parser/parse.js';
 import type {DirectiveNode, FlagsNode, GroupNode} from '../../parser/parse.js';
 import type {FlagGroupModifiers} from '../../tokenizer/tokenize.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
@@ -16,7 +15,7 @@ const removeUselessFlags: Visitor = {
 
   Directive(path: Path) {
     const {node, remove} = path as Path<DirectiveNode>;
-    if (node.kind !== NodeDirectiveKinds.flags) {
+    if (node.kind !== 'flags') {
       return;
     }
     removeFlagX(node);

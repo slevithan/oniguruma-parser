@@ -31,10 +31,9 @@ type TokenCharacterSetKind =
   'space' |
   'word';
 
-const TokenDirectiveKinds = {
-  flags: 'flags',
-  keep: 'keep',
-} as const;
+type TokenDirectiveKind =
+  'flags' |
+  'keep';
 
 const TokenGroupKinds = {
   absent_repeater: 'absent_repeater',
@@ -281,7 +280,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     }
     if (m1 === 'K') {
       return {
-        token: createDirectiveToken(TokenDirectiveKinds.keep, m),
+        token: createDirectiveToken('keep', m),
       };
     }
     if (m1 === 'N' || m1 === 'R') {
@@ -720,10 +719,8 @@ type DirectiveToken = {
   kind: 'flags';
   flags: FlagGroupModifiers;
 });
-function createDirectiveToken(kind: 'keep', raw: string): DirectiveToken;
-function createDirectiveToken(kind: 'flags', raw: string, options: {flags: FlagGroupModifiers}): DirectiveToken;
-function createDirectiveToken(kind: 'keep' | 'flags', raw: string, options: {flags?: FlagGroupModifiers} = {}): DirectiveToken {
-  if (kind === TokenDirectiveKinds.keep) {
+function createDirectiveToken(kind: TokenDirectiveKind, raw: string, options: {flags?: FlagGroupModifiers} = {}): DirectiveToken {
+  if (kind === 'keep') {
     return {
       type: 'Directive',
       kind,
@@ -863,7 +860,7 @@ function createTokenForFlagMod(raw: string, context: Context): DirectiveToken | 
     // Replace flag x value until the end of the current group
     context.replaceCurrentModX(isXOn);
     // Can't remove flag directives without flags like `(?-)`; they affect following quantifiers
-    return createDirectiveToken(TokenDirectiveKinds.flags, raw, {
+    return createDirectiveToken('flags', raw, {
       flags: flagChanges,
     });
   }
@@ -1032,7 +1029,6 @@ function splitEscapedNumberToken(token: EscapedNumberToken, numCaptures: number)
 
 export {
   tokenize,
-  TokenDirectiveKinds,
   TokenGroupKinds,
   TokenQuantifierKinds,
   type AlternatorToken,
@@ -1054,4 +1050,5 @@ export {
   type SubroutineToken,
   type Token,
   type TokenCharacterSetKind,
+  type TokenDirectiveKind,
 };

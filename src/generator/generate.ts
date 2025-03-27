@@ -1,4 +1,4 @@
-import {NodeDirectiveKinds, NodeQuantifierKinds} from '../parser/parse.js';
+import {NodeQuantifierKinds} from '../parser/parse.js';
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNullable} from '../utils.js';
@@ -206,13 +206,13 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
 
   Directive(node: Node): string {
     const {kind, flags} = node as DirectiveNode;
-    if (kind === NodeDirectiveKinds.flags) {
+    if (kind === 'flags') {
       const {enable = {}, disable = {}} = flags;
       const enableStr = getFlagsStr(enable);
       const disableStr = getFlagsStr(disable);
       return (enableStr || disableStr) ? `(?${enableStr}${disableStr ? `-${disableStr}` : ''})` : '';
     }
-    if (kind === NodeDirectiveKinds.keep) {
+    if (kind === 'keep') {
       return r`\K`;
     }
     throw new Error(`Unexpected directive kind "${kind}"`);

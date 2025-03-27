@@ -1,5 +1,5 @@
-import {TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds} from '../tokenizer/tokenize.js';
-import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, DirectiveToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token, TokenCharacterSetKind} from '../tokenizer/tokenize.js';
+import {TokenGroupKinds, tokenize, TokenQuantifierKinds} from '../tokenizer/tokenize.js';
+import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token, TokenCharacterSetKind, TokenDirectiveKind} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 type NodeType = Node['type'];
@@ -91,7 +91,7 @@ type NodeCharacterClassKind =
 
 type NodeCharacterSetKind = TokenCharacterSetKind;
 
-const NodeDirectiveKinds = TokenDirectiveKinds;
+type NodeDirectiveKind = TokenDirectiveKind;
 
 type NodeLookaroundAssertionKind =
   'lookahead' |
@@ -188,7 +188,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
       case 'CharacterSet':
         return parseCharacterSet(context);
       case 'Directive':
-        return createDirectiveFromToken(token);
+        return createDirective(token.kind, {flags: token.flags});
       case 'GroupOpen':
         return parseGroupOpen(context, state);
       case 'Quantifier':
@@ -511,7 +511,7 @@ function parseQuantifier(context: Context): QuantifierNode {
 //     no multiplexing would occur.
 function parseSubroutine(context: Context): SubroutineNode {
   const {token, capturingGroups, subroutines} = context;
-  let ref: (string | number) = token.raw.slice(3, -1);
+  let ref: string | number = token.raw.slice(3, -1);
   const numberedRef = /^(?<sign>[-+]?)0*(?<num>[1-9]\d*)$/.exec(ref);
   if (numberedRef) {
     const num = +numberedRef.groups!.num;
@@ -773,29 +773,23 @@ type DirectiveNode = {
   kind: 'flags';
   flags: FlagGroupModifiers;
 });
-function createDirective(kind: 'keep'): DirectiveNode;
-function createDirective(kind: 'flags', options: {flags: FlagGroupModifiers}): DirectiveNode;
-function createDirective(kind: 'keep' | 'flags', options: {flags?: FlagGroupModifiers} = {}): DirectiveNode {
-  if (kind === NodeDirectiveKinds.keep) {
+function createDirective(kind: NodeDirectiveKind, options: {flags?: FlagGroupModifiers} = {}): DirectiveNode {
+  if (kind === 'keep') {
     return {
       type: 'Directive',
       kind,
     };
   }
-  // Note: Flag effects might extend across alternation; ex: `a(?i)b|c` is equivalent to
-  // `a(?i:b)|(?i:c)`, not `a(?i:b|c)`
-  return {
-    type: 'Directive',
-    kind,
-    flags: throwIfNullable(options.flags),
-  };
-}
-
-function createDirectiveFromToken({kind, flags}: DirectiveToken): DirectiveNode {
-  throwIfNullable(NodeDirectiveKinds[kind], `Unexpected directive kind "${kind}"`);
-  return kind === TokenDirectiveKinds.flags ?
-    createDirective(kind, {flags}) :
-    createDirective(kind);
+  if (kind === 'flags') {
+    // Note: Flag effects might extend across alternation; ex: `a(?i)b|c` is equivalent to
+    // `a(?i:b)|(?i:c)`, not `a(?i:b|c)`
+    return {
+      type: 'Directive',
+      kind,
+      flags: throwIfNullable(options.flags),
+    };
+  }
+  throw new Error(`Unexpected directive kind "${kind}"`);
 }
 
 type FlagsNode = {
@@ -1025,7 +1019,6 @@ export {
   createRegex,
   createSubroutine,
   createUnicodeProperty,
-  NodeDirectiveKinds,
   NodeQuantifierKinds,
   parse,
   slug,
@@ -1050,6 +1043,7 @@ export {
   type NodeAssertionKind,
   type NodeCharacterClassKind,
   type NodeCharacterSetKind,
+  type NodeDirectiveKind,
   type NodeLookaroundAssertionKind,
   type NodeType,
   type OnigurumaAst,
