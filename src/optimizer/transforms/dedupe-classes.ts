@@ -1,4 +1,3 @@
-import {NodeCharacterClassKinds} from '../../parser/parse.js';
 import type {CharacterClassElementNode, CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -9,7 +8,7 @@ const dedupeClasses: Visitor = {
   CharacterClass(path: Path) {
     const {node} = path as Path<CharacterClassNode>;
     const {kind, elements} = node;
-    if (kind !== NodeCharacterClassKinds.union) {
+    if (kind !== 'union') {
       return;
     }
     const keep: Array<CharacterClassElementNode> = [];

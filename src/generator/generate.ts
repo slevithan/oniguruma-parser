@@ -1,4 +1,4 @@
-import {NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds} from '../parser/parse.js';
+import {NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds} from '../parser/parse.js';
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNullable} from '../utils.js';
@@ -146,15 +146,15 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     function genClass() {
       if (
         state.parent.type === 'CharacterClass' &&
-        state.parent.kind === NodeCharacterClassKinds.intersection &&
-        kind === NodeCharacterClassKinds.union &&
+        state.parent.kind === 'intersection' &&
+        kind === 'union' &&
         !elements.length
       ) {
         // Prevent empty intersection like `[&&]` from becoming the invalid `[[]&&[]]`
         return '';
       }
       return `[${negate ? '^' : ''}${
-        elements.map(gen).join(kind === NodeCharacterClassKinds.intersection ? '&&' : '')
+        elements.map(gen).join(kind === 'intersection' ? '&&' : '')
       }]`;
     }
     if (!state.inCharClass) {

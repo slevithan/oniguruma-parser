@@ -1,4 +1,4 @@
-import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds} from '../../parser/parse.js';
+import {createCharacterSet, NodeCharacterSetKinds} from '../../parser/parse.js';
 import type {CharacterClassNode, CharacterSetNode, Node} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -64,7 +64,7 @@ const useShorthands: Visitor = {
 
   CharacterClass(path: Path) {
     const {node, root} = path as Path<CharacterClassNode>;
-    if (node.kind !== NodeCharacterClassKinds.union) {
+    if (node.kind !== 'union') {
       return;
     }
     const has = {

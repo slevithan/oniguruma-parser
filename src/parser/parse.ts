@@ -85,10 +85,9 @@ type NodeAssertionKind =
   'string_start' |
   'word_boundary';
 
-const NodeCharacterClassKinds = {
-  union: 'union',
-  intersection: 'intersection',
-} as const;
+type NodeCharacterClassKind =
+  'union' |
+  'intersection';
 
 // Identical values
 const NodeCharacterSetKinds = TokenCharacterSetKinds;
@@ -365,7 +364,7 @@ function parseCharacterClassOpen(context: Context, state: State): CharacterClass
   if (intersections.length === 1) {
     node.elements = intersections[0].elements;
   } else {
-    node.kind = NodeCharacterClassKinds.intersection;
+    node.kind = 'intersection';
     node.elements = intersections.map(cc => cc.elements.length === 1 ? cc.elements[0] : cc);
   }
   // Skip the closing square bracket
@@ -684,16 +683,16 @@ function createCharacter(charCode: number, options?: {
 
 type CharacterClassNode = {
   type: 'CharacterClass';
-  kind: keyof typeof NodeCharacterClassKinds;
+  kind: NodeCharacterClassKind;
   negate: boolean;
   elements: Array<CharacterClassElementNode>;
 };
 function createCharacterClass(options?: {
-  kind?: keyof typeof NodeCharacterClassKinds;
+  kind?: NodeCharacterClassKind;
   negate?: boolean;
 }): CharacterClassNode {
   const opts = {
-    kind: NodeCharacterClassKinds.union,
+    kind: 'union' as NodeCharacterClassKind,
     negate: false,
     ...options,
   };
@@ -1026,7 +1025,6 @@ export {
   createRegex,
   createSubroutine,
   createUnicodeProperty,
-  NodeCharacterClassKinds,
   NodeCharacterSetKinds,
   NodeDirectiveKinds,
   NodeLookaroundAssertionKinds,

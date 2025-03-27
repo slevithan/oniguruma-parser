@@ -1,5 +1,4 @@
 import {hasOnlyChild} from '../../parser/node-utils.js';
-import {NodeCharacterClassKinds} from '../../parser/parse.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -13,7 +12,7 @@ const unnestUselessClasses: Visitor = {
     if (
       // Don't use this to unwrap outermost classes; see `unwrapUselessClasses` for that
       parent!.type !== 'CharacterClass' ||
-      kind !== NodeCharacterClassKinds.union ||
+      kind !== 'union' ||
       !elements.length
     ) {
       return;
@@ -24,7 +23,7 @@ const unnestUselessClasses: Visitor = {
     // `[[a]]` -> `[a]`; `[[^a]]` -> `[^a]`; `[^[a]]` -> `[^a]`; `[^[^a]]` -> `[a]`
     if (hasOnlyChild(parent, {
       type: 'CharacterClass',
-      kind: NodeCharacterClassKinds.union,
+      kind: 'union',
     })) {
       parent.negate = parent.negate !== negate;
       replaceWithMultiple(elements, {traverse: true});
@@ -35,7 +34,7 @@ const unnestUselessClasses: Visitor = {
       return;
     }
     // Unnest all kids into a union class
-    if (parent.kind === NodeCharacterClassKinds.union) {
+    if (parent.kind === 'union') {
       replaceWithMultiple(elements, {traverse: true});
     // Can unnest any one kid into an intersection class
     // [TODO] After supporting `format` for classes in the parser, can "unnest" any number of kids

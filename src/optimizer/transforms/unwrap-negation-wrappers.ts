@@ -1,4 +1,4 @@
-import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeQuantifierKinds} from '../../parser/parse.js';
+import {createCharacterSet, NodeCharacterSetKinds, NodeQuantifierKinds} from '../../parser/parse.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -13,7 +13,7 @@ const unwrapNegationWrappers: Visitor = {
     const kid = elements[0];
     if (
       !negate ||
-      kind !== NodeCharacterClassKinds.union ||
+      kind !== 'union' ||
       elements.length !== 1
     ) {
       return;

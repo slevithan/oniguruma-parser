@@ -1,4 +1,3 @@
-import {NodeCharacterClassKinds} from '../../parser/parse.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -13,7 +12,7 @@ const unwrapUselessClasses: Visitor = {
     if (
       parent!.type === 'CharacterClass' ||
       negate ||
-      kind !== NodeCharacterClassKinds.union ||
+      kind !== 'union' ||
       elements.length !== 1 ||
       (kid.type !== 'Character' && kid.type !== 'CharacterSet')
     ) {
