@@ -2,29 +2,6 @@ import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, 
 import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, DirectiveToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
-const NodeTypes = {
-  AbsentFunction: 'AbsentFunction',
-  Alternative: 'Alternative',
-  Assertion: 'Assertion',
-  Backreference: 'Backreference',
-  CapturingGroup: 'CapturingGroup',
-  Character: 'Character',
-  CharacterClass: 'CharacterClass',
-  CharacterClassRange: 'CharacterClassRange',
-  CharacterSet: 'CharacterSet',
-  Directive: 'Directive',
-  Flags: 'Flags',
-  Group: 'Group',
-  LookaroundAssertion: 'LookaroundAssertion',
-  Pattern: 'Pattern',
-  Quantifier: 'Quantifier',
-  Regex: 'Regex',
-  Subroutine: 'Subroutine',
-  // Type `Recursion` is used only by the `oniguruma-to-es` transformer for Regex+ ASTs
-  // [TODO] Refactor to remove this type: <github.com/slevithan/oniguruma-parser/issues/3>
-  Recursion: 'Recursion',
-} as const;
-
 type NodeType = Node['type'];
 type OnigurumaAst = RegexNode;
 
@@ -248,7 +225,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
   let top = ast.pattern.alternatives[0];
   while (context.current < tokenized.tokens.length) {
     const node = walk(top, {});
-    if (node.type === NodeTypes.Alternative) {
+    if (node.type === 'Alternative') {
       ast.pattern.alternatives.push(node);
       top = node;
     } else {
@@ -349,8 +326,8 @@ function parseCharacterClassHyphen(context: Context, state: State): CharacterNod
   if (
     !state.isCheckingRangeEnd &&
     prevSiblingNode &&
-    prevSiblingNode.type !== NodeTypes.CharacterClass &&
-    prevSiblingNode.type !== NodeTypes.CharacterClassRange &&
+    prevSiblingNode.type !== 'CharacterClass' &&
+    prevSiblingNode.type !== 'CharacterClassRange' &&
     nextToken &&
     nextToken.type !== TokenTypes.CharacterClassOpen &&
     nextToken.type !== TokenTypes.CharacterClassClose &&
@@ -360,7 +337,7 @@ function parseCharacterClassHyphen(context: Context, state: State): CharacterNod
       ...state,
       isCheckingRangeEnd: true,
     });
-    if (prevSiblingNode.type === NodeTypes.Character && nextNode.type === NodeTypes.Character) {
+    if (prevSiblingNode.type === 'Character' && nextNode.type === 'Character') {
       parent.elements.pop();
       return createCharacterClassRange(prevSiblingNode, nextNode);
     }
@@ -425,12 +402,12 @@ function parseCharacterSet(context: Context): CharacterSetNode {
 function parseGroupOpen(context: Context, state: State): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
   const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context as Context<GroupOpenToken>;
   let node = createByGroupKind(token);
-  const isThisAbsentFunction = node.type === NodeTypes.AbsentFunction;
+  const isThisAbsentFunction = node.type === 'AbsentFunction';
   const isThisLookbehind = isLookbehind(node);
   const isThisNegLookbehind = isThisLookbehind && node.negate;
   // Track capturing group details for backrefs and subroutines (before parsing the group's
   // contents so nested groups with the same name are tracked in order)
-  if (node.type === NodeTypes.CapturingGroup) {
+  if (node.type === 'CapturingGroup') {
     capturingGroups.push(node);
     if (node.name) {
       getOrInsert(namedGroupsByName, node.name, []).push(node);
@@ -465,7 +442,7 @@ function parseGroupOpen(context: Context, state: State): AbsentFunctionNode | Ca
         if (isThisNegLookbehind || state.isInNegLookbehind) {
           // - Invalid: `(?=…)`, `(?!…)`, capturing groups
           // - Valid: `(?<=…)`, `(?<!…)`
-          if (isLookahead(child) || child.type === NodeTypes.CapturingGroup) {
+          if (isLookahead(child) || child.type === 'CapturingGroup') {
             throw new Error(msg);
           }
         } else {
@@ -491,9 +468,9 @@ function parseQuantifier(context: Context): QuantifierNode {
   if (
     !quantifiedNode ||
     // TODO: `!quantifiableTypes.has(quantifiedNode.type)`
-    quantifiedNode.type === NodeTypes.Assertion ||
-    quantifiedNode.type === NodeTypes.Directive ||
-    quantifiedNode.type === NodeTypes.LookaroundAssertion
+    quantifiedNode.type === 'Assertion' ||
+    quantifiedNode.type === 'Directive' ||
+    quantifiedNode.type === 'LookaroundAssertion'
   ) {
     throw new Error(`Quantifier requires a repeatable token`);
   }
@@ -570,7 +547,7 @@ function createAbsentFunction(kind: keyof typeof NodeAbsentFunctionKinds): Absen
     throw new Error(`Unexpected absent function kind "${kind}"`);
   }
   return {
-    type: NodeTypes.AbsentFunction,
+    type: 'AbsentFunction',
     kind,
     alternatives: [createAlternative()],
   };
@@ -582,7 +559,7 @@ type AlternativeNode = {
 };
 function createAlternative(): AlternativeNode {
   return {
-    type: NodeTypes.Alternative,
+    type: 'Alternative',
     elements: [],
   };
 }
@@ -596,7 +573,7 @@ function createAssertion(kind: keyof typeof NodeAssertionKinds, options?: {
   negate?: boolean;
 }): AssertionNode {
   const node: AssertionNode = {
-    type: NodeTypes.Assertion,
+    type: 'Assertion',
     kind,
   };
   if (kind === NodeAssertionKinds.word_boundary || kind === NodeAssertionKinds.grapheme_boundary) {
@@ -633,7 +610,7 @@ function createBackreference(ref: string | number, options?: {
 }): BackreferenceNode {
   const orphan = !!options?.orphan;
   return {
-    type: NodeTypes.Backreference,
+    type: 'Backreference',
     ref,
     ...(orphan && {orphan}),
   };
@@ -673,7 +650,7 @@ function createCapturingGroup(number: number, name?: string): CapturingGroupNode
     throw new Error(`Group name "${name}" invalid in Oniguruma`);
   }
   return {
-    type: NodeTypes.CapturingGroup,
+    type: 'CapturingGroup',
     number,
     ...(hasName && {name}),
     alternatives: [createAlternative()],
@@ -702,7 +679,7 @@ function createCharacter(charCode: number, options?: {
     }
   }
   return {
-    type: NodeTypes.Character,
+    type: 'Character',
     value: charCode,
   };
 }
@@ -723,7 +700,7 @@ function createCharacterClass(options?: {
     ...options,
   };
   return {
-    type: NodeTypes.CharacterClass,
+    type: 'CharacterClass',
     kind: opts.kind,
     negate: opts.negate,
     elements: [],
@@ -740,7 +717,7 @@ function createCharacterClassRange(min: CharacterNode, max: CharacterNode): Char
     throw new Error('Character class range out of order');
   }
   return {
-    type: NodeTypes.CharacterClassRange,
+    type: 'CharacterClassRange',
     min,
     max,
   };
@@ -769,7 +746,7 @@ function createCharacterSet(kind: UnnamedCharacterSetNode['kind'], options?: {
 }): UnnamedCharacterSetNode {
   const negate = !!options?.negate;
   const node: UnnamedCharacterSetNode = {
-    type: NodeTypes.CharacterSet,
+    type: 'CharacterSet',
     kind: throwIfNullable(NodeCharacterSetKinds[kind], `Unexpected character set kind "${kind}"`),
   };
   if (
@@ -804,14 +781,14 @@ function createDirective(kind: 'flags', options: {flags: FlagGroupModifiers}): D
 function createDirective(kind: 'keep' | 'flags', options: {flags?: FlagGroupModifiers} = {}): DirectiveNode {
   if (kind === NodeDirectiveKinds.keep) {
     return {
-      type: NodeTypes.Directive,
+      type: 'Directive',
       kind,
     };
   }
   // Note: Flag effects might extend across alternation; ex: `a(?i)b|c` is equivalent to
   // `a(?i:b)|(?i:c)`, not `a(?i:b|c)`
   return {
-    type: NodeTypes.Directive,
+    type: 'Directive',
     kind,
     flags: throwIfNullable(options.flags),
   };
@@ -829,7 +806,7 @@ type FlagsNode = {
 } & RegexFlags;
 function createFlags(flags: RegexFlags): FlagsNode {
   return {
-    type: NodeTypes.Flags,
+    type: 'Flags',
     ...flags,
   };
 }
@@ -848,7 +825,7 @@ function createGroup(options?: {
   const atomic = options?.atomic;
   const flags = options?.flags;
   return {
-    type: NodeTypes.Group,
+    type: 'Group',
     ...(atomic && {atomic}),
     ...(flags && {flags}),
     alternatives: [createAlternative()],
@@ -871,7 +848,7 @@ function createLookaroundAssertion(options?: {
     ...options,
   };
   return {
-    type: NodeTypes.LookaroundAssertion,
+    type: 'LookaroundAssertion',
     kind: opts.behind ? NodeLookaroundAssertionKinds.lookbehind : NodeLookaroundAssertionKinds.lookahead,
     negate: opts.negate,
     alternatives: [createAlternative()],
@@ -884,7 +861,7 @@ type PatternNode = {
 };
 function createPattern(): PatternNode {
   return {
-    type: NodeTypes.Pattern,
+    type: 'Pattern',
     alternatives: [createAlternative()],
   };
 }
@@ -897,7 +874,7 @@ function createPosixClass(name: string, options?: {
     throw new Error(`Invalid POSIX class "${name}"`);
   }
   return {
-    type: NodeTypes.CharacterSet,
+    type: 'CharacterSet',
     kind: NodeCharacterSetKinds.posix,
     value: name,
     negate,
@@ -913,7 +890,7 @@ type QuantifierNode = {
 };
 function createQuantifier(element: QuantifiableNode, min: number, max: number, kind: keyof typeof NodeQuantifierKinds = NodeQuantifierKinds.greedy): QuantifierNode {
   const node = {
-    type: NodeTypes.Quantifier,
+    type: 'Quantifier' as const,
     min,
     max,
     kind,
@@ -937,7 +914,7 @@ type RegexNode = {
 };
 function createRegex(pattern: PatternNode, flags: FlagsNode): RegexNode {
   return {
-    type: NodeTypes.Regex,
+    type: 'Regex',
     pattern,
     flags,
   };
@@ -949,7 +926,7 @@ type SubroutineNode = {
 };
 function createSubroutine(ref: string | number): SubroutineNode {
   return {
-    type: NodeTypes.Subroutine,
+    type: 'Subroutine',
     ref,
   };
 }
@@ -978,7 +955,7 @@ function createUnicodeProperty(name: string, options?: CreateUnicodePropertyOpti
     }
   }
   return {
-    type: NodeTypes.CharacterSet,
+    type: 'CharacterSet',
     kind: NodeCharacterSetKinds.property,
     value: normalized ?? name,
     negate: opts.negate,
@@ -986,11 +963,11 @@ function createUnicodeProperty(name: string, options?: CreateUnicodePropertyOpti
 }
 
 function isLookahead(node: Node): node is (LookaroundAssertionNode & {kind: 'lookahead'}) {
-  return node.type === NodeTypes.LookaroundAssertion && node.kind === NodeLookaroundAssertionKinds.lookahead;
+  return node.type === 'LookaroundAssertion' && node.kind === NodeLookaroundAssertionKinds.lookahead;
 }
 
 function isLookbehind(node: Node): node is (LookaroundAssertionNode & {kind: 'lookbehind'}) {
-  return node.type === NodeTypes.LookaroundAssertion && node.kind === NodeLookaroundAssertionKinds.lookbehind;
+  return node.type === 'LookaroundAssertion' && node.kind === NodeLookaroundAssertionKinds.lookbehind;
 }
 
 function isValidGroupName(name: string): boolean {
@@ -1057,7 +1034,6 @@ export {
   NodeCharacterSetKinds,
   NodeDirectiveKinds,
   NodeLookaroundAssertionKinds,
-  NodeTypes,
   NodeQuantifierKinds,
   parse,
   slug,

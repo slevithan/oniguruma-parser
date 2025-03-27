@@ -1,4 +1,4 @@
-import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeQuantifierKinds, NodeTypes} from '../../parser/parse.js';
+import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeQuantifierKinds} from '../../parser/parse.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -20,16 +20,16 @@ const unwrapNegationWrappers: Visitor = {
     }
     // Don't need to check if `kind` is in `universalCharacterSetKinds` because all character
     // sets valid in classes are in that set
-    if (kid.type === NodeTypes.CharacterSet) {
+    if (kid.type === 'CharacterSet') {
       kid.negate = !kid.negate;
       // Might unnest into a class or unwrap into a non-class
       replaceWith(kid);
     } else if (
-      parent!.type !== NodeTypes.CharacterClass &&
-      kid.type === NodeTypes.Character &&
+      parent!.type !== 'CharacterClass' &&
+      kid.type === 'Character' &&
       kid.value === 10 // '\n'
     ) {
-      if (parent!.type === NodeTypes.Quantifier && parent!.kind !== NodeQuantifierKinds.lazy) {
+      if (parent!.type === 'Quantifier' && parent!.kind !== NodeQuantifierKinds.lazy) {
         // Avoid introducing a trigger for an Oniguruma bug; see <github.com/rosshamish/kuskus/issues/209>
         return;
       }

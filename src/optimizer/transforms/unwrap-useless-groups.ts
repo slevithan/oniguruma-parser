@@ -1,5 +1,4 @@
 import {quantifiableTypes} from '../../parser/node-utils.js';
-import {NodeTypes} from '../../parser/parse.js';
 import type {AlternativeElementNode, GroupNode, NodeType, QuantifiableNode, QuantifierNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -9,7 +8,7 @@ Unwrap nonbeneficial noncapturing and atomic groups.
 const unwrapUselessGroups: Visitor = {
   Group({node, parent, replaceWithMultiple}: Path) {
     const {alternatives, atomic, flags} = node as GroupNode;
-    if (alternatives.length > 1 || parent!.type === NodeTypes.Quantifier) {
+    if (alternatives.length > 1 || parent!.type === 'Quantifier') {
       return;
     }
     const els = alternatives[0].elements;
@@ -32,7 +31,7 @@ const unwrapUselessGroups: Visitor = {
 
   Quantifier(path: Path) {
     const {node} = path as Path<QuantifierNode>;
-    if (node.element.type !== NodeTypes.Group) {
+    if (node.element.type !== 'Group') {
       return;
     }
     const quantifiedGroup = node.element;
@@ -57,12 +56,12 @@ const unwrapUselessGroups: Visitor = {
 };
 
 const atomicTypes = new Set<NodeType>([
-  NodeTypes.Assertion,
-  NodeTypes.Backreference,
-  NodeTypes.Character,
-  NodeTypes.CharacterClass,
-  NodeTypes.CharacterSet,
-  NodeTypes.Directive,
+  'Assertion',
+  'Backreference',
+  'Character',
+  'CharacterClass',
+  'CharacterSet',
+  'Directive',
 ]);
 
 export {

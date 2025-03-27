@@ -1,5 +1,5 @@
 import {alternativeContainerTypes, universalCharacterSetKinds} from '../../parser/node-utils.js';
-import {createAlternative, createCharacterClass, NodeTypes} from '../../parser/parse.js';
+import {createAlternative, createCharacterClass} from '../../parser/parse.js';
 import type {AlternativeContainerNode, AlternativeNode, CharacterClassNode, CharacterNode, CharacterSetNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -18,9 +18,9 @@ const alternationToClass: Visitor = {
       const kid = alt.elements[0];
       if (
         alt.elements.length === 1 &&
-        ( kid.type === NodeTypes.Character ||
-          kid.type === NodeTypes.CharacterClass ||
-          (kid.type === NodeTypes.CharacterSet && universalCharacterSetKinds.has(kid.kind))
+        ( kid.type === 'Character' ||
+          kid.type === 'CharacterClass' ||
+          (kid.type === 'CharacterSet' && universalCharacterSetKinds.has(kid.kind))
         )
       ) {
         ccNodes.push(kid);

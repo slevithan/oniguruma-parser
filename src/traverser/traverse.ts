@@ -1,4 +1,3 @@
-import {NodeTypes} from '../parser/parse.js';
 import type {AlternativeElementNode, AlternativeNode, CharacterClassElementNode, Node, NodeType, OnigurumaAst, ParentNode, RegexNode} from '../parser/parse.js';
 import {throwIfNullable} from '../utils.js';
 
@@ -108,38 +107,38 @@ function traverse<State = undefined>(ast: OnigurumaAst, visitor: Visitor<State>,
 
     if (!skipTraversingKidsOfPath) {
       switch (node.type) {
-        case NodeTypes.Regex:
+        case 'Regex':
           traverseNode(node.pattern, node, 'pattern');
           traverseNode(node.flags, node, 'flags');
           break;
-        case NodeTypes.Alternative:
-        case NodeTypes.CharacterClass:
+        case 'Alternative':
+        case 'CharacterClass':
           traverseArray(node.elements, node);
           break;
-        case NodeTypes.Assertion:
-        case NodeTypes.Backreference:
-        case NodeTypes.Character:
-        case NodeTypes.CharacterSet:
-        case NodeTypes.Directive:
-        case NodeTypes.Flags:
+        case 'Assertion':
+        case 'Backreference':
+        case 'Character':
+        case 'CharacterSet':
+        case 'Directive':
+        case 'Flags':
         // @ts-expect-error TODO: <github.com/slevithan/oniguruma-parser/issues/3>
-        case NodeTypes.Recursion:
-        case NodeTypes.Subroutine:
+        case 'Recursion':
+        case 'Subroutine':
           break;
-        case NodeTypes.AbsentFunction:
-        case NodeTypes.CapturingGroup:
-        case NodeTypes.Group:
-        case NodeTypes.Pattern:
+        case 'AbsentFunction':
+        case 'CapturingGroup':
+        case 'Group':
+        case 'Pattern':
           traverseArray(node.alternatives, node);
           break;
-        case NodeTypes.CharacterClassRange:
+        case 'CharacterClassRange':
           traverseNode(node.min, node, 'min');
           traverseNode(node.max, node, 'max');
           break;
-        case NodeTypes.LookaroundAssertion:
+        case 'LookaroundAssertion':
           traverseArray(node.alternatives, node);
           break;
-        case NodeTypes.Quantifier:
+        case 'Quantifier':
           traverseNode(node.element, node, 'element');
           break;
         default:

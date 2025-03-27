@@ -1,4 +1,4 @@
-import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeTypes} from '../../parser/parse.js';
+import {createCharacterSet, NodeCharacterClassKinds, NodeCharacterSetKinds} from '../../parser/parse.js';
 import type {CharacterClassNode, CharacterSetNode, Node} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -49,7 +49,7 @@ const useShorthands: Visitor = {
     ) {
       newNode = createCharacterSet(NodeCharacterSetKinds.space, {negate});
     } else if (
-      parent!.type !== NodeTypes.CharacterClass &&
+      parent!.type !== 'CharacterClass' &&
       kind === NodeCharacterSetKinds.property &&
       !negate &&
       value === 'Any'
@@ -77,11 +77,11 @@ const useShorthands: Visitor = {
       unicodePc: false,
     };
     for (const kid of node.elements) {
-      if (kid.type === NodeTypes.CharacterClassRange) {
+      if (kid.type === 'CharacterClassRange') {
         has.rangeDigit0To9 ||= isRange(kid, 48, 57); // '0' to '9'
         has.rangeAToFLower ||= isRange(kid, 97, 102); // 'a' to 'f'
         has.rangeAToFUpper ||= isRange(kid, 65, 70); // 'A' to 'F'
-      } else if (kid.type === NodeTypes.CharacterSet) {
+      } else if (kid.type === 'CharacterSet') {
         has.unicodeL ||= isUnicode(kid, 'L');
         has.unicodeM ||= isUnicode(kid, 'M');
         has.unicodeN ||= isUnicode(kid, 'N');
@@ -110,7 +110,7 @@ const useShorthands: Visitor = {
 
 function isRange(node: Node, min: number, max: number): boolean {
   return (
-    node.type === NodeTypes.CharacterClassRange &&
+    node.type === 'CharacterClassRange' &&
     node.min.value === min &&
     node.max.value === max
   );
@@ -122,7 +122,7 @@ function isUnicode(
   options: {includeSupercategories?: boolean; includeSubcategories?: boolean} = {}
 ): boolean {
   if (
-    node.type !== NodeTypes.CharacterSet ||
+    node.type !== 'CharacterSet' ||
     node.kind !== NodeCharacterSetKinds.property ||
     node.negate
   ) {

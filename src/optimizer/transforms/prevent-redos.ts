@@ -1,5 +1,5 @@
 import {hasOnlyChild} from '../../parser/node-utils.js';
-import {NodeQuantifierKinds, NodeTypes} from '../../parser/parse.js';
+import {NodeQuantifierKinds} from '../../parser/parse.js';
 import type {QuantifierNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -19,14 +19,14 @@ const preventReDoS: Visitor = {
     if (
       max !== Infinity ||
       // Can't operate on capturing groups because that could change the captured value
-      element.type !== NodeTypes.Group ||
+      element.type !== 'Group' ||
       // No benefit with atomic groups
       element.atomic
     ) {
       return;
     }
     const firstAlt = element.alternatives[0];
-    if (!hasOnlyChild(firstAlt, {type: NodeTypes.Quantifier})) {
+    if (!hasOnlyChild(firstAlt, {type: 'Quantifier'})) {
       return;
     }
     const nestedQuantifier = firstAlt.elements[0] as QuantifierNode;

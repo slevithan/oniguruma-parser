@@ -1,5 +1,5 @@
 import {hasOnlyChild} from '../../parser/node-utils.js';
-import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
+import {NodeCharacterClassKinds} from '../../parser/parse.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -12,7 +12,7 @@ const unnestUselessClasses: Visitor = {
     const {kind, negate, elements} = node as CharacterClassNode;
     if (
       // Don't use this to unwrap outermost classes; see `unwrapUselessClasses` for that
-      parent!.type !== NodeTypes.CharacterClass ||
+      parent!.type !== 'CharacterClass' ||
       kind !== NodeCharacterClassKinds.union ||
       !elements.length
     ) {
@@ -23,7 +23,7 @@ const unnestUselessClasses: Visitor = {
     // `negate` on the parent; ex:
     // `[[a]]` -> `[a]`; `[[^a]]` -> `[^a]`; `[^[a]]` -> `[^a]`; `[^[^a]]` -> `[a]`
     if (hasOnlyChild(parent, {
-      type: NodeTypes.CharacterClass,
+      type: 'CharacterClass',
       kind: NodeCharacterClassKinds.union,
     })) {
       parent.negate = parent.negate !== negate;

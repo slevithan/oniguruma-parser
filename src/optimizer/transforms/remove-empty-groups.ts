@@ -1,4 +1,3 @@
-import {NodeTypes} from '../../parser/parse.js';
 import type {Node, QuantifierNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -15,7 +14,7 @@ const removeEmptyGroups: Visitor = {
   Quantifier(path: Path) {
     const {node, remove} = path as Path<QuantifierNode>;
     let kid = node.element;
-    while (kid.type === NodeTypes.Quantifier) {
+    while (kid.type === 'Quantifier') {
       kid = kid.element;
     }
     if (isEmptyGroup(kid)) {
@@ -26,7 +25,7 @@ const removeEmptyGroups: Visitor = {
 
 function isEmptyGroup(node: Node): boolean {
   return (
-    node.type === NodeTypes.Group &&
+    node.type === 'Group' &&
     node.alternatives.every(alt => !alt.elements.length)
   );
 }

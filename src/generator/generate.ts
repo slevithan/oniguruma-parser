@@ -1,4 +1,4 @@
-import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds, NodeTypes} from '../parser/parse.js';
+import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds} from '../parser/parse.js';
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNullable} from '../utils.js';
@@ -33,10 +33,7 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
       state.parent = state.lastNode as ParentNode;
       parentStack.push(state.parent);
     }
-    const fn = generator[node.type];
-    if (!fn) {
-      throw new Error(`Unexpected node type "${node.type}"`);
-    }
+    const fn = throwIfNullable(generator[node.type], `Unexpected node type "${node.type}"`);
     const result = fn(node, state, gen);
     if (getLastChild(state.parent) === node) {
       parentStack.pop();
@@ -45,7 +42,7 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
     return result;
   };
   const pattern = gen(ast.pattern);
-  lastNode = ast; // Reset for flags
+  lastNode = ast; // Reset
   const flags = gen(ast.flags);
   return {
     pattern,
@@ -103,7 +100,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
 
   Character(node: Node, {inCharClass, lastNode, parent}: State): string {
     const {value} = node as CharacterNode;
-    const escDigit = lastNode.type === NodeTypes.Backreference;
+    const escDigit = lastNode.type === 'Backreference';
     if (CharCodeEscapeMap.has(value)) {
       return CharCodeEscapeMap.get(value)!;
     }
@@ -123,7 +120,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     const char = cp(value);
     let escape = false;
     if (inCharClass) {
-      const isDirectClassKid = parent.type === NodeTypes.CharacterClass;
+      const isDirectClassKid = parent.type === 'CharacterClass';
       const isFirst = isDirectClassKid && parent.elements[0] === node;
       const isLast = isDirectClassKid && parent.elements.at(-1) === node;
       // Avoid escaping in some optional special cases when escaping isn't needed due to position
@@ -148,7 +145,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     const {kind, negate, elements} = node as CharacterClassNode;
     function genClass() {
       if (
-        state.parent.type === NodeTypes.CharacterClass &&
+        state.parent.type === 'CharacterClass' &&
         state.parent.kind === NodeCharacterClassKinds.intersection &&
         kind === NodeCharacterClassKinds.union &&
         !elements.length
@@ -261,11 +258,11 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
       throw new Error(`Invalid quantifier: min "${min}" > max "${max}"`);
     }
     const kidIsGreedyQuantifier = (
-      element.type === NodeTypes.Quantifier &&
+      element.type === 'Quantifier' &&
       element.kind === NodeQuantifierKinds.greedy
     );
     const parentIsPossessivePlus = (
-      parent.type === NodeTypes.Quantifier &&
+      parent.type === 'Quantifier' &&
       parent.kind === NodeQuantifierKinds.possessive &&
       parent.min === 1 &&
       parent.max === Infinity

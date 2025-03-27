@@ -1,4 +1,4 @@
-import {NodeCharacterClassKinds, NodeTypes} from '../../parser/parse.js';
+import {NodeCharacterClassKinds} from '../../parser/parse.js';
 import type {CharacterClassElementNode, CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -16,13 +16,13 @@ const dedupeClasses: Visitor = {
     for (const el of elements) {
       // Preserve the order; ignore formatting differences
       if (
-        ( el.type === NodeTypes.Character &&
+        ( el.type === 'Character' &&
           keep.some(k => (
             k.type === el.type &&
             k.value === el.value
           ))
         ) ||
-        ( el.type === NodeTypes.CharacterSet &&
+        ( el.type === 'CharacterSet' &&
           keep.some(k => (
             k.type === el.type &&
             k.kind === el.kind &&
@@ -30,7 +30,7 @@ const dedupeClasses: Visitor = {
             k.value === el.value
           ))
         ) ||
-        ( el.type === NodeTypes.CharacterClassRange &&
+        ( el.type === 'CharacterClassRange' &&
           keep.some(k => (
             k.type === el.type &&
             k.min.value === el.min.value &&

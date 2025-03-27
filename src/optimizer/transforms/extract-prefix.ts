@@ -1,5 +1,5 @@
 import {alternativeContainerTypes} from '../../parser/node-utils.js';
-import {createAlternative, createGroup, NodeTypes} from '../../parser/parse.js';
+import {createAlternative, createGroup} from '../../parser/parse.js';
 import type {AlternativeContainerNode, Node, NodeType} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -50,9 +50,9 @@ const extractPrefix: Visitor = {
 
 function isAllowedSimpleType(type: NodeType) {
   return (
-    type === NodeTypes.Assertion ||
-    type === NodeTypes.Character ||
-    type === NodeTypes.CharacterSet
+    type === 'Assertion' ||
+    type === 'Character' ||
+    type === 'CharacterSet'
   );
 }
 
@@ -61,11 +61,11 @@ function isNodeEqual(a: Node, b: Node): boolean {
   if (a.type !== b.type) {
     return false;
   }
-  if (a.type === NodeTypes.Assertion || a.type === NodeTypes.CharacterSet) {
+  if (a.type === 'Assertion' || a.type === 'CharacterSet') {
     // @ts-expect-error
     return a.kind === b.kind && a.negate === b.negate;
   }
-  if (a.type === NodeTypes.Character) {
+  if (a.type === 'Character') {
     // @ts-expect-error
     return a.value === b.value;
   }

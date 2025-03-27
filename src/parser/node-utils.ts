@@ -1,24 +1,24 @@
-import {NodeCharacterSetKinds, NodeTypes} from './parse.js';
+import {NodeCharacterSetKinds} from './parse.js';
 import type {Node, NodeType} from './parse.js';
 
 const alternativeContainerTypes = new Set<NodeType>([
-  NodeTypes.AbsentFunction,
-  NodeTypes.CapturingGroup,
-  NodeTypes.Group,
-  NodeTypes.LookaroundAssertion,
-  NodeTypes.Pattern,
+  'AbsentFunction',
+  'CapturingGroup',
+  'Group',
+  'LookaroundAssertion',
+  'Pattern',
 ]);
 
 const quantifiableTypes = new Set<NodeType>([
-  NodeTypes.AbsentFunction,
-  NodeTypes.Backreference,
-  NodeTypes.CapturingGroup,
-  NodeTypes.Character,
-  NodeTypes.CharacterClass,
-  NodeTypes.CharacterSet,
-  NodeTypes.Group,
-  NodeTypes.Quantifier,
-  NodeTypes.Subroutine,
+  'AbsentFunction',
+  'Backreference',
+  'CapturingGroup',
+  'Character',
+  'CharacterClass',
+  'CharacterSet',
+  'Group',
+  'Quantifier',
+  'Subroutine',
 ]);
 
 // Character set kinds that can appear inside and outside of character classes, and can be inverted
