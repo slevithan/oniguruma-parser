@@ -1,5 +1,4 @@
 import {hasOnlyChild} from '../../parser/node-utils.js';
-import {NodeQuantifierKinds} from '../../parser/parse.js';
 import type {QuantifierNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -32,7 +31,7 @@ const preventReDoS: Visitor = {
     const nestedQuantifier = firstAlt.elements[0] as QuantifierNode;
     if (
       // No benefit with possessive quantifiers
-      nestedQuantifier.kind === NodeQuantifierKinds.possessive ||
+      nestedQuantifier.kind === 'possessive' ||
       nestedQuantifier.min > 1 ||
       nestedQuantifier.max < 2
     ) {

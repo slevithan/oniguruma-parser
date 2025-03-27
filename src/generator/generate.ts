@@ -1,4 +1,3 @@
-import {NodeQuantifierKinds} from '../parser/parse.js';
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNullable} from '../utils.js';
@@ -259,11 +258,11 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     }
     const kidIsGreedyQuantifier = (
       element.type === 'Quantifier' &&
-      element.kind === NodeQuantifierKinds.greedy
+      element.kind === 'greedy'
     );
     const parentIsPossessivePlus = (
       parent.type === 'Quantifier' &&
-      parent.kind === NodeQuantifierKinds.possessive &&
+      parent.kind === 'possessive' &&
       parent.min === 1 &&
       parent.max === Infinity
     );
@@ -272,7 +271,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     // to avoid this because there's no interval representation possible for `++`. There's also no
     // other way to render `*+`, but a following `*` wouldn't alter the meaning of this node. `?+`
     // is also safe since it can use the alternative `{1,0}` representation (which is possessive)
-    const forcedInterval = kind === NodeQuantifierKinds.greedy && parentIsPossessivePlus;
+    const forcedInterval = kind === 'greedy' && parentIsPossessivePlus;
     let base;
     if (isSymbolQuantifierCandidate(node as QuantifierNode) && !forcedInterval) {
       if (
@@ -289,7 +288,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
           !(kidIsGreedyQuantifier && isSymbolQuantifierCandidate(element)) ||
           // ...but, we're forced to use `+` (and change the kid's rendering) if this is possessive
           // `++` since you can't use a possessive reversed range with `Infinity`
-          kind === NodeQuantifierKinds.possessive
+          kind === 'possessive'
         )
       ) {
         base = '+';
@@ -297,7 +296,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     }
     const isIntervalQuantifier = !base;
     if (isIntervalQuantifier) {
-      if (kind === NodeQuantifierKinds.possessive) {
+      if (kind === 'possessive') {
         if (min === max) {
           // Can't add a `+` suffix to a fixed `{n}` interval quantifier
           throw new Error(`Invalid possessive quantifier: min and max are equal "${min}"`);

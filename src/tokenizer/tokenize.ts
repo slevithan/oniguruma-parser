@@ -44,11 +44,10 @@ const TokenGroupKinds = {
   lookbehind: 'lookbehind',
 } as const;
 
-const TokenQuantifierKinds = {
-  greedy: 'greedy',
-  lazy: 'lazy',
-  possessive: 'possessive',
-} as const;
+type TokenQuantifierKind =
+  'greedy' |
+  'lazy' |
+  'possessive';
 
 const EscapeCharCodes = new Map([
   ['a',  7], // alert/bell (Not available in JS)
@@ -694,7 +693,7 @@ type CharacterSetToken = {
   raw: string;
 };
 function createCharacterSetToken(
-  kind: CharacterSetToken['kind'],
+  kind: TokenCharacterSetKind,
   raw: string,
   options: {
     value?: string;
@@ -791,13 +790,13 @@ function createGroupOpenToken(
 
 type QuantifierToken = {
   type: 'Quantifier';
-  kind: keyof typeof TokenQuantifierKinds;
+  kind: TokenQuantifierKind;
   min: number;
   max: number;
   raw: string;
 };
 function createQuantifierToken(
-  kind: QuantifierToken['kind'],
+  kind: TokenQuantifierKind,
   min: number,
   max: number,
   raw: string
@@ -876,7 +875,7 @@ function createTokenForFlagMod(raw: string, context: Context): DirectiveToken | 
 }
 
 function createTokenForQuantifier(raw: string): QuantifierToken {
-  let kind: keyof typeof TokenQuantifierKinds;
+  let kind: TokenQuantifierKind;
   let min: number;
   let max: number;
   if (raw[0] === '{') {
@@ -889,13 +888,11 @@ function createTokenForQuantifier(raw: string): QuantifierToken {
     min = +minStr;
     max = maxStr === undefined ? +minStr : (maxStr === '' ? Infinity : +maxStr);
     // By default, Onig doesn't support making interval quantifiers possessive with a `+` suffix
-    kind = raw.endsWith('?') ? TokenQuantifierKinds.lazy : TokenQuantifierKinds.greedy;
+    kind = raw.endsWith('?') ? 'lazy' : 'greedy';
   } else {
     min = raw[0] === '+' ? 1 : 0;
     max = raw[0] === '?' ? 1 : Infinity;
-    kind = raw[1] === '+' ?
-      TokenQuantifierKinds.possessive :
-      (raw[1] === '?' ? TokenQuantifierKinds.lazy : TokenQuantifierKinds.greedy);
+    kind = raw[1] === '+' ? 'possessive' : (raw[1] === '?' ? 'lazy' : 'greedy');
   }
   return createQuantifierToken(kind, min, max, raw);
 }
@@ -1030,7 +1027,6 @@ function splitEscapedNumberToken(token: EscapedNumberToken, numCaptures: number)
 export {
   tokenize,
   TokenGroupKinds,
-  TokenQuantifierKinds,
   type AlternatorToken,
   type AssertionToken,
   type BackreferenceToken,
@@ -1051,4 +1047,5 @@ export {
   type Token,
   type TokenCharacterSetKind,
   type TokenDirectiveKind,
+  type TokenQuantifierKind,
 };

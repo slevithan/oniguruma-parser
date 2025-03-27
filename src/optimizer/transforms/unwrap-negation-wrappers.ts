@@ -1,4 +1,4 @@
-import {createCharacterSet, NodeQuantifierKinds} from '../../parser/parse.js';
+import {createCharacterSet} from '../../parser/parse.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -29,7 +29,7 @@ const unwrapNegationWrappers: Visitor = {
       kid.type === 'Character' &&
       kid.value === 10 // '\n'
     ) {
-      if (parent!.type === 'Quantifier' && parent!.kind !== NodeQuantifierKinds.lazy) {
+      if (parent!.type === 'Quantifier' && parent!.kind !== 'lazy') {
         // Avoid introducing a trigger for an Oniguruma bug; see <github.com/rosshamish/kuskus/issues/209>
         return;
       }

@@ -1,5 +1,5 @@
-import {TokenGroupKinds, tokenize, TokenQuantifierKinds} from '../tokenizer/tokenize.js';
-import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token, TokenCharacterSetKind, TokenDirectiveKind} from '../tokenizer/tokenize.js';
+import {TokenGroupKinds, tokenize} from '../tokenizer/tokenize.js';
+import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 type NodeType = Node['type'];
@@ -97,7 +97,7 @@ type NodeLookaroundAssertionKind =
   'lookahead' |
   'lookbehind';
 
-const NodeQuantifierKinds = TokenQuantifierKinds;
+type NodeQuantifierKind = TokenQuantifierKind;
 
 type UnicodePropertyMap = Map<string, string>;
 
@@ -464,7 +464,8 @@ function parseQuantifier(context: Context): QuantifierNode {
   const quantifiedNode = parent.elements.at(-1);
   if (
     !quantifiedNode ||
-    // TODO: `!quantifiableTypes.has(quantifiedNode.type)`
+    // TODO: Reusing `!quantifiableTypes.has(quantifiedNode.type)` would be better, but TS doesn't
+    // filter types with `Set`s
     quantifiedNode.type === 'Assertion' ||
     quantifiedNode.type === 'Directive' ||
     quantifiedNode.type === 'LookaroundAssertion'
@@ -475,7 +476,7 @@ function parseQuantifier(context: Context): QuantifierNode {
     quantifiedNode,
     min,
     max,
-    throwIfNullable(NodeQuantifierKinds[kind], `Unexpected quantifier kind "${kind}"`)
+    kind
   );
   parent.elements.pop();
   return node;
@@ -874,25 +875,25 @@ function createPosixClass(name: string, options?: {
 
 type QuantifierNode = {
   type: 'Quantifier';
+  kind: NodeQuantifierKind;
   min: number;
   max: number;
-  kind: keyof typeof NodeQuantifierKinds;
   element: QuantifiableNode;
 };
-function createQuantifier(element: QuantifiableNode, min: number, max: number, kind: keyof typeof NodeQuantifierKinds = NodeQuantifierKinds.greedy): QuantifierNode {
+function createQuantifier(element: QuantifiableNode, min: number, max: number, kind: NodeQuantifierKind = 'greedy'): QuantifierNode {
   const node = {
     type: 'Quantifier' as const,
+    kind,
     min,
     max,
-    kind,
     element,
   };
   if (max < min) {
     return {
       ...node,
+      kind: 'possessive',
       min: max,
       max: min,
-      kind: NodeQuantifierKinds.possessive,
     };
   }
   return node;
@@ -1019,7 +1020,6 @@ export {
   createRegex,
   createSubroutine,
   createUnicodeProperty,
-  NodeQuantifierKinds,
   parse,
   slug,
   type AbsentFunctionNode,
@@ -1045,6 +1045,7 @@ export {
   type NodeCharacterSetKind,
   type NodeDirectiveKind,
   type NodeLookaroundAssertionKind,
+  type NodeQuantifierKind,
   type NodeType,
   type OnigurumaAst,
   type ParentNode,
