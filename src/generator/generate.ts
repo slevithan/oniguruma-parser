@@ -1,4 +1,4 @@
-import {NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds} from '../parser/parse.js';
+import {NodeCharacterSetKinds, NodeDirectiveKinds, NodeQuantifierKinds} from '../parser/parse.js';
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNullable} from '../utils.js';
@@ -230,7 +230,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
 
   LookaroundAssertion(node: Node, _: State, gen: Gen): string {
     const {kind, negate, alternatives} = node as LookaroundAssertionNode;
-    const prefix = `${kind === NodeLookaroundAssertionKinds.lookahead ? '' : '<'}${negate ? '!' : '='}`;
+    const prefix = `${kind === 'lookahead' ? '' : '<'}${negate ? '!' : '='}`;
     return `(?${prefix}${alternatives.map(gen).join('|')})`;
   },
 

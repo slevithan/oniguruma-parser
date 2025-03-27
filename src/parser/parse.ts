@@ -94,10 +94,9 @@ const NodeCharacterSetKinds = TokenCharacterSetKinds;
 const NodeDirectiveKinds = TokenDirectiveKinds;
 const NodeQuantifierKinds = TokenQuantifierKinds;
 
-const NodeLookaroundAssertionKinds = {
-  lookahead: 'lookahead',
-  lookbehind: 'lookbehind',
-} as const;
+type NodeLookaroundAssertionKind =
+  'lookahead' |
+  'lookbehind';
 
 type UnicodePropertyMap = Map<string, string>;
 
@@ -831,7 +830,7 @@ function createGroup(options?: {
 
 type LookaroundAssertionNode = {
   type: 'LookaroundAssertion';
-  kind: keyof typeof NodeLookaroundAssertionKinds;
+  kind: NodeLookaroundAssertionKind;
   negate: boolean;
   alternatives: Array<AlternativeNode>;
 };
@@ -846,7 +845,7 @@ function createLookaroundAssertion(options?: {
   };
   return {
     type: 'LookaroundAssertion',
-    kind: opts.behind ? NodeLookaroundAssertionKinds.lookbehind : NodeLookaroundAssertionKinds.lookahead,
+    kind: opts.behind ? 'lookbehind' : 'lookahead',
     negate: opts.negate,
     alternatives: [createAlternative()],
   };
@@ -960,11 +959,11 @@ function createUnicodeProperty(name: string, options?: CreateUnicodePropertyOpti
 }
 
 function isLookahead(node: Node): node is (LookaroundAssertionNode & {kind: 'lookahead'}) {
-  return node.type === 'LookaroundAssertion' && node.kind === NodeLookaroundAssertionKinds.lookahead;
+  return node.type === 'LookaroundAssertion' && node.kind === 'lookahead';
 }
 
 function isLookbehind(node: Node): node is (LookaroundAssertionNode & {kind: 'lookbehind'}) {
-  return node.type === 'LookaroundAssertion' && node.kind === NodeLookaroundAssertionKinds.lookbehind;
+  return node.type === 'LookaroundAssertion' && node.kind === 'lookbehind';
 }
 
 function isValidGroupName(name: string): boolean {
@@ -1027,7 +1026,6 @@ export {
   createUnicodeProperty,
   NodeCharacterSetKinds,
   NodeDirectiveKinds,
-  NodeLookaroundAssertionKinds,
   NodeQuantifierKinds,
   parse,
   slug,
