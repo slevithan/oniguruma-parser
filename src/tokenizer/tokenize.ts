@@ -35,7 +35,8 @@ type Token =
   QuantifierToken |
   SubroutineToken;
 
-type TokenIncludingIntermediate = Token | EscapedNumberToken;
+type IntermediateToken =
+  EscapedNumberToken;
 
 const TokenCharacterSetKinds = {
   any: 'any',
@@ -208,7 +209,7 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
     replaceCurrentModX(isXOn) {xStack[xStack.length - 1] = isXOn},
     singleline: opts.rules.singleline,
   };
-  let tokens: Array<TokenIncludingIntermediate> = [];
+  let tokens: Array<Token | IntermediateToken> = [];
   let match: RegExpExecArray | null;
   tokenRe.lastIndex = 0;
   while ((match = tokenRe.exec(pattern))) {
@@ -253,10 +254,10 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
 
 function getTokenWithDetails(context: Context, pattern: string, m: string, lastIndex: number): {
   token?: never;
-  tokens: Array<TokenIncludingIntermediate>;
+  tokens: Array<Token | IntermediateToken>;
   lastIndex?: number;
 } | {
-  token: TokenIncludingIntermediate;
+  token: Token | IntermediateToken;
   tokens?: never;
   lastIndex?: number;
 } | {
@@ -473,10 +474,10 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
 }
 
 function getAllTokensForCharClass(pattern: string, opener: CharacterClassOpener, lastIndex: number): {
-  tokens: Array<TokenIncludingIntermediate>;
+  tokens: Array<Token | IntermediateToken>;
   lastIndex: number;
 } {
-  const tokens: Array<TokenIncludingIntermediate> = [createCharacterClassOpenToken(opener[1] === '^', opener)];
+  const tokens: Array<Token | IntermediateToken> = [createCharacterClassOpenToken(opener[1] === '^', opener)];
   let numCharClassesOpen = 1;
   let match: RegExpExecArray | null;
   charClassTokenRe.lastIndex = lastIndex;
@@ -514,7 +515,7 @@ function getAllTokensForCharClass(pattern: string, opener: CharacterClassOpener,
   };
 }
 
-function createTokenForAnyTokenWithinCharClass(raw: string): TokenIncludingIntermediate | Array<Token> {
+function createTokenForAnyTokenWithinCharClass(raw: string): Token | IntermediateToken | Array<Token> {
   if (raw[0] === '\\') {
     // Assumes an identity escape as final condition
     return createTokenForSharedEscape(raw, {inCharClass: true});
@@ -542,7 +543,7 @@ function createTokenForAnyTokenWithinCharClass(raw: string): TokenIncludingInter
 }
 
 // Tokens shared by base syntax and char class syntax that start with `\`
-function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}): TokenIncludingIntermediate | Array<Token> {
+function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}): Token | IntermediateToken | Array<Token> {
   const char1 = raw[1];
   if (char1 === 'c' || char1 === 'C') {
     return createTokenForControlChar(raw);
