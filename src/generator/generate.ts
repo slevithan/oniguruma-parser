@@ -1,4 +1,4 @@
-import {NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds} from '../parser/parse.js';
+import {NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds} from '../parser/parse.js';
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNullable} from '../utils.js';
@@ -66,10 +66,10 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
 
   Assertion(node: Node): string {
     const {kind, negate} = node as AssertionNode;
-    if (kind === NodeAssertionKinds.grapheme_boundary) {
+    if (kind === 'grapheme_boundary') {
       return negate ? r`\Y` : r`\y`;
     }
-    if (kind === NodeAssertionKinds.word_boundary) {
+    if (kind === 'word_boundary') {
       return negate ? r`\B` : r`\b`;
     }
     return throwIfNullable({

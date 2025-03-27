@@ -75,16 +75,15 @@ type QuantifiableNode =
 // <github.com/slevithan/oniguruma-to-es/issues/13>
 type NodeAbsentFunctionKind = 'repeater';
 
-const NodeAssertionKinds = {
-  grapheme_boundary: 'grapheme_boundary',
-  line_end: 'line_end',
-  line_start: 'line_start',
-  search_start: 'search_start',
-  string_end: 'string_end',
-  string_end_newline: 'string_end_newline',
-  string_start: 'string_start',
-  word_boundary: 'word_boundary',
-} as const;
+type NodeAssertionKind =
+  'grapheme_boundary' |
+  'line_end' |
+  'line_start' |
+  'search_start' |
+  'string_end' |
+  'string_end_newline' |
+  'string_start' |
+  'word_boundary';
 
 const NodeCharacterClassKinds = {
   union: 'union',
@@ -565,17 +564,17 @@ function createAlternative(): AlternativeNode {
 
 type AssertionNode = {
   type: 'Assertion';
-  kind: keyof typeof NodeAssertionKinds;
+  kind: NodeAssertionKind;
   negate?: boolean;
 };
-function createAssertion(kind: keyof typeof NodeAssertionKinds, options?: {
+function createAssertion(kind: NodeAssertionKind, options?: {
   negate?: boolean;
 }): AssertionNode {
   const node: AssertionNode = {
     type: 'Assertion',
     kind,
   };
-  if (kind === NodeAssertionKinds.word_boundary || kind === NodeAssertionKinds.grapheme_boundary) {
+  if (kind === 'word_boundary' || kind === 'grapheme_boundary') {
     node.negate = !!options?.negate;
   }
   return node;
@@ -584,17 +583,17 @@ function createAssertion(kind: keyof typeof NodeAssertionKinds, options?: {
 function createAssertionFromToken({kind}: AssertionToken): AssertionNode {
   return createAssertion(
     throwIfNullable({
-      '^': NodeAssertionKinds.line_start,
-      '$': NodeAssertionKinds.line_end,
-      '\\A': NodeAssertionKinds.string_start,
-      '\\b': NodeAssertionKinds.word_boundary,
-      '\\B': NodeAssertionKinds.word_boundary,
-      '\\G': NodeAssertionKinds.search_start,
-      '\\y': NodeAssertionKinds.grapheme_boundary,
-      '\\Y': NodeAssertionKinds.grapheme_boundary,
-      '\\z': NodeAssertionKinds.string_end,
-      '\\Z': NodeAssertionKinds.string_end_newline,
-    }[kind], `Unexpected assertion kind "${kind}"`),
+      '^': 'line_start',
+      '$': 'line_end',
+      '\\A': 'string_start',
+      '\\b': 'word_boundary',
+      '\\B': 'word_boundary',
+      '\\G': 'search_start',
+      '\\y': 'grapheme_boundary',
+      '\\Y': 'grapheme_boundary',
+      '\\z': 'string_end',
+      '\\Z': 'string_end_newline',
+    }[kind], `Unexpected assertion kind "${kind}"`) as NodeAssertionKind,
     {negate: kind === r`\B` || kind === r`\Y`}
   );
 }
@@ -1027,7 +1026,6 @@ export {
   createRegex,
   createSubroutine,
   createUnicodeProperty,
-  NodeAssertionKinds,
   NodeCharacterClassKinds,
   NodeCharacterSetKinds,
   NodeDirectiveKinds,
