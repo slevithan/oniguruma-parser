@@ -24,10 +24,10 @@ This library also receives extensive test coverage prior to new releases via the
 
 ## Demo page
 
-A demo REPL for the optimizer is included in this library and [available online](https://slevithan.github.io/oniguruma-parser/demo/). It shows results as you type and can be helpful for quick manual testing. It can also be used to test the generator if you enable the "Don't optimize (show generator output)" option, as well as other parts of this library via the console.
+A demo REPL for the optimizer is included in this library and [available online](https://slevithan.github.io/oniguruma-parser/demo/). It shows results as you type and can be helpful for quick manual testing. You can also use it to test the generator by enabling the "Don't optimize (show generator output)" option. Other parts of this library can be tested on the demo page via the developer console.
 
-> [!WARNING]
-> The demo uses the last published version of the library. To use local changes, you currently have to uncomment the relevant script tags in `./demo/index.html`. Make sure to run `pnpm build` to include your changes in the local bundle.
+> [!IMPORTANT]
+> The demo uses the latest published version of the library. To use local changes, you currently have to uncomment the relevant `<script>` tags in `./demo/index.html`. Run `pnpm build` to include your changes in the local bundle.
 
 ## Readmes
 
