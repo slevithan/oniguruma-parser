@@ -1,4 +1,4 @@
-import {NodeCharacterSetKinds, NodeDirectiveKinds, NodeQuantifierKinds} from '../parser/parse.js';
+import {NodeDirectiveKinds, NodeQuantifierKinds} from '../parser/parse.js';
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNullable} from '../utils.js';
@@ -174,27 +174,27 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
 
   CharacterSet(node: Node, state: State): string {
     const {kind, negate, value} = node as CharacterSetNode;
-    if (kind === NodeCharacterSetKinds.digit) {
+    if (kind === 'digit') {
       return negate ? r`\D` : r`\d`;
     }
-    if (kind === NodeCharacterSetKinds.hex) {
+    if (kind === 'hex') {
       return negate ? r`\H` : r`\h`;
     }
-    if (kind === NodeCharacterSetKinds.newline) {
+    if (kind === 'newline') {
       return negate ? r`\N` : r`\R`;
     }
-    if (kind === NodeCharacterSetKinds.posix) {
+    if (kind === 'posix') {
       return state.inCharClass ?
         `[:${negate ? '^' : ''}${value}:]` :
         `${negate ? r`\P` : r`\p`}{${value}}`;
     }
-    if (kind === NodeCharacterSetKinds.property) {
+    if (kind === 'property') {
       return `${negate ? r`\P` : r`\p`}{${value}}`;
     }
-    if (kind === NodeCharacterSetKinds.space) {
+    if (kind === 'space') {
       return negate ? r`\S` : r`\s`;
     }
-    if (kind === NodeCharacterSetKinds.word) {
+    if (kind === 'word') {
       return negate ? r`\W` : r`\w`;
     }
     return throwIfNullable({

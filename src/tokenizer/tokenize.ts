@@ -19,18 +19,17 @@ type Token =
 type IntermediateToken =
   EscapedNumberToken;
 
-const TokenCharacterSetKinds = {
-  any: 'any',
-  digit: 'digit',
-  dot: 'dot',
-  grapheme: 'grapheme',
-  hex: 'hex',
-  newline: 'newline',
-  posix: 'posix',
-  property: 'property',
-  space: 'space',
-  word: 'word',
-} as const;
+type TokenCharacterSetKind =
+  'any' |
+  'digit' |
+  'dot' |
+  'grapheme' |
+  'hex' |
+  'newline' |
+  'posix' |
+  'property' |
+  'space' |
+  'word';
 
 const TokenDirectiveKinds = {
   flags: 'flags',
@@ -287,7 +286,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     }
     if (m1 === 'N' || m1 === 'R') {
       return {
-        token: createCharacterSetToken(TokenCharacterSetKinds.newline, m, {
+        token: createCharacterSetToken('newline', m, {
           // `\N` and `\R` are not actually opposites since the former only excludes `\n`
           negate: m1 === 'N',
         }),
@@ -295,12 +294,12 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     }
     if (m1 === 'O') {
       return {
-        token: createCharacterSetToken(TokenCharacterSetKinds.any, m),
+        token: createCharacterSetToken('any', m),
       };
     }
     if (m1 === 'X') {
       return {
-        token: createCharacterSetToken(TokenCharacterSetKinds.grapheme, m),
+        token: createCharacterSetToken('grapheme', m),
       };
     }
     // Run last since it assumes an identity escape as final condition
@@ -422,7 +421,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
 
   if (m === '.') {
     return {
-      token: createCharacterSetToken(TokenCharacterSetKinds.dot, m),
+      token: createCharacterSetToken('dot', m),
     };
   }
 
@@ -507,7 +506,7 @@ function createTokenForAnyTokenWithinCharClass(raw: string): Token | Intermediat
     if (!posix || !PosixClassNames.has(posix.groups!.name)) {
       throw new Error(`Invalid POSIX class "${raw}"`);
     }
-    return createCharacterSetToken(TokenCharacterSetKinds.posix, raw, {
+    return createCharacterSetToken('posix', raw, {
       value: posix.groups!.name,
       negate: !!posix.groups!.negate,
     });
@@ -690,7 +689,7 @@ function createCharacterClassOpenToken(negate: boolean, raw: CharacterClassOpene
 
 type CharacterSetToken = {
   type: 'CharacterSet';
-  kind: keyof typeof TokenCharacterSetKinds;
+  kind: TokenCharacterSetKind;
   value?: string;
   negate?: boolean;
   raw: string;
@@ -907,11 +906,11 @@ function createTokenForQuantifier(raw: string): QuantifierToken {
 function createTokenForShorthand(raw: string): CharacterSetToken {
   const lower = raw[1].toLowerCase();
   return createCharacterSetToken({
-    'd': TokenCharacterSetKinds.digit,
-    'h': TokenCharacterSetKinds.hex,
-    's': TokenCharacterSetKinds.space,
-    'w': TokenCharacterSetKinds.word,
-  }[lower]!, raw, {
+    'd': 'digit',
+    'h': 'hex',
+    's': 'space',
+    'w': 'word',
+  }[lower] as TokenCharacterSetKind, raw, {
     negate: raw[1] !== lower,
   });
 }
@@ -919,7 +918,7 @@ function createTokenForShorthand(raw: string): CharacterSetToken {
 function createTokenForUnicodeProperty(raw: string): CharacterSetToken {
   const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw)!.groups!;
   const negate = (p === 'P' && !neg) || (p === 'p' && !!neg);
-  return createCharacterSetToken(TokenCharacterSetKinds.property, raw, {
+  return createCharacterSetToken('property', raw, {
     value,
     negate,
   });
@@ -1033,7 +1032,6 @@ function splitEscapedNumberToken(token: EscapedNumberToken, numCaptures: number)
 
 export {
   tokenize,
-  TokenCharacterSetKinds,
   TokenDirectiveKinds,
   TokenGroupKinds,
   TokenQuantifierKinds,
@@ -1055,4 +1053,5 @@ export {
   type RegexFlags,
   type SubroutineToken,
   type Token,
+  type TokenCharacterSetKind,
 };

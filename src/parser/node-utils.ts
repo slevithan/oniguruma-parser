@@ -1,5 +1,4 @@
-import {NodeCharacterSetKinds} from './parse.js';
-import type {Node, NodeType} from './parse.js';
+import type {Node, NodeCharacterSetKind, NodeType} from './parse.js';
 
 const alternativeContainerTypes = new Set<NodeType>([
   'AbsentFunction',
@@ -23,13 +22,13 @@ const quantifiableTypes = new Set<NodeType>([
 
 // Character set kinds that can appear inside and outside of character classes, and can be inverted
 // by setting `negate`. Some but not all of those excluded use `variableLength: true`
-const universalCharacterSetKinds = new Set<keyof typeof NodeCharacterSetKinds>([
-  NodeCharacterSetKinds.digit,
-  NodeCharacterSetKinds.hex,
-  NodeCharacterSetKinds.posix,
-  NodeCharacterSetKinds.property,
-  NodeCharacterSetKinds.space,
-  NodeCharacterSetKinds.word,
+const universalCharacterSetKinds = new Set<NodeCharacterSetKind>([
+  'digit',
+  'hex',
+  'posix',
+  'property',
+  'space',
+  'word',
 ]);
 
 type Props = {[key: string]: any};

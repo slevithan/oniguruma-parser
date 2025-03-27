@@ -1,5 +1,5 @@
-import {TokenCharacterSetKinds, TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds} from '../tokenizer/tokenize.js';
-import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, DirectiveToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token} from '../tokenizer/tokenize.js';
+import {TokenDirectiveKinds, TokenGroupKinds, tokenize, TokenQuantifierKinds} from '../tokenizer/tokenize.js';
+import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, DirectiveToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token, TokenCharacterSetKind} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 type NodeType = Node['type'];
@@ -89,14 +89,15 @@ type NodeCharacterClassKind =
   'union' |
   'intersection';
 
-// Identical values
-const NodeCharacterSetKinds = TokenCharacterSetKinds;
+type NodeCharacterSetKind = TokenCharacterSetKind;
+
 const NodeDirectiveKinds = TokenDirectiveKinds;
-const NodeQuantifierKinds = TokenQuantifierKinds;
 
 type NodeLookaroundAssertionKind =
   'lookahead' |
   'lookbehind';
+
+const NodeQuantifierKinds = TokenQuantifierKinds;
 
 type UnicodePropertyMap = Map<string, string>;
 
@@ -374,11 +375,11 @@ function parseCharacterClassOpen(context: Context, state: State): CharacterClass
 function parseCharacterSet(context: Context): CharacterSetNode {
   const {token, normalizeUnknownPropertyNames, skipPropertyNameValidation, unicodePropertyMap} = context as Context<CharacterSetToken>;
   let {kind, negate, value} = token;
-  if (kind === TokenCharacterSetKinds.property) {
+  if (kind === 'property') {
     const normalized = slug(value!);
     // Don't treat as POSIX if it's in the provided list of Unicode property names
     if (PosixClassNames.has(normalized) && !unicodePropertyMap?.has(normalized)) {
-      kind = TokenCharacterSetKinds.posix;
+      kind = 'posix';
       value = normalized;
     } else {
       return createUnicodeProperty(value!, {
@@ -389,7 +390,7 @@ function parseCharacterSet(context: Context): CharacterSetNode {
       });
     }
   }
-  if (kind === TokenCharacterSetKinds.posix) {
+  if (kind === 'posix') {
     return createPosixClass(value!, {negate});
   }
   return createCharacterSet(kind, {negate});
@@ -728,14 +729,14 @@ type NamedCharacterSetNode = {
 };
 type UnnamedCharacterSetNode = {
   type: 'CharacterSet';
-  kind: keyof Omit<typeof NodeCharacterSetKinds, 'posix' | 'property'>;
+  kind: Exclude<NodeCharacterSetKind, NamedCharacterSetNode['kind']>;
   value?: never;
   negate?: boolean;
   variableLength?: boolean;
 };
 type CharacterSetNode = NamedCharacterSetNode | UnnamedCharacterSetNode;
 /**
-Use `createUnicodeProperty` and `createPosixClass` for `kind` values of `'property'` and `'posix'`.
+Use `createUnicodeProperty` and `createPosixClass` for `kind` values `'property'` and `'posix'`.
 */
 function createCharacterSet(kind: UnnamedCharacterSetNode['kind'], options?: {
   negate?: boolean;
@@ -743,20 +744,20 @@ function createCharacterSet(kind: UnnamedCharacterSetNode['kind'], options?: {
   const negate = !!options?.negate;
   const node: UnnamedCharacterSetNode = {
     type: 'CharacterSet',
-    kind: throwIfNullable(NodeCharacterSetKinds[kind], `Unexpected character set kind "${kind}"`),
+    kind,
   };
   if (
-    kind === TokenCharacterSetKinds.digit ||
-    kind === TokenCharacterSetKinds.hex ||
-    kind === TokenCharacterSetKinds.newline ||
-    kind === TokenCharacterSetKinds.space ||
-    kind === TokenCharacterSetKinds.word
+    kind === 'digit' ||
+    kind === 'hex' ||
+    kind === 'newline' ||
+    kind === 'space' ||
+    kind === 'word'
   ) {
     node.negate = negate;
   }
   if (
-    kind === TokenCharacterSetKinds.grapheme ||
-    (kind === TokenCharacterSetKinds.newline && !negate)
+    kind === 'grapheme' ||
+    (kind === 'newline' && !negate)
   ) {
     node.variableLength = true;
   }
@@ -871,7 +872,7 @@ function createPosixClass(name: string, options?: {
   }
   return {
     type: 'CharacterSet',
-    kind: NodeCharacterSetKinds.posix,
+    kind: 'posix',
     value: name,
     negate,
   };
@@ -952,7 +953,7 @@ function createUnicodeProperty(name: string, options?: CreateUnicodePropertyOpti
   }
   return {
     type: 'CharacterSet',
-    kind: NodeCharacterSetKinds.property,
+    kind: 'property',
     value: normalized ?? name,
     negate: opts.negate,
   };
@@ -1024,7 +1025,6 @@ export {
   createRegex,
   createSubroutine,
   createUnicodeProperty,
-  NodeCharacterSetKinds,
   NodeDirectiveKinds,
   NodeQuantifierKinds,
   parse,
@@ -1046,6 +1046,11 @@ export {
   type GroupNode,
   type LookaroundAssertionNode,
   type Node,
+  type NodeAbsentFunctionKind,
+  type NodeAssertionKind,
+  type NodeCharacterClassKind,
+  type NodeCharacterSetKind,
+  type NodeLookaroundAssertionKind,
   type NodeType,
   type OnigurumaAst,
   type ParentNode,

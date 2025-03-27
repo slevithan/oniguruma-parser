@@ -1,4 +1,4 @@
-import {createCharacterSet, NodeCharacterSetKinds} from '../../parser/parse.js';
+import {createCharacterSet} from '../../parser/parse.js';
 import type {CharacterClassNode, CharacterSetNode, Node} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -16,45 +16,45 @@ const useShorthands: Visitor = {
     const {kind, negate, value} = node as CharacterSetNode;
     let newNode;
     if (
-      ( kind === NodeCharacterSetKinds.property &&
+      ( kind === 'property' &&
         (value === 'Decimal_Number' || value === 'Nd') &&
         // [TODO] Also check local context, after the parser supports these flags on mode modifiers
         !root.flags.digitIsAscii &&
         !root.flags.posixIsAscii
       ) ||
-      ( kind === NodeCharacterSetKinds.posix &&
+      ( kind === 'posix' &&
         value === 'digit'
       )
     ) {
-      newNode = createCharacterSet(NodeCharacterSetKinds.digit, {negate});
+      newNode = createCharacterSet('digit', {negate});
     } else if (
-      ( kind === NodeCharacterSetKinds.property &&
+      ( kind === 'property' &&
         (value === 'ASCII_Hex_Digit' || value === 'AHex')
       ) ||
-      ( kind === NodeCharacterSetKinds.posix &&
+      ( kind === 'posix' &&
         value === 'xdigit'
       )
     ) {
-      newNode = createCharacterSet(NodeCharacterSetKinds.hex, {negate});
+      newNode = createCharacterSet('hex', {negate});
     } else if (
-      ( kind === NodeCharacterSetKinds.property &&
+      ( kind === 'property' &&
         (value === 'White_Space' || value === 'WSpace') &&
         // [TODO] Also check local context, after the parser supports these flags on mode modifiers
         !root.flags.spaceIsAscii &&
         !root.flags.posixIsAscii
       ) ||
-      ( kind === NodeCharacterSetKinds.posix &&
+      ( kind === 'posix' &&
         value === 'space'
       )
     ) {
-      newNode = createCharacterSet(NodeCharacterSetKinds.space, {negate});
+      newNode = createCharacterSet('space', {negate});
     } else if (
       parent!.type !== 'CharacterClass' &&
-      kind === NodeCharacterSetKinds.property &&
+      kind === 'property' &&
       !negate &&
       value === 'Any'
     ) {
-      newNode = createCharacterSet(NodeCharacterSetKinds.any);
+      newNode = createCharacterSet('any');
     }
 
     if (newNode) {
@@ -92,7 +92,7 @@ const useShorthands: Visitor = {
       node.elements = node.elements.filter(kid => !(
         isRange(kid, 48, 57) || isRange(kid, 97, 102) || isRange(kid, 65, 70)
       ));
-      node.elements.push(createCharacterSet(NodeCharacterSetKinds.hex));
+      node.elements.push(createCharacterSet('hex'));
     }
     if (
       (has.unicodeL && has.unicodeM && has.unicodeN && has.unicodePc) &&
@@ -103,7 +103,7 @@ const useShorthands: Visitor = {
       node.elements = node.elements.filter(kid => !isUnicode(kid, ['L', 'M', 'N', 'Pc'], {
         includeSubcategories: true,
       }));
-      node.elements.push(createCharacterSet(NodeCharacterSetKinds.word));
+      node.elements.push(createCharacterSet('word'));
     }
   },
 };
@@ -123,7 +123,7 @@ function isUnicode(
 ): boolean {
   if (
     node.type !== 'CharacterSet' ||
-    node.kind !== NodeCharacterSetKinds.property ||
+    node.kind !== 'property' ||
     node.negate
   ) {
     return false;

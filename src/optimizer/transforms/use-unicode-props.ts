@@ -1,5 +1,5 @@
-import {createUnicodeProperty, NodeCharacterSetKinds} from '../../parser/parse.js';
-import type {CharacterClassRangeNode, CharacterSetNode} from '../../parser/parse.js';
+import {createUnicodeProperty} from '../../parser/parse.js';
+import type {CharacterSetNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 import {isRange} from './use-shorthands.js';
 
@@ -14,7 +14,7 @@ const useUnicodeProps: Visitor = {
     const {kind, negate, value} = node as CharacterSetNode;
     let newNode;
     if (
-      kind === NodeCharacterSetKinds.posix &&
+      kind === 'posix' &&
       value === 'cntrl' &&
       // [TODO] Also check local context, after the parser supports this flag on mode modifiers
       !root.flags.posixIsAscii

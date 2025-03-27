@@ -1,4 +1,4 @@
-import {createCharacterSet, NodeCharacterSetKinds, NodeQuantifierKinds} from '../../parser/parse.js';
+import {createCharacterSet, NodeQuantifierKinds} from '../../parser/parse.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -34,7 +34,7 @@ const unwrapNegationWrappers: Visitor = {
         return;
       }
       // `[^\n]` -> `\N`; can only use `\N` if not in a class
-      replaceWith(createCharacterSet(NodeCharacterSetKinds.newline, {negate: true}));
+      replaceWith(createCharacterSet('newline', {negate: true}));
     }
   },
 };

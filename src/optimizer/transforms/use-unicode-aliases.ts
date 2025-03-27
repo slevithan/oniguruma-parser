@@ -1,4 +1,3 @@
-import {NodeCharacterSetKinds} from '../../parser/parse.js';
 import type {CharacterSetNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
@@ -8,7 +7,7 @@ Use Unicode property aliases.
 const useUnicodeAliases: Visitor = {
   CharacterSet(path: Path) {
     const {node} = path as Path<CharacterSetNode>;
-    if (node.kind !== NodeCharacterSetKinds.property) {
+    if (node.kind !== 'property') {
       return;
     }
     const alias = OnigUnicodeAliasMap.get(node.value);
