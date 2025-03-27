@@ -16,7 +16,7 @@ const useUnicodeProps: Visitor = {
     if (
       kind === 'posix' &&
       value === 'cntrl' &&
-      // [TODO] Also check local context, after the parser supports this flag on mode modifiers
+      // TODO: Also check local context, after the parser supports this flag on mode modifiers
       !root.flags.posixIsAscii
     ) {
       newNode = createUnicodeProperty('Cc', {negate});

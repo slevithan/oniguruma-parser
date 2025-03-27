@@ -48,17 +48,6 @@ type TokenQuantifierKind =
   'lazy' |
   'possessive';
 
-const EscapeCharCodes = new Map([
-  ['a',  7], // alert/bell (Not available in JS)
-  ['b',  8], // backspace (only in char classes)
-  ['e', 27], // escape (Not available in JS)
-  ['f', 12], // form feed
-  ['n', 10], // line feed
-  ['r', 13], // carriage return
-  ['t',  9], // horizontal tab
-  ['v', 11], // vertical tab
-]);
-
 const charClassOpenPattern = r`\[\^?`;
 const sharedEscapesPattern = `${
   // Control char
@@ -116,27 +105,6 @@ const charClassTokenRe = new RegExp(r`
   | &&
   | .
 `.replace(/\s+/g, ''), 'gsu');
-
-type RegexFlags = {
-  ignoreCase: boolean;
-  dotAll: boolean;
-  extended: boolean;
-  digitIsAscii: boolean;
-  posixIsAscii: boolean;
-  spaceIsAscii: boolean;
-  wordIsAscii: boolean;
-};
-
-type FlagGroupModifiers = {
-  enable?: FlagGroupSwitches;
-  disable?: FlagGroupSwitches;
-};
-
-type FlagGroupSwitches = {
-  ignoreCase?: true;
-  dotAll?: true;
-  extended?: true;
-};
 
 type Context = {
   captureGroup: boolean;
@@ -820,9 +788,41 @@ function createSubroutineToken(raw: string): SubroutineToken {
   };
 }
 
-// ------------------------
-// --- Helper functions ---
-// ------------------------
+// ---------------
+// --- Helpers ---
+// ---------------
+
+type RegexFlags = {
+  ignoreCase: boolean;
+  dotAll: boolean;
+  extended: boolean;
+  digitIsAscii: boolean;
+  posixIsAscii: boolean;
+  spaceIsAscii: boolean;
+  wordIsAscii: boolean;
+};
+
+type FlagGroupModifiers = {
+  enable?: FlagGroupSwitches;
+  disable?: FlagGroupSwitches;
+};
+
+type FlagGroupSwitches = {
+  ignoreCase?: true;
+  dotAll?: true;
+  extended?: true;
+};
+
+const EscapeCharCodes = new Map([
+  ['a',  7], // alert/bell (Not available in JS)
+  ['b',  8], // backspace (only in char classes)
+  ['e', 27], // escape (Not available in JS)
+  ['f', 12], // form feed
+  ['n', 10], // line feed
+  ['r', 13], // carriage return
+  ['t',  9], // horizontal tab
+  ['v', 11], // vertical tab
+]);
 
 function assertSingleCodePoint(raw: string) {
   // Count code point length
@@ -1036,7 +1036,6 @@ export {
   type CharacterSetToken,
   type DirectiveToken,
   type FlagGroupModifiers,
-  type FlagGroupSwitches,
   type GroupCloseToken,
   type GroupOpenToken,
   type QuantifierToken,

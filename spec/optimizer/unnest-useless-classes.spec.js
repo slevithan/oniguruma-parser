@@ -45,7 +45,7 @@ describe('Optimizer: unnestUselessClasses', () => {
       [ '[a[bc]d]', '[abcd]'],
       [ '[a[[bc]d]]', '[abcd]'],
       [ '[[a]&&[b-c]]', '[a&&b-c]'],
-      // [TODO] Enable after supporting `format: 'implicit'` in the generator
+      // TODO: Enable after supporting `format: 'implicit'`; see <github.com/slevithan/oniguruma-parser/issues/1>
       // ['[[ab]&&[cd-e]]', '[ab&&cd-e]'],
     ];
     for (const [input, expected] of cases) {

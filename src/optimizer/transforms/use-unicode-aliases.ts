@@ -116,7 +116,7 @@ const OnigUnicodeAliasMap = /* @__PURE__ */ new Map([
   ['XID_Continue', 'XIDC'],
   ['XID_Start', 'XIDS'],
   // ## Script aliases
-  // [TODO] Add script aliases
+  // TODO: Add script aliases
 ]);
 
 export {

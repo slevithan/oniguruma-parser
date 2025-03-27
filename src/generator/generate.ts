@@ -84,7 +84,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
   Backreference(node: Node): string {
     const {ref} = node as BackreferenceNode;
     if (typeof ref === 'number') {
-      // [TODO] Won't be safe to indiscriminately unenclose when forward backrefs are supported
+      // TODO: Won't be safe to indiscriminately unenclose when forward backrefs are supported
       return '\\' + ref;
     }
     // Onig doesn't allow chars `>` or `'` in backref names, so this is safe

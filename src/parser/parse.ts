@@ -2,9 +2,6 @@ import {tokenize} from '../tokenizer/tokenize.js';
 import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
-type NodeType = Node['type'];
-type OnigurumaAst = RegexNode;
-
 // Watch out for the DOM `Node` interface!
 type Node =
   AbsentFunctionNode |
@@ -24,6 +21,9 @@ type Node =
   QuantifierNode |
   RegexNode |
   SubroutineNode;
+
+type NodeType = Node['type'];
+type OnigurumaAst = RegexNode;
 
 type ParentNode =
   AlternativeContainerNode |
@@ -71,9 +71,9 @@ type QuantifiableNode =
   QuantifierNode |
   SubroutineNode;
 
-// TODO: Support `expression`, `stopper`, `clearer`; see
-// <github.com/slevithan/oniguruma-to-es/issues/13>
-type NodeAbsentFunctionKind = 'repeater';
+// TODO: Support remaining kinds; see <github.com/slevithan/oniguruma-to-es/issues/13>
+type NodeAbsentFunctionKind =
+  'repeater';
 
 type NodeAssertionKind =
   'grapheme_boundary' |
@@ -283,13 +283,13 @@ function parseBackreference(context: Context): BackreferenceNode {
     // - For unenclosed backrefs, this only affects `\1`-`\9` since it's not a backref in the first
     //   place if using `\10` or higher and not as many capturing groups are defined to the left
     //   (it's an octal or identity escape).
-    // [TODO] Ideally this would be refactored to include the backref in the AST when it's not an
+    // TODO: Ideally this would be refactored to include the backref in the AST when it's not an
     // error in Onig (due to the reffed group being defined to the right), and the error handling
     // would move to the `oniguruma-to-es` transformer
     if (num > numCapturesToLeft) {
-      // [WARNING] Skipping the error breaks assumptions and might create edge case issues, since
-      // backrefs are required to come after their captures; unfortunately this option is needed
-      // for TextMate grammars
+      // Skipping the error breaks assumptions and might create edge case issues, since backrefs
+      // are required to come after their captures; unfortunately this option is needed for
+      // TextMate grammars
       if (context.skipBackrefValidation) {
         orphan = true;
       } else {
@@ -465,7 +465,7 @@ function parseQuantifier(context: Context): QuantifierNode {
   if (
     !quantifiedNode ||
     // TODO: Reusing `!quantifiableTypes.has(quantifiedNode.type)` would be better, but TS doesn't
-    // filter types with `Set`s
+    // narrow via `has` with a `Set`
     quantifiedNode.type === 'Assertion' ||
     quantifiedNode.type === 'Directive' ||
     quantifiedNode.type === 'LookaroundAssertion'

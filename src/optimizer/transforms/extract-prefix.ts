@@ -56,7 +56,7 @@ function isAllowedSimpleType(type: NodeType) {
   );
 }
 
-// [TODO] Add support for more node types and move to `src/parser/`
+// TODO: Add support for more node types and move to `src/parser/`
 function isNodeEqual(a: Node, b: Node): boolean {
   if (a.type !== b.type) {
     // TS doesn't understand that `a` and `b` always have the same type, so we'll need to cast

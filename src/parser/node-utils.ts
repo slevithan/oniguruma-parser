@@ -34,7 +34,7 @@ const universalCharacterSetKinds = new Set<NodeCharacterSetKind>([
 type Props = {[key: string]: any};
 
 function hasOnlyChild(node: Node, props?: Props): boolean {
-  // [TODO] Add support for nodes with `alternatives`; look for `elements` within the first alt
+  // TODO: Add support for nodes with `alternatives`; look for `elements` within the first alt
   // after checking that there's only one alt
   if (!('elements' in node)) {
     throw new Error('Expected node with elements');

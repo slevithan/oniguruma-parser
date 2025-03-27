@@ -37,9 +37,9 @@ const unnestUselessClasses: Visitor = {
     if (parent.kind === 'union') {
       replaceWithMultiple(elements, {traverse: true});
     // Can unnest any one kid into an intersection class
-    // [TODO] After supporting `format` for classes in the parser, can "unnest" any number of kids
-    // into intersection by flipping this class's `format` from `'explicit'` to `'implicit'`,
-    // rather than replacing it
+    // TODO: After supporting `format` for classes, can visually unnest any number of kids into
+    // intersection by flipping this class's `format` from `'explicit'` to `'implicit'`, rather
+    // than replacing it. See <github.com/slevithan/oniguruma-parser/issues/1>
     } else if (hasOnlyChild(node)) {
       replaceWith(firstEl, {traverse: true});
     }

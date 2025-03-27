@@ -18,7 +18,7 @@ const useShorthands: Visitor = {
     if (
       ( kind === 'property' &&
         (value === 'Decimal_Number' || value === 'Nd') &&
-        // [TODO] Also check local context, after the parser supports these flags on mode modifiers
+        // TODO: Also check local context, after the parser supports these flags on mode modifiers
         !root.flags.digitIsAscii &&
         !root.flags.posixIsAscii
       ) ||
@@ -39,7 +39,7 @@ const useShorthands: Visitor = {
     } else if (
       ( kind === 'property' &&
         (value === 'White_Space' || value === 'WSpace') &&
-        // [TODO] Also check local context, after the parser supports these flags on mode modifiers
+        // TODO: Also check local context, after the parser supports these flags on mode modifiers
         !root.flags.spaceIsAscii &&
         !root.flags.posixIsAscii
       ) ||
@@ -96,7 +96,7 @@ const useShorthands: Visitor = {
     }
     if (
       (has.unicodeL && has.unicodeM && has.unicodeN && has.unicodePc) &&
-      // [TODO] Also check local context, after the parser supports these flags on mode modifiers
+      // TODO: Also check local context, after the parser supports these flags on mode modifiers
       !root.flags.wordIsAscii &&
       !root.flags.posixIsAscii
     ) {

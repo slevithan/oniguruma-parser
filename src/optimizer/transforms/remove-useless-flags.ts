@@ -4,7 +4,7 @@ import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Remove flags (from top-level and modifiers) that have no effect.
-[TODO] Support removing additional flags besides `x`.
+TODO: Support removing additional flags besides `x`.
 */
 const removeUselessFlags: Visitor = {
   Flags(path: Path) {
