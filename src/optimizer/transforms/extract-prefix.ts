@@ -1,6 +1,6 @@
 import {alternativeContainerTypes} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
-import type {AlternativeContainerNode, Node, NodeType} from '../../parser/parse.js';
+import type {AlternativeContainerNode, AssertionNode, CharacterNode, CharacterSetNode, Node, NodeType} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
@@ -59,15 +59,17 @@ function isAllowedSimpleType(type: NodeType) {
 // [TODO] Add support for more node types and move to `src/parser/`
 function isNodeEqual(a: Node, b: Node): boolean {
   if (a.type !== b.type) {
+    // TS doesn't understand that `a` and `b` always have the same type, so we'll need to cast
     return false;
   }
   if (a.type === 'Assertion' || a.type === 'CharacterSet') {
-    // @ts-expect-error
-    return a.kind === b.kind && a.negate === b.negate;
+    return (
+      a.kind === (b as AssertionNode | CharacterSetNode).kind &&
+      a.negate === (b as AssertionNode | CharacterSetNode).negate
+    );
   }
   if (a.type === 'Character') {
-    // @ts-expect-error
-    return a.value === b.value;
+    return a.value === (b as CharacterNode).value;
   }
   // Only supports types from `isAllowedSimpleType`
   throw new Error(`Unexpected node type "${a.type}"`);

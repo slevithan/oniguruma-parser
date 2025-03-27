@@ -98,15 +98,16 @@ function traverse<State = undefined>(ast: OnigurumaAst, visitor: Visitor<State>,
       },
     };
 
-    const anyType = visitor['*'];
-    const thisType = visitor[node.type];
-    const enterAllFn = typeof anyType === 'function' ? anyType : anyType?.enter;
-    const enterThisFn = typeof thisType === 'function' ? thisType : thisType?.enter;
+    const {type} = node;
+    const anyTypeVisitor = visitor['*'];
+    const thisTypeVisitor = visitor[type];
+    const enterAllFn = typeof anyTypeVisitor === 'function' ? anyTypeVisitor : anyTypeVisitor?.enter;
+    const enterThisFn = typeof thisTypeVisitor === 'function' ? thisTypeVisitor : thisTypeVisitor?.enter;
     enterAllFn?.(path, state!);
     enterThisFn?.(path, state!);
 
     if (!skipTraversingKidsOfPath) {
-      switch (node.type) {
+      switch (type) {
         case 'Regex':
           traverseNode(node.pattern, node, 'pattern');
           traverseNode(node.flags, node, 'flags');
@@ -142,13 +143,12 @@ function traverse<State = undefined>(ast: OnigurumaAst, visitor: Visitor<State>,
           traverseNode(node.element, node, 'element');
           break;
         default:
-          // @ts-expect-error `type` is `never` because all node types already handled
-          throw new Error(`Unexpected node type "${node.type}"`);
+          throw new Error(`Unexpected node type "${type}"`);
       }
     }
 
-    (anyType as Exclude<typeof anyType, Function>)?.exit?.(path, state!);
-    (thisType as Exclude<typeof thisType, Function>)?.exit?.(path, state!);
+    (anyTypeVisitor as Exclude<typeof anyTypeVisitor, Function>)?.exit?.(path, state!);
+    (thisTypeVisitor as Exclude<typeof thisTypeVisitor, Function>)?.exit?.(path, state!);
     return keyShift;
   }
   traverseNode(ast);
