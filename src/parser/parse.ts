@@ -71,10 +71,9 @@ type QuantifiableNode =
   QuantifierNode |
   SubroutineNode;
 
-// See <github.com/slevithan/oniguruma-to-es/issues/13>
-const NodeAbsentFunctionKinds = {
-  repeater: 'repeater',
-} as const;
+// TODO: Support `expression`, `stopper`, `clearer`; see
+// <github.com/slevithan/oniguruma-to-es/issues/13>
+type NodeAbsentFunctionKind = 'repeater';
 
 const NodeAssertionKinds = {
   grapheme_boundary: 'grapheme_boundary',
@@ -539,11 +538,11 @@ function parseSubroutine(context: Context): SubroutineNode {
 
 type AbsentFunctionNode = {
   type: 'AbsentFunction';
-  kind: keyof typeof NodeAbsentFunctionKinds;
+  kind: NodeAbsentFunctionKind;
   alternatives: Array<AlternativeNode>;
 };
-function createAbsentFunction(kind: keyof typeof NodeAbsentFunctionKinds): AbsentFunctionNode {
-  if (kind !== NodeAbsentFunctionKinds.repeater) {
+function createAbsentFunction(kind: NodeAbsentFunctionKind): AbsentFunctionNode {
+  if (kind !== 'repeater') {
     throw new Error(`Unexpected absent function kind "${kind}"`);
   }
   return {
@@ -619,7 +618,7 @@ function createBackreference(ref: string | number, options?: {
 function createByGroupKind({flags, kind, name, negate, number}: GroupOpenToken): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
   switch (kind) {
     case TokenGroupKinds.absent_repeater:
-      return createAbsentFunction(NodeAbsentFunctionKinds.repeater);
+      return createAbsentFunction('repeater');
     case TokenGroupKinds.atomic:
       return createGroup({atomic: true});
     case TokenGroupKinds.capturing:
@@ -1028,7 +1027,6 @@ export {
   createRegex,
   createSubroutine,
   createUnicodeProperty,
-  NodeAbsentFunctionKinds,
   NodeAssertionKinds,
   NodeCharacterClassKinds,
   NodeCharacterSetKinds,

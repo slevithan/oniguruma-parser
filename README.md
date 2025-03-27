@@ -133,6 +133,12 @@ Note that, although Oniguruma theoretically supports `\1000` and higher when as 
 
 #### Erroring on patterns that trigger Oniguruma bugs
 
+<details>
+  <summary>Nested absent functions</summary>
+
+Nested absent functions `(?~(?~…))` throw an error. In Oniguruma, they don't throw but produce self-described "strange" results and Oniguruma's docs state that "nested absent functions are not supported and the behavior is undefined".
+</details>
+
 Additional edge case differences that result in errors will be documented here soon. This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error in some edge cases that are buggy in Oniguruma. However, as a standalone parser, in most cases the ideal path is to match Oniguruma's intention, even if the pattern would encounter bugs when used to search. Thus, such errors will be removed in future versions.
 
 ## About

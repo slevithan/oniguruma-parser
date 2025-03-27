@@ -1,4 +1,4 @@
-import {NodeAbsentFunctionKinds, NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds} from '../parser/parse.js';
+import {NodeAssertionKinds, NodeCharacterClassKinds, NodeCharacterSetKinds, NodeDirectiveKinds, NodeLookaroundAssertionKinds, NodeQuantifierKinds} from '../parser/parse.js';
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {RegexFlags} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNullable} from '../utils.js';
@@ -53,7 +53,7 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
 const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: Gen) => string} = {
   AbsentFunction(node: Node, _: State, gen: Gen): string {
     const {kind, alternatives} = node as AbsentFunctionNode;
-    if (kind !== NodeAbsentFunctionKinds.repeater) {
+    if (kind !== 'repeater') {
       throw new Error(`Unexpected absent function kind "${kind}"`);
     }
     return `(?~${alternatives.map(gen).join('|')})`;
