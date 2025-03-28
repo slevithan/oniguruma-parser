@@ -33,6 +33,8 @@ type VisitorNodeFn<State> = (path: Path, state: State) => void;
 
 ## Examples
 
+> **Note:** For additional examples, check out the [optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md)'s list of [optimization transforms](https://github.com/slevithan/oniguruma-parser/tree/main/src/optimizer/transforms).
+
 ### Add a `parent` property to every node
 
 ```js

@@ -12,7 +12,8 @@
 
 - [Install and use](#install-and-use)
 - [Generate an AST](#generate-an-ast)
-- [Regex optimizer](#regex-optimizer)
+- [Traverse and transform an AST](#traverse-and-transform-an-ast)
+- [Optimize regexes](#optimize-regexes)
 - [Known differences](#known-differences)
 
 ## Install and use
@@ -40,7 +41,7 @@ console.log(ast.pattern.alternatives[0].elements[0]);
 
 The following modules are available in addition to the root `'oniguruma-parser'` export:
 
-- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes `parse` with more options for specialized use, plus numerous functions, types, etc. for constructing and working with `OnigurumaAst` nodes.
+- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes `parse` which is similar to `toOnigurumaAst` but includes additional options for specialized use. Also exports numerous functions and types for constructing and working with `OnigurumaAst` nodes.
 - [Generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
 - [Optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md): Minify and improve the performance of Oniguruma regexes.
 - [Traverser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md): Traverse and transform an `OnigurumaAst`.
@@ -64,7 +65,11 @@ function toOnigurumaAst(
 
 An error is thrown if the pattern or flags aren't valid in Oniguruma.
 
-## Regex optimizer
+## Traverse and transform an AST
+
+See details and examples in the [traverser module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md).
+
+## Optimize regexes
 
 This library includes one of the few implementations (for any regex flavor) of a "regex optimizer" that can minify and improve the performance and readability of regexes prior to use. Such transformations must be specific to a particular regex flavor in order to be accurate, and `oniguruma-parser`'s [optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md) is of course built for Oniguruma regexes.
 

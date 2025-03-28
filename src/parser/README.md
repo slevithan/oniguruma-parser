@@ -1,10 +1,10 @@
 # `oniguruma-parser`: Parser module
 
-Accepts an Oniguruma pattern, flags, and compile-time options (along with options specific to this library), and returns an AST.
+Includes the `parse` function which accepts an Oniguruma pattern, flags, and compile-time options (along with options specific to this library), and returns an AST.
 
-Typically, it's recommended to use `toOnigurumaAst` from the [root module](https://github.com/slevithan/oniguruma-parser) rather than using the parser module directly. However, the parser exports additional constants, functions, and types that you might need when transforming an AST, and it accepts additional options that might be needed in some cases.
+Compared to `toOnigurumaAst` from the [root module](https://github.com/slevithan/oniguruma-parser), `parse` includes additional options for specialized use. Typically, it's recommended to use `toOnigurumaAst` rather than using the parser module's `parse` function directly. However, the parser module also exports additional functions and types that you might need when [traversing](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md) and transforming an AST.
 
-> It might be preferable to use the parser directly if bundle size is a concern, since it doesn't automatically include Unicode property name data used for validation and normalization. After tree shaking, `parse` is 6.9 kB minzipped vs `toOnigurumaAst`'s 11.3 kB, as of `oniguruma-parser` v0.6.2.
+> It might be preferable to use the parser directly if bundle size is a concern, since it doesn't automatically include Unicode property name data used for validation and normalization. After tree shaking, `parse` is 6.5 kB minzipped vs `toOnigurumaAst`'s 10.9 kB, as of `oniguruma-parser` v0.8.0.
 
 ## Import
 
@@ -32,7 +32,7 @@ function parse(
 ): OnigurumaAst;
 ```
 
-The Unicode property map automatically provided to `parse` by `toOnigurumaAst` is available via `import {OnigUnicodePropertyMap} from 'oniguruma-parser/unicode'`.
+> **Note:** The Unicode property map automatically provided to `parse` by `toOnigurumaAst` is available via `import {OnigUnicodePropertyMap} from 'oniguruma-parser/unicode'`.
 
 ## About
 
