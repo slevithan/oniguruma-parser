@@ -1,5 +1,5 @@
 import {tokenize} from '../tokenizer/tokenize.js';
-import type {AssertionToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
+import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 // Watch out for the DOM `Node` interface!
@@ -101,9 +101,7 @@ type NodeQuantifierKind = TokenQuantifierKind;
 
 type UnicodePropertyMap = Map<string, string>;
 
-type Walk = (parent: ParentNode, state: State) => Node;
-
-type Context<T = Token> = {
+type Context = {
   capturingGroups: Array<CapturingGroupNode>;
   current: number;
   hasNumberedRef: boolean;
@@ -114,10 +112,9 @@ type Context<T = Token> = {
   skipLookbehindValidation: boolean;
   skipPropertyNameValidation: boolean;
   subroutines: Array<SubroutineNode>;
-  token: T;
   tokens: Array<Token>;
   unicodePropertyMap: UnicodePropertyMap | null;
-  walk: Walk;
+  walk: (parent: ParentNode, state: State) => Node;
 };
 
 // Top-level `walk` calls are given empty state; nested calls can add data specific to their `walk`
@@ -165,10 +162,9 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
       singleline: opts.rules.singleline,
     },
   });
-  const walk: Walk = (parent, state) => {
+  const walk: Context['walk'] = (parent, state) => {
     const token = tokenized.tokens[context.current];
     context.parent = parent;
-    context.token = token;
     // Advance for the next iteration
     context.current++;
     switch (token.type) {
@@ -176,30 +172,29 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
         // Top-level only; groups handle their own alternators
         return createAlternative();
       case 'Assertion':
-        return createAssertionFromToken(token);
+        return parseAssertion(token);
       case 'Backreference':
-        return parseBackreference(context);
+        return parseBackreference(token, context);
       case 'Character':
         return createCharacter(token.value, {useLastValid: !!state.isCheckingRangeEnd});
       case 'CharacterClassHyphen':
-        return parseCharacterClassHyphen(context, state);
+        return parseCharacterClassHyphen(token, context, state);
       case 'CharacterClassOpen':
-        return parseCharacterClassOpen(context, state);
+        return parseCharacterClassOpen(token, context, state);
       case 'CharacterSet':
-        return parseCharacterSet(context);
+        return parseCharacterSet(token, context);
       case 'Directive':
         return createDirective(token.kind, {flags: token.flags});
       case 'GroupOpen':
-        return parseGroupOpen(context, state);
+        return parseGroupOpen(token, context, state);
       case 'Quantifier':
-        return parseQuantifier(context);
+        return parseQuantifier(token, context);
       case 'Subroutine':
-        return parseSubroutine(context);
+        return parseSubroutine(token, context);
       default:
         throw new Error(`Unexpected token type "${token.type}"`);
     }
   }
-  // Data shared by parser functions; includes options and up-to-date metadata
   const context: Context = {
     capturingGroups: [],
     current: 0,
@@ -211,7 +206,6 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
     skipLookbehindValidation: opts.skipLookbehindValidation,
     skipPropertyNameValidation: opts.skipPropertyNameValidation,
     subroutines: [],
-    token: null!, // Assigned by `walk`
     tokens: tokenized.tokens,
     unicodePropertyMap: opts.unicodePropertyMap,
     walk,
@@ -252,6 +246,24 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
   return ast;
 }
 
+function parseAssertion({kind}: AssertionToken): AssertionNode {
+  return createAssertion(
+    throwIfNullable({
+      '^': 'line_start',
+      '$': 'line_end',
+      '\\A': 'string_start',
+      '\\b': 'word_boundary',
+      '\\B': 'word_boundary',
+      '\\G': 'search_start',
+      '\\y': 'grapheme_boundary',
+      '\\Y': 'grapheme_boundary',
+      '\\z': 'string_end',
+      '\\Z': 'string_end_newline',
+    }[kind], `Unexpected assertion kind "${kind}"`) as NodeAssertionKind,
+    {negate: kind === r`\B` || kind === r`\Y`}
+  );
+}
+
 // Supported (if the backref appears to the right of the reffed capture's opening paren):
 // - `\k<name>`, `\k'name'`
 // - When named capture not used:
@@ -266,8 +278,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
 // Backrefs in Onig use multiplexing for duplicate group names (the rules can be complicated when
 // overlapping with subroutines), but a `Backreference`'s simple `ref` prop doesn't capture these
 // details so multiplexed ref pointers need to be derived when working with the AST
-function parseBackreference(context: Context): BackreferenceNode {
-  const {raw} = context.token;
+function parseBackreference({raw}: BackreferenceToken, context: Context): BackreferenceNode {
   const hasKWrapper = /^\\k[<']/.test(raw);
   const ref = hasKWrapper ? raw.slice(3, -1) : raw.slice(1);
   const fromNum = (num: number, isRelative = false) => {
@@ -316,8 +327,9 @@ function parseBackreference(context: Context): BackreferenceNode {
   return fromNum(+ref);
 }
 
-function parseCharacterClassHyphen(context: Context, state: State): CharacterNode | CharacterClassRangeNode {
-  const {parent, tokens, walk} = context as Context<CharacterClassHyphenToken> & {parent: CharacterClassNode};
+function parseCharacterClassHyphen(_: CharacterClassHyphenToken, context: Context, state: State): CharacterNode | CharacterClassRangeNode {
+  const {tokens, walk} = context;
+  const parent = context.parent as CharacterClassNode;
   const prevSiblingNode = parent.elements.at(-1);
   const nextToken = tokens[context.current];
   if (
@@ -344,8 +356,8 @@ function parseCharacterClassHyphen(context: Context, state: State): CharacterNod
   return createCharacter(45);
 }
 
-function parseCharacterClassOpen(context: Context, state: State): CharacterClassNode {
-  const {token, tokens, walk} = context as Context<CharacterClassOpenToken>;
+function parseCharacterClassOpen({negate}: CharacterClassOpenToken, context: Context, state: State): CharacterClassNode {
+  const {tokens, walk} = context;
   const firstClassToken = tokens[context.current];
   const intersections = [createCharacterClass()];
   let nextToken = throwIfUnclosedCharacterClass(firstClassToken);
@@ -360,7 +372,7 @@ function parseCharacterClassOpen(context: Context, state: State): CharacterClass
     }
     nextToken = throwIfUnclosedCharacterClass(tokens[context.current], firstClassToken);
   }
-  const node = createCharacterClass({negate: token.negate});
+  const node = createCharacterClass({negate});
   if (intersections.length === 1) {
     node.elements = intersections[0].elements;
   } else {
@@ -372,9 +384,8 @@ function parseCharacterClassOpen(context: Context, state: State): CharacterClass
   return node;
 }
 
-function parseCharacterSet(context: Context): CharacterSetNode {
-  const {token, normalizeUnknownPropertyNames, skipPropertyNameValidation, unicodePropertyMap} = context as Context<CharacterSetToken>;
-  let {kind, negate, value} = token;
+function parseCharacterSet({kind, negate, value}: CharacterSetToken, context: Context): CharacterSetNode {
+  const {normalizeUnknownPropertyNames, skipPropertyNameValidation, unicodePropertyMap} = context;
   if (kind === 'property') {
     const normalized = slug(value!);
     // Don't treat as POSIX if it's in the provided list of Unicode property names
@@ -396,8 +407,8 @@ function parseCharacterSet(context: Context): CharacterSetNode {
   return createCharacterSet(kind, {negate});
 }
 
-function parseGroupOpen(context: Context, state: State): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
-  const {token, tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context as Context<GroupOpenToken>;
+function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
+  const {tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context;
   let node = createByGroupKind(token);
   const isThisAbsentFunction = node.type === 'AbsentFunction';
   const isThisLookbehind = isLookbehind(node);
@@ -458,9 +469,8 @@ function parseGroupOpen(context: Context, state: State): AbsentFunctionNode | Ca
   return node;
 }
 
-function parseQuantifier(context: Context): QuantifierNode {
-  const {token, parent} = context as Context<QuantifierToken> & {parent: AlternativeNode};
-  const {min, max, kind} = token;
+function parseQuantifier({min, max, kind}: QuantifierToken, context: Context): QuantifierNode {
+  const parent = context.parent as AlternativeNode;
   const quantifiedNode = parent.elements.at(-1);
   if (
     !quantifiedNode ||
@@ -510,9 +520,9 @@ function parseQuantifier(context: Context): QuantifierNode {
 //   - Ex: With `(?<a>(?<b>[123]))\g<a>\g<a>(?<b>0)\k<b>`, the backref `\k<b>` can only match `0`
 //     or whatever was matched by the most recently matched subroutine. If you took out `(?<b>0)`,
 //     no multiplexing would occur.
-function parseSubroutine(context: Context): SubroutineNode {
-  const {token, capturingGroups, subroutines} = context;
-  let ref: string | number = token.raw.slice(3, -1);
+function parseSubroutine({raw}: SubroutineToken, context: Context): SubroutineNode {
+  const {capturingGroups, subroutines} = context;
+  let ref: string | number = raw.slice(3, -1);
   const numberedRef = /^(?<sign>[-+]?)0*(?<num>[1-9]\d*)$/.exec(ref);
   if (numberedRef) {
     const num = +numberedRef.groups!.num;
@@ -578,24 +588,6 @@ function createAssertion(kind: NodeAssertionKind, options?: {
     node.negate = !!options?.negate;
   }
   return node;
-}
-
-function createAssertionFromToken({kind}: AssertionToken): AssertionNode {
-  return createAssertion(
-    throwIfNullable({
-      '^': 'line_start',
-      '$': 'line_end',
-      '\\A': 'string_start',
-      '\\b': 'word_boundary',
-      '\\B': 'word_boundary',
-      '\\G': 'search_start',
-      '\\y': 'grapheme_boundary',
-      '\\Y': 'grapheme_boundary',
-      '\\z': 'string_end',
-      '\\Z': 'string_end_newline',
-    }[kind], `Unexpected assertion kind "${kind}"`) as NodeAssertionKind,
-    {negate: kind === r`\B` || kind === r`\Y`}
-  );
 }
 
 type BackreferenceNode = {
