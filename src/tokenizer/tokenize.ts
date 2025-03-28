@@ -35,7 +35,7 @@ type TokenDirectiveKind =
   'flags' |
   'keep';
 
-type TokenGroupKind =
+type TokenGroupOpenKind =
   'absent_repeater' |
   'atomic' |
   'capturing' |
@@ -730,7 +730,7 @@ function createGroupCloseToken(raw: ')'): GroupCloseToken {
 
 type GroupOpenToken = {
   type: 'GroupOpen';
-  kind: TokenGroupKind;
+  kind: TokenGroupOpenKind;
   flags?: FlagGroupModifiers;
   name?: string;
   number?: number;
@@ -738,7 +738,7 @@ type GroupOpenToken = {
   raw: string;
 };
 function createGroupOpenToken(
-  kind: TokenGroupKind,
+  kind: TokenGroupOpenKind,
   raw: string,
   options: {
     flags?: FlagGroupModifiers;
@@ -1044,6 +1044,5 @@ export {
   type Token,
   type TokenCharacterSetKind,
   type TokenDirectiveKind,
-  type TokenGroupKind,
   type TokenQuantifierKind,
 };

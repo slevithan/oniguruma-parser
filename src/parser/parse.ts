@@ -545,6 +545,10 @@ function parseSubroutine({raw}: SubroutineToken, context: Context): SubroutineNo
   return node;
 }
 
+// -------------------------------
+// --- Node creation and types ---
+// -------------------------------
+
 type AbsentFunctionNode = {
   type: 'AbsentFunction';
   kind: NodeAbsentFunctionKind;
@@ -604,27 +608,6 @@ function createBackreference(ref: string | number, options?: {
     ref,
     ...(orphan && {orphan}),
   };
-}
-
-function createByGroupKind({flags, kind, name, negate, number}: GroupOpenToken): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
-  switch (kind) {
-    case 'absent_repeater':
-      return createAbsentFunction('repeater');
-    case 'atomic':
-      return createGroup({atomic: true});
-    case 'capturing':
-      return createCapturingGroup(number!, name);
-    case 'group':
-      return createGroup({flags});
-    case 'lookahead':
-    case 'lookbehind':
-      return createLookaroundAssertion({
-        behind: kind === 'lookbehind',
-        negate,
-      });
-    default:
-      throw new Error(`Unexpected group kind "${kind}"`);
-  }
 }
 
 type CapturingGroupNode = {
@@ -944,6 +927,31 @@ function createUnicodeProperty(name: string, options?: CreateUnicodePropertyOpti
     value: normalized ?? name,
     negate: opts.negate,
   };
+}
+
+// ---------------
+// --- Helpers ---
+// ---------------
+
+function createByGroupKind({flags, kind, name, negate, number}: GroupOpenToken): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
+  switch (kind) {
+    case 'absent_repeater':
+      return createAbsentFunction('repeater');
+    case 'atomic':
+      return createGroup({atomic: true});
+    case 'capturing':
+      return createCapturingGroup(number!, name);
+    case 'group':
+      return createGroup({flags});
+    case 'lookahead':
+    case 'lookbehind':
+      return createLookaroundAssertion({
+        behind: kind === 'lookbehind',
+        negate,
+      });
+    default:
+      throw new Error(`Unexpected group kind "${kind}"`);
+  }
 }
 
 function isLookahead(node: Node): node is (LookaroundAssertionNode & {kind: 'lookahead'}) {
