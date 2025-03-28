@@ -89,7 +89,7 @@ const tokenRe = new RegExp(r`
       | #(?:[^)\\]|\\.?)*
       | [^:)]*[:)]
     )?
-    | \*[^)]*\)
+    | \*
   )?
   | ${quantifierRe.source}
   | ${charClassOpenPattern}
