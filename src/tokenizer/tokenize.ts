@@ -126,7 +126,7 @@ type TokenizerOptions = {
 
 type TokenizerResult = {
   tokens: Array<Token>;
-  flags: RegexFlags;
+  flags: FlagProperties;
 };
 
 function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerResult {
@@ -142,8 +142,8 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
   if (typeof pattern !== 'string') {
     throw new Error('String expected as pattern');
   }
-  const flagsObj = getFlagsObj(opts.flags);
-  const xStack = [flagsObj.extended];
+  const flagProperties = getFlagProperties(opts.flags);
+  const xStack = [flagProperties.extended];
   const context: Context = {
     captureGroup: opts.rules.captureGroup,
     // Always at least has the top-level flag x
@@ -193,7 +193,7 @@ function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerRes
 
   return {
     tokens: tokensWithoutIntermediate,
-    flags: flagsObj,
+    flags: flagProperties,
   };
 }
 
@@ -268,7 +268,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
       };
     }
     // Run last since it assumes an identity escape as final condition
-    const result = createTokenForSharedEscape(m, {inCharClass: false});
+    const result = tokenizeSharedEscape(m, {inCharClass: false});
     return Array.isArray(result) ? {tokens: result} : {token: result};
   }
 
@@ -293,7 +293,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     // Flag modifier (directive or group opener)
     if (/^\(\?[-imx]+[:)]$/.test(m)) {
       return {
-        token: createTokenForFlagMod(m, context),
+        token: tokenizeFlagModifier(m, context),
       };
     }
     // --- Remaining group types all reuse current flag x status ---
@@ -408,7 +408,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
 
   if (quantifierRe.test(m)) {
     return {
-      token: createTokenForQuantifier(m),
+      token: tokenizeQuantifier(m),
     };
   }
 
@@ -446,7 +446,7 @@ function getAllTokensForCharClass(pattern: string, opener: CharacterClassOpener,
         }
       }
     } else {
-      const result = createTokenForAnyTokenWithinCharClass(m);
+      const result = tokenizeAnyTokenWithinCharClass(m);
       if (Array.isArray(result)) {
         tokens.push(...result);
       } else {
@@ -460,10 +460,10 @@ function getAllTokensForCharClass(pattern: string, opener: CharacterClassOpener,
   };
 }
 
-function createTokenForAnyTokenWithinCharClass(raw: string): Token | IntermediateToken | Array<Token> {
+function tokenizeAnyTokenWithinCharClass(raw: string): Token | IntermediateToken | Array<Token> {
   if (raw[0] === '\\') {
     // Assumes an identity escape as final condition
-    return createTokenForSharedEscape(raw, {inCharClass: true});
+    return tokenizeSharedEscape(raw, {inCharClass: true});
   }
   // POSIX class: `[:name:]` or `[:^name:]`
   if (raw[0] === '[') {
@@ -488,13 +488,13 @@ function createTokenForAnyTokenWithinCharClass(raw: string): Token | Intermediat
 }
 
 // Tokens shared by base syntax and char class syntax that start with `\`
-function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}): Token | IntermediateToken | Array<Token> {
+function tokenizeSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}): Token | IntermediateToken | Array<Token> {
   const char1 = raw[1];
   if (char1 === 'c' || char1 === 'C') {
-    return createTokenForControlChar(raw);
+    return tokenizeControlCharacter(raw);
   }
   if ('dDhHsSwW'.includes(char1)) {
-    return createTokenForShorthand(raw);
+    return tokenizeShorthand(raw);
   }
   if (raw.startsWith(r`\o{`)) {
     throw new Error(`Incomplete, invalid, or unsupported octal code point "${raw}"`);
@@ -503,7 +503,7 @@ function createTokenForSharedEscape(raw: string, {inCharClass}: {inCharClass: bo
     if (raw.length === 3) {
       throw new Error(`Incomplete or invalid Unicode property "${raw}"`);
     }
-    return createTokenForUnicodeProperty(raw);
+    return tokenizeUnicodeProperty(raw);
   }
   // Hex UTF-8 encoded byte sequence
   if (/^\\x[89A-Fa-f]\p{AHex}/u.test(raw)) {
@@ -792,7 +792,7 @@ function createSubroutineToken(raw: string): SubroutineToken {
 // --- Helpers ---
 // ---------------
 
-type RegexFlags = {
+type FlagProperties = {
   ignoreCase: boolean;
   dotAll: boolean;
   extended: boolean;
@@ -832,7 +832,7 @@ function assertSingleCodePoint(raw: string) {
 }
 
 // Expects `\cx` or `\C-x`
-function createTokenForControlChar(raw: string): CharacterToken {
+function tokenizeControlCharacter(raw: string): CharacterToken {
   const char = raw[1] === 'c' ? raw[2] : raw[3];
   if (!char || !/[A-Za-z]/.test(char)) {
     // Unlike JS, Onig allows any char to follow `\c` or `\C-`, but this is an extreme edge case
@@ -842,7 +842,7 @@ function createTokenForControlChar(raw: string): CharacterToken {
   return createCharacterToken(char.toUpperCase().codePointAt(0)! - 64, raw);
 }
 
-function createTokenForFlagMod(raw: string, context: Context): DirectiveToken | GroupOpenToken {
+function tokenizeFlagModifier(raw: string, context: Context): DirectiveToken | GroupOpenToken {
   // Allows multiple `-` and solo `-` without `on` or `off` flags
   let {on, off} = /^\(\?(?<on>[imx]*)(?:-(?<off>[-imx]*))?/.exec(raw)!.groups as {on: string, off: string | undefined};
   off ??= '';
@@ -873,7 +873,7 @@ function createTokenForFlagMod(raw: string, context: Context): DirectiveToken | 
   throw new Error(`Unexpected flag modifier "${raw}"`);
 }
 
-function createTokenForQuantifier(raw: string): QuantifierToken {
+function tokenizeQuantifier(raw: string): QuantifierToken {
   let kind: TokenQuantifierKind = null!;
   let min: number;
   let max: number;
@@ -909,7 +909,7 @@ function createTokenForQuantifier(raw: string): QuantifierToken {
   return createQuantifierToken(kind, min, max, raw);
 }
 
-function createTokenForShorthand(raw: string): CharacterSetToken {
+function tokenizeShorthand(raw: string): CharacterSetToken {
   const lower = raw[1].toLowerCase();
   return createCharacterSetToken({
     'd': 'digit',
@@ -921,7 +921,7 @@ function createTokenForShorthand(raw: string): CharacterSetToken {
   });
 }
 
-function createTokenForUnicodeProperty(raw: string): CharacterSetToken {
+function tokenizeUnicodeProperty(raw: string): CharacterSetToken {
   const {p, neg, value} = /^\\(?<p>[pP])\{(?<neg>\^?)(?<value>[^}]+)/.exec(raw)!.groups!;
   const negate = (p === 'P' && !neg) || (p === 'p' && !!neg);
   return createCharacterSetToken('property', raw, {
@@ -946,11 +946,11 @@ function getFlagGroupSwitches(flags: string): FlagGroupSwitches | null {
   return Object.keys(obj).length ? obj : null;
 }
 
-function getFlagsObj(flags: string): RegexFlags {
+function getFlagProperties(flags: string): FlagProperties {
   if (!/^[imxDPSW]*$/.test(flags)) {
     throw new Error(`Flags "${flags}" includes unsupported value`);
   }
-  const flagsObj: RegexFlags = {
+  const flagProperties: FlagProperties = {
     ignoreCase: false,
     dotAll: false,
     extended: false,
@@ -960,7 +960,7 @@ function getFlagsObj(flags: string): RegexFlags {
     wordIsAscii: false,
   };
   for (const char of flags) {
-    flagsObj[{
+    flagProperties[{
       i: 'ignoreCase',
       // Flag m is called `multiline` in Onig, but that has a different meaning in JS. Onig flag m
       // is equivalent to JS flag s
@@ -972,9 +972,9 @@ function getFlagsObj(flags: string): RegexFlags {
       P: 'posixIsAscii',
       S: 'spaceIsAscii',
       W: 'wordIsAscii',
-    }[char] as keyof RegexFlags] = true;
+    }[char] as keyof FlagProperties] = true;
   }
-  return flagsObj;
+  return flagProperties;
 }
 
 // - Unenclosed `\xNN` above 0x7F is handled elsewhere as a UTF-8 encoded byte sequence
@@ -1049,10 +1049,10 @@ export {
   type CharacterSetToken,
   type DirectiveToken,
   type FlagGroupModifiers,
+  type FlagProperties,
   type GroupCloseToken,
   type GroupOpenToken,
   type QuantifierToken,
-  type RegexFlags,
   type SubroutineToken,
   type Token,
   type TokenCharacterSetKind,

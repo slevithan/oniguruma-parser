@@ -1,5 +1,5 @@
 import {tokenize} from '../tokenizer/tokenize.js';
-import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, GroupOpenToken, QuantifierToken, RegexFlags, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
+import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 // Watch out for the DOM `Node` interface!
@@ -765,8 +765,8 @@ function createDirective(kind: NodeDirectiveKind, options: {flags?: FlagGroupMod
 
 type FlagsNode = {
   type: 'Flags';
-} & RegexFlags;
-function createFlags(flags: RegexFlags): FlagsNode {
+} & FlagProperties;
+function createFlags(flags: FlagProperties): FlagsNode {
   return {
     type: 'Flags',
     ...flags,
