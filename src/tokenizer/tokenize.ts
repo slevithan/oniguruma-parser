@@ -874,7 +874,7 @@ function createTokenForFlagMod(raw: string, context: Context): DirectiveToken | 
 }
 
 function createTokenForQuantifier(raw: string): QuantifierToken {
-  let kind: TokenQuantifierKind;
+  let kind: TokenQuantifierKind = null!;
   let min: number;
   let max: number;
   if (raw[0] === '{') {
@@ -886,8 +886,21 @@ function createTokenForQuantifier(raw: string): QuantifierToken {
     }
     min = +minStr;
     max = maxStr === undefined ? +minStr : (maxStr === '' ? Infinity : +maxStr);
-    // By default, Onig doesn't support making interval quantifiers possessive with a `+` suffix
-    kind = raw.endsWith('?') ? 'lazy' : 'greedy';
+    // By default, Onig doesn't support making interval quantifiers possessive with a `+` suffix;
+    // uses reversed range instead
+    if (min > max) {
+      kind = 'possessive';
+      [min, max] = [max, min];
+    }
+    if (raw.endsWith('?')) {
+      if (kind === 'possessive') {
+        // TODO: <github.com/slevithan/oniguruma-parser/issues/10>
+        throw new Error('Unsupported possessive interval quantifier chain with "?"');
+      }
+      kind = 'lazy';
+    } else if (!kind) {
+      kind = 'greedy';
+    }
   } else {
     min = raw[0] === '+' ? 1 : 0;
     max = raw[0] === '?' ? 1 : Infinity;

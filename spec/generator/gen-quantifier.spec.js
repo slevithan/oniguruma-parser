@@ -229,7 +229,7 @@ describe('generate: Quantifier', () => {
       ['.{2,}{2,}'],
       ['.{2,}{2,1}'],
       // Reversed (possessive) base
-      // ['.{2,1}?'], // FIX: <github.com/slevithan/oniguruma-parser/issues/10>
+      // ['.{2,1}?'], // TODO: <github.com/slevithan/oniguruma-parser/issues/10>
       ['.{2,1}*'],
       ['.{2,1}+'],
       ['.{2,1}{2}'],

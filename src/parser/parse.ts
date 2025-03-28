@@ -469,25 +469,20 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
   return node;
 }
 
-function parseQuantifier({min, max, kind}: QuantifierToken, context: Context): QuantifierNode {
+function parseQuantifier({kind, min, max}: QuantifierToken, context: Context): QuantifierNode {
   const parent = context.parent as AlternativeNode;
   const quantifiedNode = parent.elements.at(-1);
+  // TODO: Reusing `quantifiableTypes` (`!quantifiableTypes.has(quantifiedNode.type)`) would be
+  // better, but TS doesn't narrow via `has` with a `Set`
   if (
     !quantifiedNode ||
-    // TODO: Reusing `!quantifiableTypes.has(quantifiedNode.type)` would be better, but TS doesn't
-    // narrow via `has` with a `Set`
     quantifiedNode.type === 'Assertion' ||
     quantifiedNode.type === 'Directive' ||
     quantifiedNode.type === 'LookaroundAssertion'
   ) {
     throw new Error(`Quantifier requires a repeatable token`);
   }
-  const node = createQuantifier(
-    quantifiedNode,
-    min,
-    max,
-    kind
-  );
+  const node = createQuantifier(kind, min, max, quantifiedNode);
   parent.elements.pop();
   return node;
 }
@@ -855,23 +850,17 @@ type QuantifierNode = {
   max: number;
   element: QuantifiableNode;
 };
-function createQuantifier(element: QuantifiableNode, min: number, max: number, kind: NodeQuantifierKind = 'greedy'): QuantifierNode {
-  const node = {
-    type: 'Quantifier' as const,
+function createQuantifier(kind: NodeQuantifierKind, min: number, max: number, element: QuantifiableNode): QuantifierNode {
+  if (min > max) {
+    throw new Error('Invalid reversed quantifier range');
+  }
+  return {
+    type: 'Quantifier',
     kind,
     min,
     max,
     element,
   };
-  if (max < min) {
-    return {
-      ...node,
-      kind: 'possessive',
-      min: max,
-      max: min,
-    };
-  }
-  return node;
 }
 
 type RegexNode = {
