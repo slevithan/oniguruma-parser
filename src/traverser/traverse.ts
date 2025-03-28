@@ -15,8 +15,8 @@ type Path<T = Node> = {
   skip: () => void;
 };
 
-type Visitor<State = undefined> = {
-  [key in ('*' | NodeType)]?: VisitorNodeFn<State> | {
+type Visitor<State = null> = {
+  [key in '*' | NodeType]?: VisitorNodeFn<State> | {
     enter?: VisitorNodeFn<State>;
     exit?: VisitorNodeFn<State>;
   };
@@ -29,8 +29,7 @@ type ContainerElementNode =
   AlternativeElementNode | // Within `elements` container of `AlternativeNode`
   CharacterClassElementNode; // Within `elements` container of `CharacterClassNode`
 
-// `state` is passed through to all `VisitorNodeFn` functions
-function traverse<State = undefined>(ast: OnigurumaAst, visitor: Visitor<State>, state?: State) {
+function traverse<State = null>(ast: OnigurumaAst, visitor: Visitor<State>, state: State | null = null) {
   function traverseArray(array: NonNullable<Path['container']>, parent: Path['parent']) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);

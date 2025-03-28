@@ -11,14 +11,14 @@ import {traverse} from 'oniguruma-parser/traverser';
 ## Type definition
 
 ```ts
-function traverse<State = undefined>(
+function traverse<State = null>(
   ast: OnigurumaAst,
   visitor: Visitor<State>,
-  state?: State
+  state: State | null = null
 ): void;
 
-type Visitor<State = undefined> = {
-  [key in ('*' | NodeType)]?: VisitorNodeFn<State> | {
+type Visitor<State = null> = {
+  [key in '*' | NodeType]?: VisitorNodeFn<State> | {
     enter?: VisitorNodeFn<State>;
     exit?: VisitorNodeFn<State>;
   };
@@ -27,7 +27,9 @@ type Visitor<State = undefined> = {
 type VisitorNodeFn<State> = (path: Path, state: State) => void;
 ```
 
-> **Note:** `VisitorNodeFn() {…}` is shorthand for `VisitorNodeFn: {enter() {…}}`. Type `Path` contains a variety of properties (`node`, `parent`, etc.) and methods (`remove`, `replaceWith`, etc.).
+- `VisitorNodeFn() {…}` is shorthand for `VisitorNodeFn: {enter() {…}}`.
+- Provided `state` is passed through to all `VisitorNodeFn` functions.
+- Type `Path` contains a variety of properties (`node`, `parent`, etc.) and methods (`remove`, `replaceWith`, etc.).
 
 ## Examples
 
