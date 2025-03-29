@@ -111,7 +111,9 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
       // Avoid corrupting a preceding backref by immediately following it with a literal digit
       (escDigit && isDigitCharCode(value))
     ) {
-      // Don't convert value `0` to `\0` since that's corruptible by following literal digits
+      // Onig treats unenclosed `\x80` to `\xFF` as an encoded byte (a fragment of a code unit), so
+      // we can't use them to represent a character. Also, don't convert value `0` to `\0` since
+      // that's corruptible by following literal digits
       return value > 0x7F ?
         `\\x{${value.toString(16).toUpperCase()}}` :
         `\\x${value.toString(16).toUpperCase().padStart(2, '0')}`;

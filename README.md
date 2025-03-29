@@ -144,6 +144,32 @@ Note that, although Oniguruma theoretically supports `\1000` and higher when as 
 Nested absent functions like `(?~(?~…))` don't throw an error in Oniguruma, but they produce self-described "strange" results, and Oniguruma's docs state that "nested absent functions are not supported and the behavior is undefined". In this library, they throw an error.
 </details>
 
+<details>
+  <summary>Incomplete <code>\x</code> for matching <code>NUL</code></summary>
+
+> Context: `\xH`, `\xHH`, and `\x{H…}` are all supported, where *H* is a hexadecimal digit. Unenclosed `\xH` and `\xHH` represent encoded bytes (not code units or code points, which means that `\x80` to `\xFF` are treated as fragments of a code unit, unlike in other regex flavors), whereas enclosed `\x{H…}` is a code point escape. The following describes the use of `\x` on its own, when it's not a part of any of these forms.
+
+In Oniguruma, `\x` is an escape for the `NUL` character (equivalent to `\0`, `\x0`, `\x00`, etc.) if not followed by `{` or a hexadecimal digit. In this library, it throws an error.
+
+The error is thrown because `\x` is buggy in Oniguruma. It is also ambiguous, non-portable across regex flavors, offers no user benefit (`\0` is equally short), unintuitive (other similar tokens don't behave the same), and not relied on by users (none of the Oniguruma regexes in a sample of tens of thousands used it).
+
+Behavior details for `\x` in Oniguruma:
+
+- `\x` is an identity escape (matching a literal `x`) if it appears at the very end of a pattern. This is an apparent bug.
+- `\x` is an error if followed by a `{` that's followed by a hexadecimal digit that doesn't form a valid `\x{…}` code point escape. Ex: `\x{F` and `\x{0,2}` are errors.
+- `\x` is an identity escape (matching a literal `x`) if followed by a `{` that isn't followed by a hexadecimal digit. Ex: `\x{` matches `x{`, `\x{G` matches `x{G`, `\x{}` matches `x{}`, and `\x{,2}` matches 0–2 `x` characters since `{,2}` is a quantifier with an implicit 0 min.
+
+The above mess means that `\x{` can be any of: an identity escape followed by `{`, part of an error, part of a valid code point escape, or an identity escape followed by part of a quantifier.
+</details>
+
+<details>
+  <summary>Pattern-terminating <code>\u</code></summary>
+
+  Normally, any incomplete `\uHHHH` (including bare `\u`) throws an error. However, in Oniguruma, bare `\u` is treated as an identity escape (matching a literal `u`) if it appears at the very end of a pattern. This is an apparent bug.
+
+  In this library, incomplete `\u` is always an error.
+</details>
+
 Additional edge case differences that result in errors will be documented here soon. This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error in some edge cases that are buggy in Oniguruma. However, as a standalone parser, in most cases the ideal path is to match Oniguruma's intention, even if the pattern would encounter bugs when used to search. Thus, such errors will be removed in future versions.
 
 ## About
