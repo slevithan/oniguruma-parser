@@ -1,6 +1,8 @@
 {
   "editor.insertSpaces": true,
   "editor.tabSize": 2,
+  "javascript.format.semicolons": "insert",
+  "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
   "typescript.format.semicolons": "insert",
   "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
 }

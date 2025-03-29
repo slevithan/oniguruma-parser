@@ -1,4 +1,5 @@
 import {toOnigurumaAst} from '../dist/index.js';
+import {singleAltAst} from './utils.js';
 
 describe('toOnigurumaAst', () => {
   it('should throw for non-string patterns', () => {
@@ -9,27 +10,6 @@ describe('toOnigurumaAst', () => {
   });
 
   it('should return a tree if given an empty string', () => {
-    expect(toOnigurumaAst('')).toEqual({
-      type: 'Regex',
-      pattern: {
-        type: 'Pattern',
-        alternatives: [
-          {
-            type: 'Alternative',
-            elements: [],
-          },
-        ],
-      },
-      flags: {
-        type: 'Flags',
-        digitIsAscii: false,
-        dotAll: false,
-        extended: false,
-        ignoreCase: false,
-        posixIsAscii: false,
-        spaceIsAscii: false,
-        wordIsAscii: false,
-      },
-    });
+    expect(toOnigurumaAst('')).toEqual(singleAltAst([]));
   });
 });
