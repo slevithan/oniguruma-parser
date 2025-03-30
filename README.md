@@ -164,13 +164,6 @@ Behavior details for `\x` in Oniguruma:
 - `\x` is an identity escape (matching a literal `x`) if it appears at the very end of a pattern. *This is an apparent bug.*
 - `\x` is an error if followed by a `{` that's followed by a hexadecimal digit that doesn't form a valid `\x{…}` code point escape. Ex: `\x{F` and `\x{0,2}` are errors.
 - `\x` is an identity escape (matching a literal `x`) if followed by a `{` that isn't followed by a hexadecimal digit. Ex: `\x{` matches `x{`, `\x{G` matches `x{G`, `\x{}` matches `x{}`, and `\x{,2}` matches 0–2 `x` characters since `{,2}` is a quantifier with an implicit 0 min.
-
-As a result of these rules, `\x{` can be any of:
-
-1. An identity escape followed by a literal `{`.
-2. An identity escape followed by part of a quantifier.
-3. Part of a valid code point escape.
-4. Part of an error.
 </details>
 
 <details>
@@ -196,11 +189,11 @@ Behavior details for invalid encoded bytes in Oniguruma:
 
 - Standalone `\x80` to `\xBF` throw error "invalid code point value".
 - Standalone `\xC0` to `\xF4` throw error "too short multibyte code string".
-- Standalone `\xF5` to `\xFF` don't throw, but fail to match anything. *This is an apparent bug.*
+- Standalone `\xF5` to `\xFF` fail to match anything, but don't throw. *This is an apparent bug.*
 - If used at the end of a character class range:
   - Standalone `\x80` to `\xBF` and `\xF5` to `\xFF` are treated as `\x7F`.
   - Standalone `\xC0` to `\xF4` throw error "too short multibyte code string". *This is an apparent bug.*
-  - If the range is within a non-nested, negated character class, `\xF5` to `\xFF` don't throw, but fail to match anything. *This is an apparent bug, which can be worked around by nesting the class.*
+  - If the range is within a non-nested, negated character class, `\xF5` to `\xFF` fail to match anything, but don't throw. *This is an apparent bug, which can be worked around by nesting the class.*
 </details>
 
 ## About
