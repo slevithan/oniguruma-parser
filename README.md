@@ -138,7 +138,7 @@ Note that, although Oniguruma theoretically supports `\1000` and higher when as 
 
 #### Erroring on patterns that trigger Oniguruma bugs
 
-This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error for regexes that trigger Oniguruma bugs. However, as a standalone parser, the ideal path is to follow Oniguruma's intention even if the pattern would encounter bugs when used to search. Thus, some of the errors described here will be removed in future versions.
+This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error for regexes that trigger Oniguruma bugs. However, as a standalone parser, the ideal path for future versions will be to follow Oniguruma's intention even if the pattern would encounter bugs when used to search.
 
 <details>
   <summary>Nested absent functions</summary>
