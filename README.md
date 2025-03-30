@@ -122,9 +122,9 @@ This library currently treats it as an error if a numbered backreference comes b
 
 The following don't yet throw errors, but should:
 
-- Special characters that are invalid in backreference names when referencing a valid group with that name.
-  - Named backreferences should use a more restricted set of allowed characters than named groups and subroutines.
-  - Note that an error is already thrown for backreference names that include `-` or `+` (separate from relative *numbered* backreferences).
+- Special characters that are invalid in backreference names even when referencing a valid group with that name.
+  - Named backreferences should use a more limited set of allowed characters than named groups and subroutines.
+  - Note that an error is already thrown for any backreference name that includes `-` or `+` (which is separate from how these symbols are used in relative *numbered* backreferences).
 - Subroutines used in ways that resemble infinite recursion ([#5](https://github.com/slevithan/oniguruma-parser/issues/5)).
   - Such subroutines error at compile time in Oniguruma.
 
