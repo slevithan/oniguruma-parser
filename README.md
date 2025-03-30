@@ -124,7 +124,7 @@ The following don't yet throw errors, but should:
 
 - Special characters that are invalid in backreference names even when referencing a valid group with that name.
   - Named backreferences should use a more limited set of allowed characters than named groups and subroutines.
-  - Note that an error is already thrown for any backreference name that includes `-` or `+` (which is separate from how these symbols are used in relative *numbered* backreferences).
+  - Note that an error is already correctly thrown for any backreference name that includes `-` or `+` (which is separate from how these symbols are used in relative *numbered* backreferences).
 - Subroutines used in ways that resemble infinite recursion ([#5](https://github.com/slevithan/oniguruma-parser/issues/5)).
   - Such subroutines error at compile time in Oniguruma.
 
@@ -186,7 +186,7 @@ In this library, incomplete `\u` is always an error.
 
 > **Context:** Unlike enclosed `\x{HH}`, unenclosed `\xHH` represents an encoded byte (not a code unit or code point), which means that `\x80` to `\xFF` are treated as fragments of a code unit, unlike in other regex flavors. Ex: `[\0-\xE2\x82\xAC]` is equivalent to `[\0-\x{20AC}]`.
 >
-> Additionally, the default-on Oniguruma compile-time option `ONIG_SYN_ALLOW_INVALID_CODE_END_OF_RANGE_IN_CC` means that invalid encoded byte or code point values used at the end of a character class range are treated as if they were the last preceding valid value. Ex: `[\0-\x{FFFFFFFF}]` is equivalent to `[\0-\x{10FFFF}]`, and `[\0-\FF]` is equivalent to `[\0-\7F]` (or rather, it should be, as described below).
+> Additionally, the default-on Oniguruma compile-time option `ONIG_SYN_ALLOW_INVALID_CODE_END_OF_RANGE_IN_CC` means that invalid encoded byte or code point values used at the end of a character class range are treated as if they were the last preceding valid value. Ex: `[\0-\x{FFFFFFFF}]` is equivalent to `[\0-\x{10FFFF}]`, and `[\0-\xFF]` is equivalent to `[\0-\x7F]` (or rather, it should be, as described below).
 
 The Oniguruma behavior for invalid encoded byte sequences is undefined. Oniguruma docs simply state: "Do not pass invalid byte string in the regex character encoding."
 
