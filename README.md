@@ -4,9 +4,9 @@
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![bundle][bundle-src]][bundle-href]
 
-[Oniguruma](https://github.com/kkos/oniguruma) is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, [Shiki](https://shiki.style/), etc. for syntax highlighting), and many other tools.
+`oniguruma-parser` is a TypeScript library for parsing, validating, traversing, transforming, and optimizing [Oniguruma](https://github.com/kkos/oniguruma) regular expressions. It's been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which are used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
 
-`oniguruma-parser` is a TypeScript library for parsing, validating, traversing, transforming, and optimizing Oniguruma regular expressions. It's been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which are used by Shiki to process tens of thousands of real-world Oniguruma regexes.
+> Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, etc.), and many other tools.
 
 ## Contents
 
@@ -88,11 +88,11 @@ Becomes:
 Optimized regexes always match exactly the same strings.
 
 > [!TIP]
-> Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
+> 👉 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
 
 ## Known differences
 
-Known differences will be resolved in future versions.
+`oniguruma-parser` 0.1.0 until the latest version are based on Oniguruma 6.9.10 (released 2025-01-01; uses Unicode 16.0.0). Known differences will be resolved in future versions.
 
 ### Unsupported features that throw an error
 
@@ -138,7 +138,7 @@ Note that, although Oniguruma theoretically supports `\1000` and higher when as 
 
 #### Erroring on patterns that trigger Oniguruma bugs
 
-This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error for regexes that trigger Oniguruma bugs. However, as a standalone parser, the ideal path for future versions will be to follow Oniguruma's intention even if the pattern would encounter bugs when used to search.
+> This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error for regexes that trigger Oniguruma bugs. However, as a standalone parser, future updates will follow Oniguruma's intention even if the pattern would encounter bugs when used to search.
 
 <details>
   <summary>Nested absent functions</summary>
@@ -181,7 +181,7 @@ In this library, incomplete `\u` is always an error.
 </details>
 
 <details>
-  <summary>Invalid standalone encoded byte <code>\x80</code> to <code>\xFF</code></summary>
+  <summary>Invalid standalone encoded bytes <code>\x80</code> to <code>\xFF</code></summary>
 
 > **Context:** Unlike enclosed `\x{HH}`, unenclosed `\xHH` represents an encoded byte (not a Unicode code unit or code point), which means that `\x80` to `\xFF` are treated as fragments of a code unit, unlike in other regex flavors. Ex: `[\0-\xE2\x82\xAC]` is equivalent to `[\0-\u20AC]`.
 >

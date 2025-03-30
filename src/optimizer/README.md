@@ -1,8 +1,8 @@
 # `oniguruma-parser`: Optimizer module
 
-[Oniguruma](https://github.com/kkos/oniguruma) is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, [Shiki](https://shiki.style/), etc. for syntax highlighting), and many other tools.
+The optimizer transforms [Oniguruma](https://github.com/kkos/oniguruma) patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match exactly the same strings and include exactly the same subpattern matches.
 
-`oniguruma-parser`'s optimizer is a TypeScript library that transforms Oniguruma patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match exactly the same strings and include exactly the same subpattern matches.
+> Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, etc.), and many other tools.
 
 Example:
 
@@ -16,7 +16,10 @@ Becomes:
 !+(\da[abz])[\H\p{L}]\w
 ```
 
-## [Try the Optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/)
+> [!TIP]
+> 👉 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
+
+The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which is used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
 
 ## Contents
 
@@ -36,8 +39,6 @@ Becomes:
 - Optimized regexes are typically easier to read, unless the original used flag `x` for insignificant whitespace and comments (which are removed during optimization).
 
 In rare cases, results might be slightly longer than the input.
-
-The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which is used by Shiki to process tens of thousands of real-world Oniguruma regexes.
 
 ## Install and use
 
