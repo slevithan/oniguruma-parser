@@ -149,15 +149,15 @@ In this library, they throw an error.
 </details>
 
 <details>
-  <summary>Bare <code>\x</code> as <code>NUL</code> character</summary>
+  <summary>Bare <code>\x</code> as a <code>NUL</code> character</summary>
 
-> **Context:** `\xH`, `\xHH`, and `\x{H…}` are all supported, where *H* is a hexadecimal digit. Unenclosed `\xH` and `\xHH` represent encoded bytes (not code units or code points, which means that `\x80` to `\xFF` are treated as fragments of a code unit, unlike in other regex flavors), whereas enclosed `\x{H…}` is a code point escape. The following describes the use of `\x` on its own, when it's not a part of any of these forms.
+> **Context:** `\xH`, `\xHH`, and `\x{H…}` are all supported, where *H* is a hexadecimal digit. Although enclosed `\x{H…}` is a code point escape, unenclosed `\xH` and `\xHH` represent an encoded byte (which, unlike in other regex flavors, makes `\xHH` a fragment of a code unit if its value is `\x80` to `\xFF`). The following describes the use of `\x` on its own, when it's not a part of any of these forms.
 
 In Oniguruma, `\x` is an escape for the `NUL` character (equivalent to `\0`, `\x0`, `\x00`, etc.) if not followed by `{` or a hexadecimal digit.
 
 In this library, it throws an error.
 
-The error is thrown because `\x` is buggy in Oniguruma. It is also ambiguous, non-portable across regex flavors, offers no user benefit (`\0` is equally short), unintuitive (other similar tokens don't behave the same), and not relied on by users (none of the Oniguruma regexes in a sample of tens of thousands used it).
+The error is thrown because `\x` is buggy in Oniguruma. It is also ambiguous, non-portable across regex flavors, offers no user benefit (`\0` is equally short), unintuitive, and not relied on by users (none of the Oniguruma regexes in a sample of tens of thousands used it).
 
 Behavior details for `\x` in Oniguruma:
 
@@ -165,11 +165,11 @@ Behavior details for `\x` in Oniguruma:
 - `\x` is an error if followed by a `{` that's followed by a hexadecimal digit that doesn't form a valid `\x{…}` code point escape. Ex: `\x{F` and `\x{0,2}` are errors.
 - `\x` is an identity escape (matching a literal `x`) if followed by a `{` that isn't followed by a hexadecimal digit. Ex: `\x{` matches `x{`, `\x{G` matches `x{G`, `\x{}` matches `x{}`, and `\x{,2}` matches 0–2 `x` characters since `{,2}` is a quantifier with an implicit 0 min.
 
-The above mess means that `\x{` can be any of: an identity escape followed by literal `{`, an identity escape followed by part of a quantifier, part of a valid code point escape, or part of an error.
+As a result of these rules, `\x{` can be any of: ① an identity escape followed by a literal `{`, ② an identity escape followed by part of a quantifier, ③ part of a valid code point escape, or ④ part of an error.
 </details>
 
 <details>
-  <summary>Pattern-terminating bare <code>\u</code> as identity escape</summary>
+  <summary>Pattern-terminating bare <code>\u</code> as an identity escape</summary>
 
   Normally, any incomplete `\uHHHH` (including bare `\u`) throws an error. However, in Oniguruma, bare `\u` is treated as an identity escape (matching a literal `u`) if it appears at the very end of a pattern. *This is an apparent bug.*
 
@@ -181,13 +181,13 @@ The above mess means that `\x{` can be any of: an identity escape followed by li
 
 > **Context:** Unlike enclosed `\x{HH}`, unenclosed `\xHH` represents an encoded byte (not a code unit or code point), which means that `\x80` to `\xFF` are treated as fragments of a code unit, unlike in other regex flavors. Ex: `[\0-\xE2\x82\xAC]` is equivalent to `[\0-\x{20AC}]`.
 >
-> Additionally, the default-on Oniguruma compile-time option `ONIG_SYN_ALLOW_INVALID_CODE_END_OF_RANGE_IN_CC` means that invalid byte or code point values used at the end of a character class range are treated as if they were the last preceding valid value. Ex: `[\0-\x{FFFFFFFF}]` is equivalent to `[\0-\x{10FFFF}]`, and `[\0-\FF]` is equivalent to `[\0-\7F]` (or rather, it should be, as described below).
+> Additionally, the default-on Oniguruma compile-time option `ONIG_SYN_ALLOW_INVALID_CODE_END_OF_RANGE_IN_CC` means that invalid encoded byte or code point values used at the end of a character class range are treated as if they were the last preceding valid value. Ex: `[\0-\x{FFFFFFFF}]` is equivalent to `[\0-\x{10FFFF}]`, and `[\0-\FF]` is equivalent to `[\0-\7F]` (or rather, it should be, as described below).
 
 The Oniguruma behavior for invalid encoded byte sequences is undefined. Oniguruma docs simply state: "Do not pass invalid byte string in the regex character encoding."
 
 In this library, it throws an error.
 
-Behavior details in Oniguruma (tested in v6.9.8):
+Behavior details for invalid encoded bytes in Oniguruma:
 
 - Standalone `\x80` to `\xBF` throw error "invalid code point value".
 - Standalone `\xC0` to `\xF4` throw error "too short multibyte code string".
