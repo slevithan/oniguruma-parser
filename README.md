@@ -164,10 +164,10 @@ The error is thrown because `\x` is buggy in Oniguruma. It's also ambiguous, non
 Behavior details for `\x` in Oniguruma:
 
 - `\x` is an identity escape (matching a literal `x`) if it appears at the very end of a pattern. *This is an apparent bug.*
-- `\x` is an error if followed by a `{` that's followed by a hexadecimal digit that doesn't form a valid `\x{…}` code point escape. Ex: `\x{F` and `\x{0,2}` are errors.
-- `\x` is an identity escape (matching a literal `x`) if followed by a `{` that isn't followed by a hexadecimal digit. Ex: `\x{` matches `x{`, `\x{G` matches `x{G`, `\x{}` matches `x{}`, and `\x{,2}` matches 0–2 `x` characters since `{,2}` is a quantifier with an implicit 0 min.
+- `\x` is an error if followed by a `{` that's followed by a hexadecimal digit but doesn't form a valid `\x{…}` code point escape. Ex: `\x{F` and `\x{0,2}` are errors.
+- `\x` is an identity escape (matching a literal `x`) if followed by a `{` that isn't followed by a hexadecimal digit. Ex: `\x{` matches `x{`, `\x{G` matches `x{G`, `\x{}` matches `x{}`, and `\x{,2}` matches 0–2 `x` characters, since `{,2}` is a quantifier with an implicit 0 min.
 
-> In future versions, parsing of `\x` will follow Oniguruma's complicated rules, removing some cases where it currently errors. However, this library intentionally doesn't reproduce Oniguruma bugs, so a pattern-terminating `\x` will continue to error (as it does in Oniguruma at other positions).
+> In future versions, parsing of `\x` will follow Oniguruma's complicated rules above, removing some cases where it currently errors. However, this library intentionally doesn't reproduce Oniguruma bugs, so a pattern-terminating `\x` will be treated as a `NUL` character (like at all other positions) rather than a literal `x`. If necessary, you can check for this and throw an error.
 </details>
 
 <details>
@@ -201,7 +201,7 @@ Behavior details for invalid encoded bytes in Oniguruma:
   - Standalone `\xC0` to `\xF4` throw error "too short multibyte code string". *This is an apparent bug.*
   - If the range is within a non-nested, negated character class, `\xF5` to `\xFF` fail to match anything, but don't throw. *This is an apparent bug, which can be worked around by nesting the class.*
 
-> In future versions, parsing of invalid standalone encoded bytes `\x80` to `\xFF` at the end of a character class range will be treated as `\x7F`, rather than erroring. This library intentionally doesn't reproduce Oniguruma bugs, so standalone `\xF5` to `\xFF` will continue to error if not used at the end of a character class range.
+> In future versions, parsing of invalid standalone encoded bytes `\x80` to `\xFF` at the end of a character class range will be treated as `\x7F`, rather than erroring. This library intentionally doesn't reproduce Oniguruma bugs, so standalone `\xF5` to `\xFF` will continue to error if not at the end of a character class range.
 </details>
 
 ## About
