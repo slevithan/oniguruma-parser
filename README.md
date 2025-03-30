@@ -138,7 +138,7 @@ Note that, although Oniguruma theoretically supports `\1000` and higher when as 
 
 #### Erroring on patterns that trigger Oniguruma bugs
 
-This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error for regexes that trigger Oniguruma bugs. However, as a standalone parser, the ideal path is to follow Oniguruma's intention even if the pattern would encounter bugs when used to search. Thus, the errors described here will be replaced with warnings in future versions.
+This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error for regexes that trigger Oniguruma bugs. However, as a standalone parser, the ideal path is to follow Oniguruma's intention even if the pattern would encounter bugs when used to search. Thus, some of the errors described here will be removed in future versions.
 
 <details>
   <summary>Nested absent functions</summary>
@@ -157,7 +157,7 @@ In Oniguruma, `\x` is an escape for the `NUL` character (equivalent to `\0`, `\x
 
 In this library, it throws an error.
 
-The error is thrown because `\x` is buggy in Oniguruma. It is also ambiguous, non-portable across regex flavors, offers no user benefit (`\0` is equally short), unintuitive, and not relied on by users (none of the Oniguruma regexes in a sample of tens of thousands used it).
+The error is thrown because `\x` is buggy in Oniguruma. It's also ambiguous, non-portable across regex flavors, offers no user benefit (`\0` is equally short), unintuitive, and not relied on by users (none of the Oniguruma regexes in a sample of tens of thousands used it).
 
 Behavior details for `\x` in Oniguruma:
 
@@ -165,15 +165,20 @@ Behavior details for `\x` in Oniguruma:
 - `\x` is an error if followed by a `{` that's followed by a hexadecimal digit that doesn't form a valid `\x{…}` code point escape. Ex: `\x{F` and `\x{0,2}` are errors.
 - `\x` is an identity escape (matching a literal `x`) if followed by a `{` that isn't followed by a hexadecimal digit. Ex: `\x{` matches `x{`, `\x{G` matches `x{G`, `\x{}` matches `x{}`, and `\x{,2}` matches 0–2 `x` characters since `{,2}` is a quantifier with an implicit 0 min.
 
-As a result of these rules, `\x{` can be any of: ① an identity escape followed by a literal `{`, ② an identity escape followed by part of a quantifier, ③ part of a valid code point escape, or ④ part of an error.
+As a result of these rules, `\x{` can be any of:
+
+1. An identity escape followed by a literal `{`.
+2. An identity escape followed by part of a quantifier.
+3. Part of a valid code point escape.
+4. Part of an error.
 </details>
 
 <details>
   <summary>Pattern-terminating bare <code>\u</code> as an identity escape</summary>
 
-  Normally, any incomplete `\uHHHH` (including bare `\u`) throws an error. However, in Oniguruma, bare `\u` is treated as an identity escape (matching a literal `u`) if it appears at the very end of a pattern. *This is an apparent bug.*
+Normally, any incomplete `\uHHHH` (including bare `\u`) throws an error. However, in Oniguruma, bare `\u` is treated as an identity escape (matching a literal `u`) if it appears at the very end of a pattern. *This is an apparent bug.*
 
-  In this library, incomplete `\u` is always an error.
+In this library, incomplete `\u` is always an error.
 </details>
 
 <details>
@@ -195,7 +200,7 @@ Behavior details for invalid encoded bytes in Oniguruma:
 - If used at the end of a character class range:
   - Standalone `\x80` to `\xBF` and `\xF5` to `\xFF` are treated as `\x7F`.
   - Standalone `\xC0` to `\xF4` throw error "too short multibyte code string". *This is an apparent bug.*
-  - If within a non-nested, negated character class, `\xF5` to `\xFF` don't throw, but fail to match anything. *This is an apparent bug, which can be worked around by nesting the class.*
+  - If the range is within a non-nested, negated character class, `\xF5` to `\xFF` don't throw, but fail to match anything. *This is an apparent bug, which can be worked around by nesting the class.*
 </details>
 
 ## About
