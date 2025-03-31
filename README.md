@@ -139,7 +139,7 @@ Note that, although Oniguruma theoretically supports `\1000` and higher when as 
 
 #### Erroring on patterns that trigger Oniguruma bugs
 
-This library currently throws an error for several edge cases that trigger Oniguruma bugs.
+This library currently throws an error for several edge cases that trigger Oniguruma bugs. In future versions, such errors will be removed and replaced with a warning.
 
 <details>
   <summary>Nested absent functions</summary>
@@ -164,11 +164,11 @@ The error is thrown because `\x` is buggy in Oniguruma. It's also ambiguous, non
 
 Behavior details for `\x` in Oniguruma:
 
-- `\x` is an identity escape (matching a literal `x`) if it appears at the very end of a pattern. *This is an apparent bug.*
 - `\x` is an error if followed by a `{` that's followed by a hexadecimal digit but doesn't form a valid `\x{…}` code point escape. Ex: `\x{F` and `\x{0,2}` are errors.
 - `\x` is an identity escape (matching a literal `x`) if followed by a `{` that isn't followed by a hexadecimal digit. Ex: `\x{` matches `x{`, `\x{G` matches `x{G`, `\x{}` matches `x{}`, and `\x{,2}` matches 0–2 `x` characters, since `{,2}` is a quantifier with an implicit 0 min.
+- `\x` is an identity escape (matching a literal `x`) if it appears at the very end of a pattern. *This is an apparent bug.*
 
-> In future versions, parsing of `\x` will follow Oniguruma's complicated rules above, removing some cases where it currently errors. However, this library intentionally doesn't reproduce Oniguruma bugs, so a pattern-terminating `\x` will be treated as a `NUL` character (like at all other positions) rather than a literal `x`. If necessary, you can check for this and throw an error.
+> In future versions, parsing of `\x` will follow the Oniguruma rules above, removing some cases where it currently errors. However, this library intentionally doesn't reproduce Oniguruma bugs, so a pattern-terminating `\x` will be treated as a `NUL` character rather than a literal `x`.
 </details>
 
 <details>
@@ -178,7 +178,7 @@ Normally, any incomplete `\uHHHH` (including bare `\u`) throws an error. However
 
 In this library, incomplete `\u` is always an error.
 
-> This library intentionally doesn't reproduce Oniguruma bugs, so a pattern-terminating `\u` will continue to error in future versions (as it does in Oniguruma at other positions).
+> This library intentionally doesn't reproduce Oniguruma bugs, so a pattern-terminating `\u` will continue to error in future versions.
 </details>
 
 <details>
