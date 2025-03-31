@@ -13,6 +13,7 @@ type Token =
   DirectiveToken |
   GroupCloseToken |
   GroupOpenToken |
+  NamedCalloutToken |
   QuantifierToken |
   SubroutineToken;
 
@@ -47,6 +48,16 @@ type TokenQuantifierKind =
   'greedy' |
   'lazy' |
   'possessive';
+
+type TokenNamedCalloutKind =
+  'FAIL' |
+  'MISMATCH' |
+  'ERROR' |
+  'MAX' |
+  'COUNT' |
+  'TOTAL_COUNT' |
+  'CMP' |
+  'SKIP';
 
 const charClassOpenPattern = r`\[\^?`;
 const sharedEscapesPattern = `${
@@ -89,7 +100,7 @@ const tokenRe = new RegExp(r`
       | #(?:[^)\\]|\\.?)*
       | [^:)]*[:)]
     )?
-    | \*
+    | \* [^\)]* \)?
   )?
   | ${quantifierRe.source}
   | ${charClassOpenPattern}
@@ -273,8 +284,10 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
   }
 
   if (m0 === '(') {
-    if (m === '(*') {
-      throw new Error(`Unsupported named callout "${m}"`);
+    if (m1 === '*') {
+      return {
+        token: tokenizeNamedCallout(m),
+      };
     }
     if (m === '(?{') {
       throw new Error(`Unsupported callout "${m}"`);
@@ -755,6 +768,23 @@ function createGroupOpenToken(
   };
 }
 
+type NamedCalloutToken = {
+  type: 'NamedCallout';
+  kind: TokenNamedCalloutKind;
+  tag: string | null;
+  args: string | null;
+  raw: string;
+};
+function createNamedCalloutToken(kind: TokenNamedCalloutKind, tag: string | null, args: string | null, raw: string): NamedCalloutToken {
+  return {
+    type: 'NamedCallout',
+    kind,
+    tag,
+    args,
+    raw,
+  };
+};
+
 type QuantifierToken = {
   type: 'Quantifier';
   kind: TokenQuantifierKind;
@@ -871,6 +901,20 @@ function tokenizeFlagModifier(raw: string, context: Context): DirectiveToken | G
     });
   }
   throw new Error(`Unexpected flag modifier "${raw}"`);
+}
+
+function tokenizeNamedCallout(raw: string): NamedCalloutToken {
+  const namedCallout = /\(\*(?<name>[_a-zA-Z][_a-zA-Z0-9]*)(?:\[(?<tag>(?:[_a-zA-Z][_a-zA-Z0-9]*)?)\])?(?:\{(?<args>.*?)\})?\)/.exec(raw);
+  if (!namedCallout) {
+    throw new Error(`Invalid named callout "${raw}"`);
+  }
+  const {name, tag, args} = namedCallout.groups as {
+    name: TokenNamedCalloutKind;
+    tag: string | undefined;
+    args: string | undefined;
+  };
+  // TODO: actually check if name is valid or mark kind as type string
+  return createNamedCalloutToken(name, tag ?? null, args ?? null, raw);
 }
 
 function tokenizeQuantifier(raw: string): QuantifierToken {
@@ -1052,10 +1096,12 @@ export {
   type FlagProperties,
   type GroupCloseToken,
   type GroupOpenToken,
+  type NamedCalloutToken,
   type QuantifierToken,
   type SubroutineToken,
   type Token,
   type TokenCharacterSetKind,
   type TokenDirectiveKind,
+  type TokenNamedCalloutKind,
   type TokenQuantifierKind,
 };

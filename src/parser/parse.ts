@@ -1,5 +1,5 @@
 import {tokenize} from '../tokenizer/tokenize.js';
-import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
+import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, NamedCalloutToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenNamedCalloutKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 // Watch out for the DOM `Node` interface!
@@ -17,6 +17,7 @@ type Node =
   FlagsNode |
   GroupNode |
   LookaroundAssertionNode |
+  NamedCalloutNode |
   PatternNode |
   QuantifierNode |
   RegexNode |
@@ -96,6 +97,8 @@ type NodeDirectiveKind = TokenDirectiveKind;
 type NodeLookaroundAssertionKind =
   'lookahead' |
   'lookbehind';
+
+type NodeNamedCalloutKind = TokenNamedCalloutKind;
 
 type NodeQuantifierKind = TokenQuantifierKind;
 
@@ -187,6 +190,8 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
         return createDirective(token.kind, {flags: token.flags});
       case 'GroupOpen':
         return parseGroupOpen(token, context, state);
+      case 'NamedCallout':
+        return parseNamedCallout(token);
       case 'Quantifier':
         return parseQuantifier(token, context);
       case 'Subroutine':
@@ -467,6 +472,12 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
   // Skip the closing parenthesis
   context.current++;
   return node;
+}
+
+function parseNamedCallout({kind, tag, args}: NamedCalloutToken): NamedCalloutNode {
+  // TODO: check if kind is correct here
+  // and validate tag and args
+  return createNamedCallout(kind, tag, args);
 }
 
 function parseQuantifier({kind, min, max}: QuantifierToken, context: Context): QuantifierNode {
@@ -817,6 +828,22 @@ function createLookaroundAssertion(options?: {
   };
 }
 
+type NamedCalloutNode = {
+  type: 'NamedCallout';
+  kind: NodeNamedCalloutKind;
+  tag: string | null;
+  args: string | null;
+};
+function createNamedCallout(kind: NodeNamedCalloutKind, tag: string | null, args: string | null): NamedCalloutNode {
+  // TODO: check if kind is correct here?
+  return {
+    type: 'NamedCallout',
+    kind,
+    tag,
+    args,
+  };
+}
+
 type PatternNode = {
   type: 'Pattern';
   alternatives: Array<AlternativeNode>;
@@ -1027,6 +1054,7 @@ export {
   type FlagsNode,
   type GroupNode,
   type LookaroundAssertionNode,
+  type NamedCalloutNode,
   type Node,
   type NodeAbsentFunctionKind,
   type NodeAssertionKind,

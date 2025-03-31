@@ -1,4 +1,4 @@
-import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
+import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, NamedCalloutNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {FlagProperties} from '../tokenizer/tokenize.js';
 import {cp, r, throwIfNullable} from '../utils.js';
 
@@ -233,6 +233,11 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     const {kind, negate, alternatives} = node as LookaroundAssertionNode;
     const prefix = `${kind === 'lookahead' ? '' : '<'}${negate ? '!' : '='}`;
     return `(?${prefix}${alternatives.map(gen).join('|')})`;
+  },
+
+  NamedCallout(node: Node): string {
+    const {kind, tag, args} = node as NamedCalloutNode;
+    return `(*${kind}${tag === null ? '' : `[${tag}]`}${args === null ? '' : `{${args}}`})`;
   },
 
   Pattern(node: Node, _: State, gen: Gen): string {
