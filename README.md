@@ -198,7 +198,7 @@ Behavior details for invalid encoded bytes in Oniguruma:
 
 > This library intentionally doesn't reproduce Oniguruma bugs. So, in future versions, standalone `\xF5` to `\xFF` will continue to error (if not at the end of a character class range, as described below).
 
-Oniguruma's behavior changes if an invalid encoded byte is used as the end value of a character class range.
+Oniguruma's behavior changes if an invalid encoded byte is used as the end value of a character class range:
 
 > **Context:** The on-by-default Oniguruma compile-time option `ONIG_SYN_ALLOW_INVALID_CODE_END_OF_RANGE_IN_CC` means that invalid encoded byte or code point values used at the end of character class ranges are treated as if they were the last preceding valid value. Ex: `[\0-\x{FFFFFFFF}]` is equivalent to `[\0-\x{10FFFF}]`, and `[\0-\xFF]` is equivalent to `[\0-\x7F]` (or rather, it should be, as described below).
 
