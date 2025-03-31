@@ -139,7 +139,7 @@ Note that, although Oniguruma theoretically supports `\1000` and higher when as 
 
 #### Erroring on patterns that trigger Oniguruma bugs
 
-This library currently throws an error for several edge cases that trigger Oniguruma bugs. In future versions, such errors will be removed and replaced with a warning.
+This library currently throws an error for several edge cases that trigger Oniguruma bugs. In future versions, such errors will be replaced with warnings.
 
 <details>
   <summary>Nested absent functions</summary>
