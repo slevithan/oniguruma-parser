@@ -92,7 +92,9 @@ Optimized regexes always match exactly the same strings.
 
 ## Known differences
 
-`oniguruma-parser` 0.1.0 until the latest version are based on Oniguruma 6.9.10 (released 2025-01-01; uses Unicode 16.0.0). Known differences will be resolved in future versions.
+`oniguruma-parser`, from its first release until the latest version, follows the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0. In general, the only changes to regex syntax in new versions of Oniguruma are edge case bug fixes and adding new syntax that was previously an error (such as new Unicode property names).
+
+The following known differences will be resolved in future versions.
 
 ### Unsupported features that throw an error
 
@@ -138,7 +140,7 @@ Note that, although Oniguruma theoretically supports `\1000` and higher when as 
 
 #### Erroring on patterns that trigger Oniguruma bugs
 
-> This library was originally built as part of [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es), and in that context it made sense to throw an error for regexes that trigger Oniguruma bugs. However, as a standalone parser, future updates will follow Oniguruma's intention even if the pattern would encounter bugs when used to search.
+This library currently throws an error for several edge cases that trigger Oniguruma bugs.
 
 <details>
   <summary>Nested absent functions</summary>
@@ -184,24 +186,29 @@ In this library, incomplete `\u` is always an error.
   <summary>Invalid standalone encoded bytes <code>\x80</code> to <code>\xFF</code></summary>
 
 > **Context:** Unlike enclosed `\x{HH}`, unenclosed `\xHH` represents an encoded byte (not a Unicode code unit or code point), which means that `\x80` to `\xFF` are treated as fragments of a code unit, unlike in other regex flavors. Ex: `[\0-\xE2\x82\xAC]` is equivalent to `[\0-\u20AC]`.
->
-> Additionally, the on-by-default Oniguruma compile-time option `ONIG_SYN_ALLOW_INVALID_CODE_END_OF_RANGE_IN_CC` means that invalid encoded byte or code point values used at the end of a character class range are treated as if they were the last preceding valid value. Ex: `[\0-\x{FFFFFFFF}]` is equivalent to `[\0-\x{10FFFF}]`, and `[\0-\xFF]` is equivalent to `[\0-\x7F]` (or rather, it should be, as described below).
 
-The Oniguruma behavior for invalid encoded byte sequences is undefined. Oniguruma docs simply state: "Do not pass invalid byte string in the regex character encoding."
+Oniguruma docs simply state: "Do not pass invalid byte string in the regex character encoding."
 
-In this library, they throw an error.
+In this library, invalid encoded byte sequences throw an error.
 
 Behavior details for invalid encoded bytes in Oniguruma:
 
 - Standalone `\x80` to `\xBF` throw error "invalid code point value".
 - Standalone `\xC0` to `\xF4` throw error "too short multibyte code string".
 - Standalone `\xF5` to `\xFF` fail to match anything, but don't throw. *This is an apparent bug.*
-- If used at the end of a character class range:
-  - Standalone `\x80` to `\xBF` and `\xF5` to `\xFF` are treated as `\x7F`.
-  - Standalone `\xC0` to `\xF4` throw error "too short multibyte code string". *This is an apparent bug.*
-  - If the range is within a non-nested, negated character class, `\xF5` to `\xFF` fail to match anything, but don't throw. *This is an apparent bug, which can be worked around by nesting the class.*
 
-> In future versions, parsing of invalid standalone encoded bytes `\x80` to `\xFF` at the end of a character class range will be treated as `\x7F`, rather than erroring. This library intentionally doesn't reproduce Oniguruma bugs, so standalone `\xF5` to `\xFF` will continue to error if not at the end of a character class range.
+> This library intentionally doesn't reproduce Oniguruma bugs. So, in future versions, standalone `\xF5` to `\xFF` will continue to error (if not at the end of a character class range, as described below).
+
+Oniguruma's behavior changes if an invalid encoded byte is used as the end value of a character class range.
+
+> **Context:** The on-by-default Oniguruma compile-time option `ONIG_SYN_ALLOW_INVALID_CODE_END_OF_RANGE_IN_CC` means that invalid encoded byte or code point values used at the end of character class ranges are treated as if they were the last preceding valid value. Ex: `[\0-\x{FFFFFFFF}]` is equivalent to `[\0-\x{10FFFF}]`, and `[\0-\xFF]` is equivalent to `[\0-\x7F]` (or rather, it should be, as described below).
+
+- Standalone `\x80` to `\xBF` are treated as `\x7F`.
+- Standalone `\xC0` to `\xF4` throw error "too short multibyte code string". *This is an apparent bug.*
+- Standalone `\xF5` to `\xFF` are treated as `\x7F`.
+  - If the range is within a negated, non-nested character class (ex: `[^\0-\xFF]`), `\xF5` to `\xFF` are treated as `\x{10FFFF}`. *This is an apparent bug, and can be worked around by nesting the class (ex: `[[^\0-\xFF]]`).*
+
+> In future versions, invalid standalone encoded bytes `\x80` to `\xFF` at the end of character class ranges will be treated as `\x7F`, rather than erroring. The edge case bugs described above won't be reproduced.
 </details>
 
 ## About
