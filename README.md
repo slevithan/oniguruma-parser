@@ -212,9 +212,13 @@ Oniguruma's behavior changes if an invalid encoded byte is used as the end value
 
 ## Oniguruma version
 
-From the first release until the latest version, `oniguruma-parser` follows the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0.
+`oniguruma-parser` (from the first release until the latest version) follows the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0.
 
-Regex syntax in new releases of Oniguruma are generally backward compatible, containing only edge case bug fixes and new syntax that was previously an error (such as new Unicode property names).
+At least since Oniguruma 6.0.0 (released 2016-05-09), regex syntax in [new versions](https://github.com/kkos/oniguruma/releases) of Oniguruma is backward compatible. Some versions add new syntax that was previously an error (such as new Unicode property names), and in a few cases, edge case parsing bugs are fixed.
+
+An important Oniguruma version is 6.9.8 (released 2022-04-29), since this is the version used by [`vscode-oniguruma`](https://github.com/microsoft/vscode-oniguruma) 1.7.0 to the latest 2.0.1. It's therefore used in recent versions of various JavaScript projects, including VS Code and Shiki.
+
+It's possible that future versions of `oniguruma-parser` will add an option that allows specifying an Oniguruma version (starting with 6.9.8) to emulate when parsing. However, the differences so far are so minor that this is a non-issue.
 
 ## About
 
