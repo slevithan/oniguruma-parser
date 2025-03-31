@@ -15,6 +15,7 @@
 - [Traverse and transform an AST](#traverse-and-transform-an-ast)
 - [Optimize regexes](#optimize-regexes)
 - [Known differences](#known-differences)
+- [Oniguruma version](#oniguruma-version)
 
 ## Install and use
 
@@ -92,9 +93,7 @@ Optimized regexes always match exactly the same strings.
 
 ## Known differences
 
-`oniguruma-parser`, from its first release until the latest version, follows the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0. In general, the only changes to regex syntax in new versions of Oniguruma are edge case bug fixes and adding new syntax that was previously an error (such as new Unicode property names).
-
-The following known differences will be resolved in future versions.
+Known differences will be resolved in future versions.
 
 ### Unsupported features that throw an error
 
@@ -210,6 +209,12 @@ Oniguruma's behavior changes if an invalid encoded byte is used as the end value
 
 > In future versions, invalid standalone encoded bytes `\x80` to `\xFF` at the end of character class ranges will be treated as `\x7F`, rather than erroring. The edge case bugs described above won't be reproduced.
 </details>
+
+## Oniguruma version
+
+From the first release until the latest version, `oniguruma-parser` follows the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0.
+
+Regex syntax in new releases of Oniguruma are generally backward compatible, containing only edge case bug fixes and new syntax that was previously an error (such as new Unicode property names).
 
 ## About
 
