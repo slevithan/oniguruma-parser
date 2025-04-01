@@ -475,8 +475,74 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
 }
 
 function parseNamedCallout({kind, tag, args}: NamedCalloutToken): NamedCalloutNode {
-  // TODO: check if kind is correct here
-  // and validate tag and args
+  if (tag === '') {
+    throw new Error(`Empty tag not allowed "${kind}"`);
+  }
+  const argsValues: (string | number)[] = typeof args === 'string' ? args.split(',').map((arg) => arg.match(/^[0-9]+$/) ? +arg : arg) : [];
+  // TODO: too much?
+  switch (kind) {
+    case 'FAIL':
+    case 'MISMATCH':
+    case 'SKIP':
+      if (argsValues.length > 0) {
+        throw new Error(`Args not allowed "${argsValues}"`);
+      }
+      break;
+    case 'ERROR': {
+      if (argsValues.length > 1) {
+        throw new Error(`Only one arg allowed "${argsValues}"`);
+      }
+      const arg0 = argsValues[0];
+      if (arg0 !== undefined && typeof arg0 !== 'number') {
+        throw new Error(`Arg must be type number "${arg0}"`);
+      }
+    }
+      break;
+    case 'MAX': {
+      if (argsValues.length > 2) {
+        throw new Error(`Only two args allowed "${argsValues}"`);
+      }
+      const arg0 = argsValues[0];
+      if ((typeof arg0 !== 'number' && typeof arg0 !== 'string') || (typeof arg0 === 'string' && !arg0.match(/^[_a-zA-Z][_a-zA-Z0-9]*$/))) {
+        throw new Error(`Arg must be type number or tag "${arg0}"`);
+      }
+      const arg1 = argsValues[1];
+      if (arg1 !== undefined && ( typeof arg1 !== 'string' || !arg1.match(/^[<>X]$/))) {
+        throw new Error(`Arg must be '<', '>' or 'X' "${arg1}"`);
+      }
+    }
+      break;
+    case 'COUNT':
+    case 'TOTAL_COUNT': {
+      if (argsValues.length > 1) {
+        throw new Error(`Only one arg allowed "${argsValues}"`);
+      }
+      const arg1 = argsValues[1];
+      if (arg1 !== undefined && typeof arg1 !== 'string' || !arg1.match(/^[<>X]$/)) {
+        throw new Error(`Arg must be '<', '>' or 'X' "${arg1}"`);
+      }
+    }
+      break;
+    case 'CMP':
+      if (argsValues.length > 3) {
+        throw new Error(`Only three args allowed "${argsValues}"`);
+      }
+      const arg0 = argsValues[0];
+      if ((typeof arg0 !== 'number' && typeof arg0 !== 'string') || (typeof arg0 === 'string' && !arg0.match(/^[_a-zA-Z][_a-zA-Z0-9]*$/))) {
+        throw new Error(`Arg must be type number or tag "${arg0}"`);
+      }
+      const arg1 = argsValues[1];
+      if (typeof arg1 !== 'string' || !arg1.match(/^(?:==|!=|>|<|>=|<=)$/)) {
+        throw new Error(`Arg must be '==', '!=', '>', '<', '>=' or '<=' "${arg1}"`);
+      }
+      const arg2 = argsValues[2];
+      if ((typeof arg2 !== 'number' && typeof arg2 !== 'string') || (typeof arg2 === 'string' && !arg2.match(/^[_a-zA-Z][_a-zA-Z0-9]*$/))) {
+        throw new Error(`Arg must be type number or tag "${arg2}"`);
+      }
+      break;
+    default:
+      throw new Error(`Invalid callout name "${kind}"`);
+  }
   return createNamedCallout(kind, tag, args);
 }
 
@@ -832,10 +898,9 @@ type NamedCalloutNode = {
   type: 'NamedCallout';
   kind: NodeNamedCalloutKind;
   tag: string | null;
-  args: string | null;
+  args: string | null; // TODO: Array<string|number>
 };
 function createNamedCallout(kind: NodeNamedCalloutKind, tag: string | null, args: string | null): NamedCalloutNode {
-  // TODO: check if kind is correct here?
   return {
     type: 'NamedCallout',
     kind,

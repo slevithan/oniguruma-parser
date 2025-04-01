@@ -904,16 +904,18 @@ function tokenizeFlagModifier(raw: string, context: Context): DirectiveToken | G
 }
 
 function tokenizeNamedCallout(raw: string): NamedCalloutToken {
-  const namedCallout = /\(\*(?<name>[_a-zA-Z][_a-zA-Z0-9]*)(?:\[(?<tag>(?:[_a-zA-Z][_a-zA-Z0-9]*)?)\])?(?:\{(?<args>.*?)\})?\)/.exec(raw);
+  const namedCallout = /\(\*(?<name>[_a-zA-Z][_a-zA-Z0-9]*)?(?:\[(?<tag>(?:[_a-zA-Z][_a-zA-Z0-9]*)?)\])?(?:\{(?<args>[^\}]*)\})?\)/.exec(raw);
   if (!namedCallout) {
     throw new Error(`Invalid named callout "${raw}"`);
   }
   const {name, tag, args} = namedCallout.groups as {
-    name: TokenNamedCalloutKind;
+    name: TokenNamedCalloutKind | undefined;
     tag: string | undefined;
     args: string | undefined;
   };
-  // TODO: actually check if name is valid or mark kind as type string
+  if (!name) {
+    throw new Error(`Invalid named callout name "${name}"`);
+  }
   return createNamedCalloutToken(name, tag ?? null, args ?? null, raw);
 }
 
