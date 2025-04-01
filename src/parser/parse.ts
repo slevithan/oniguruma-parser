@@ -478,19 +478,23 @@ function parseNamedCallout({kind, tag, args}: NamedCalloutToken): NamedCalloutNo
   if (tag === '') {
     throw new Error(`Empty tag not allowed "${kind}"`);
   }
-  const argsValues: (string | number)[] = typeof args === 'string' ? args.split(',').map((arg) => arg.match(/^[0-9]+$/) ? +arg : arg) : [];
-  // TODO: too much?
+  const argsValues: (string | number)[] =
+    typeof args === 'string' ?
+      args.split(',')
+        .filter((arg: string): boolean => arg !== '') // remove empty args
+        .map((arg: string): string | number => arg.match(/^[+-]?[0-9]+$/) ? +arg : arg) // TODO: 005 becomes 5, losing info. atm argsValues isn't passed on
+      : [];
   switch (kind) {
     case 'FAIL':
     case 'MISMATCH':
     case 'SKIP':
       if (argsValues.length > 0) {
-        throw new Error(`Args not allowed "${argsValues}"`);
+        throw new Error(`Args not allowed "${argsValues.toString()}"`);
       }
       break;
     case 'ERROR': {
       if (argsValues.length > 1) {
-        throw new Error(`Only one arg allowed "${argsValues}"`);
+        throw new Error(`Only one arg allowed "${argsValues.toString()}"`);
       }
       const arg0 = argsValues[0];
       if (arg0 !== undefined && typeof arg0 !== 'number') {
@@ -500,14 +504,14 @@ function parseNamedCallout({kind, tag, args}: NamedCalloutToken): NamedCalloutNo
       break;
     case 'MAX': {
       if (argsValues.length > 2) {
-        throw new Error(`Only two args allowed "${argsValues}"`);
+        throw new Error(`Only two args allowed "${argsValues.toString()}"`);
       }
       const arg0 = argsValues[0];
       if ((typeof arg0 !== 'number' && typeof arg0 !== 'string') || (typeof arg0 === 'string' && !arg0.match(/^[_a-zA-Z][_a-zA-Z0-9]*$/))) {
         throw new Error(`Arg must be type number or tag "${arg0}"`);
       }
       const arg1 = argsValues[1];
-      if (arg1 !== undefined && ( typeof arg1 !== 'string' || !arg1.match(/^[<>X]$/))) {
+      if (arg1 !== undefined && (typeof arg1 !== 'string' || !arg1.match(/^[<>X]$/))) {
         throw new Error(`Arg must be '<', '>' or 'X' "${arg1}"`);
       }
     }
@@ -515,17 +519,17 @@ function parseNamedCallout({kind, tag, args}: NamedCalloutToken): NamedCalloutNo
     case 'COUNT':
     case 'TOTAL_COUNT': {
       if (argsValues.length > 1) {
-        throw new Error(`Only one arg allowed "${argsValues}"`);
+        throw new Error(`Only one arg allowed "${argsValues.toString()}"`);
       }
       const arg1 = argsValues[1];
-      if (arg1 !== undefined && typeof arg1 !== 'string' || !arg1.match(/^[<>X]$/)) {
+      if (arg1 !== undefined && (typeof arg1 !== 'string' || !arg1.match(/^[<>X]$/))) {
         throw new Error(`Arg must be '<', '>' or 'X' "${arg1}"`);
       }
     }
       break;
     case 'CMP':
       if (argsValues.length > 3) {
-        throw new Error(`Only three args allowed "${argsValues}"`);
+        throw new Error(`Only three args allowed "${argsValues.toString()}"`);
       }
       const arg0 = argsValues[0];
       if ((typeof arg0 !== 'number' && typeof arg0 !== 'string') || (typeof arg0 === 'string' && !arg0.match(/^[_a-zA-Z][_a-zA-Z0-9]*$/))) {
