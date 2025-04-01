@@ -5,13 +5,13 @@ import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Extract nodes at the start of every alternative into a prefix.
-Also works within groups.
 - `^aa|^abb|^ac` -> `^a(?:a|bb|c)`
-- `aa|aa|aa` -> `aa`
-- `a|b|c` -> `a|b|c` (no common prefix)
+- `aa|aa` -> `aa`
+- `a|bb|c` -> `a|bb|c` (no common prefix)
+Also works within groups.
 */
 const extractPrefix: Visitor = {
-  '*'(path: Path){
+  '*'(path: Path) {
     const {node} = path as Path<AlternativeContainerNode>;
     if (!alternativeContainerTypes.has(node.type) || node.alternatives.length < 2) {
       return;
@@ -20,7 +20,7 @@ const extractPrefix: Visitor = {
     let passedSharedPrefix = false;
     let i = 0;
     while (!passedSharedPrefix) {
-      prefixNodes[i] = node.alternatives[0].elements[i];
+      prefixNodes.push(node.alternatives[0].elements[i]);
       for (const alt of node.alternatives) {
         const kid = alt.elements[i];
         if (!kid || !isAllowedSimpleType(kid.type) || !isNodeEqual(kid, prefixNodes[i])) {

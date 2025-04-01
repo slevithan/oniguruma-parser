@@ -2,6 +2,7 @@ import {alternationToClass} from './transforms/alternation-to-class.js';
 import {dedupeClasses} from './transforms/dedupe-classes.js';
 import {extractPrefix} from './transforms/extract-prefix.js';
 import {extractPrefix2} from './transforms/extract-prefix-2.js';
+import {extractSuffix} from './transforms/extract-suffix.js';
 import {preventReDoS} from './transforms/prevent-redos.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
 import {removeUselessFlags} from './transforms/remove-useless-flags.js';
@@ -19,6 +20,7 @@ type OptimizationName =
   'dedupeClasses' |
   'extractPrefix' |
   'extractPrefix2' |
+  'extractSuffix' |
   'preventReDoS' |
   'removeEmptyGroups' |
   'removeUselessFlags' |
@@ -35,6 +37,7 @@ const optimizations = new Map<OptimizationName, Visitor>([
   ['dedupeClasses', dedupeClasses],
   ['extractPrefix', extractPrefix],
   ['extractPrefix2', extractPrefix2],
+  ['extractSuffix', extractSuffix],
   ['preventReDoS', preventReDoS],
   ['removeEmptyGroups', removeEmptyGroups],
   ['removeUselessFlags', removeUselessFlags],

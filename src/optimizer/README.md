@@ -28,6 +28,7 @@ The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shiki
 - [Type definition](#type-definition)
 - [Flags](#flags)
 - [Optimizations](#optimizations)
+- [How performance optimizations work](#how-performance-optimizations-work)
 - [Disable specific optimizations](#disable-specific-optimizations)
 - [Enable only specific, optional optimizations](#enable-only-specific-optional-optimizations)
 - [Contributing](#contributing)
@@ -106,7 +107,7 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="3" valign="top" align="left">
+    <th rowspan="4" valign="top" align="left">
       Alternation
     </th>
     <td><code>alternationToClass</code> 🚀</td>
@@ -122,6 +123,11 @@ Some of the following optimizations (related to the representation of tokens) do
     <td><code>extractPrefix2</code> 🚀</td>
     <td>Extract alternating prefixes if patterns are repeated for each prefix</td>
     <td><code>^a|!a|^bb|!bb|^c|!c</code> → <code>(?:^|!)(?:a|bb|c)</code></td>
+  </tr>
+  <tr>
+    <td><code>extractSuffix</code> 🚀</td>
+    <td>Extract nodes at the end of every alternative into a suffix</td>
+    <td><code>aa$|bba$|ca$</code> → <code>(?:a|bb|c)a$</code></td>
   </tr>
 
   <tr>
@@ -257,6 +263,12 @@ Some of the following optimizations (related to the representation of tokens) do
 </table>
 
 Optimizations are applied in a loop until no further optimization progress is made. Individual optimization transforms are typically narrow and work best when combined with other optimizations.
+
+## How performance optimizations work
+
+Some optimizations can improve performance by reducing backtracking or triggering internal optimizations built into regex engines (e.g. by exposing that a particular token must be matched for any match to occur). These effects can be significant. For extremely long regexes, minification itself can provide a meaningful performance boost for regex construction in some cases.
+
+In some cases, performance improvements result from transformations that are enabled by earlier transforms. For example, consider the optimization chain `\d$|\w$` → `(?:\d|\w)$` → `(?:[\d\w])$` → `[\d\w]$`. The first step is the result of `extractSuffix`, which on its own doesn't usually have a meaningful effect on performance. However, it enabled removing alternation in the subsequent optimization, which reduces backtracking and can have a more direct performance impact. In fact, `extractSuffix` could even contribute to preventing runaway backtracking. Consider e.g. `(?:\d.|\w.)+!`. If this fails to find a match for the `!`, it will backtrack and allow the `\w` side to match characters previously matched by the `\d` (and every combination), giving O(2<sup>n</sup>) complexity. The optimized version `(?:[\d\w].)+!` (future versions will further reduce it to `(?:\w.)+!`) totally avoids this performance problem.
 
 ## Disable specific optimizations
 

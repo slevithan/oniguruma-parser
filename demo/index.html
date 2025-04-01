@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Oniguruma regex optimizer/minifier</title>
+  <title>Oniguruma regex optimizer</title>
   <link href="https://cdn.jsdelivr.net/gh/slevithan/oniguruma-parser/demo/demo.css" rel="stylesheet">
   <!-- If running in development, replace with local copy -->
   <!-- <link href="./demo.css" rel="stylesheet"> -->
@@ -16,7 +16,7 @@
         <img src="https://upload.wikimedia.org/wikipedia/commons/c/c2/GitHub_Invertocat_Logo.svg" width="25" height="25" alt="GitHub">
       </a>
     </h1>
-    <p>Test the output of <a href="https://github.com/slevithan/oniguruma-parser"><code>oniguruma-parser</code></a>'s <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">Optimizer</a> module, which minifies Oniguruma regexes and improves their performance.</p>
+    <p>Test the output of <a href="https://github.com/slevithan/oniguruma-parser"><code>oniguruma-parser</code></a>'s <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">optimizer</a> module, which minifies Oniguruma regexes and improves their performance.</p>
 
     <h2>Try it</h2>
     <p><textarea id="input" spellcheck="false" oninput="autoGrow(); showGenerated()"></textarea></p>
@@ -95,7 +95,7 @@
     </details>
     <pre class="output" id="outputPattern"></pre>
     <pre class="output hidden" id="outputFlags"></pre>
-    <p>See the <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">Optimizer readme</a> for more details. The output shows the <code>pattern</code> property from the <code>optimize</code> function's result. Library functions including <code>toOnigurumaAst</code>, <code>parse</code>, <code>traverse</code>, <code>generate</code>, and <code>optimize</code> can be run from the console on this page. Pretty-print ASTs by passing them to <code>printAst</code>.</p>
+    <p>See the <a href="https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md">optimizer readme</a> for more details. The output shows the <code>pattern</code> property from the <code>optimize</code> function's result. Library functions including <code>toOnigurumaAst</code>, <code>parse</code>, <code>traverse</code>, <code>generate</code>, and <code>optimize</code> can be run from the console on this page. Pretty-print ASTs by passing them to <code>printAst</code>.</p>
     <p>
       <label>
         <input type="checkbox" id="useGenerator" onchange="setUseGenerator(this.checked)">
