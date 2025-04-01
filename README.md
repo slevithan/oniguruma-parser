@@ -77,13 +77,13 @@ This library includes one of the few implementations (for any regex flavor) of a
 Example:
 
 ```
-(?x) (?:\!{1,}) (\p{Nd}aa|\p{Nd}ab|\p{Nd}az) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
+(?x) (?:\!{1,}) (\baa|\bab|\ba\p{Nd}) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
 ```
 
 Becomes:
 
 ```
-!+(\da[abz])[\H\p{L}]\w
+!+(\ba[ab\d])[\H\p{L}]\w
 ```
 
 Optimized regexes always match exactly the same strings.
@@ -105,7 +105,7 @@ The following rarely-used features throw errors since they aren't yet supported:
 - Conditionals: `(?(…)…)`, etc.
 - Callouts: `(?{…})`, `(*…)`, etc.
 - Numbered *forward* backreferences (incl. relative `\k<+N>`) and backreferences with recursion level (`\k<N+N>`, etc.).
-- Flags `y{g}`/`y{w}` (grapheme boundary modes); whole-pattern modifiers `C` (don't capture group), `I` (ignore-case is ASCII), `L` (find longest); flags `D`, `P`, `S`, `W` (digit/POSIX/space/word is ASCII) within mode modifiers.
+- Flags `y{g}` `y{w}`, flags `D` `P` `S` `W` within mode modifiers, whole-pattern modifiers `C` `I` `L`.
 
 Despite these gaps, **more than 99.99% of real-world Oniguruma regexes are supported**, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all). Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub.
 

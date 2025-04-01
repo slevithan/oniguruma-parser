@@ -7,13 +7,13 @@ The optimizer transforms [Oniguruma](https://github.com/kkos/oniguruma) patterns
 Example:
 
 ```
-(?x) (?:\!{1,}) (\p{Nd}aa|\p{Nd}ab|\p{Nd}az) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
+(?x) (?:\!{1,}) (\baa|\bab|\ba\p{Nd}) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
 ```
 
 Becomes:
 
 ```
-!+(\da[abz])[\H\p{L}]\w
+!+(\ba[ab\d])[\H\p{L}]\w
 ```
 
 > [!TIP]
@@ -266,9 +266,9 @@ Optimizations are applied in a loop until no further optimization progress is ma
 
 ## How performance optimizations work
 
-Some optimizations can improve performance by reducing backtracking or triggering internal optimizations built into regex engines (e.g. by exposing that a particular token must be matched for any match to occur). These effects can be significant. For extremely long regexes, minification itself can provide a meaningful performance boost for regex construction in some cases.
+Some optimizations can improve search-time performance by removing unnecessary backtracking (e.g., by reducing the use of alternation) or triggering internal optimizations built into regex engines (e.g., by exposing that a particular token must be matched at a certain position for any match to occur). These effects can be significant. For extremely long regexes, in some cases minification can reduce regex compilation time.
 
-In some cases, performance improvements result from transformations that are enabled by earlier transforms. For example, consider the optimization chain `\d$|\w$` → `(?:\d|\w)$` → `(?:[\d\w])$` → `[\d\w]$`. The first step is the result of `extractSuffix`, which on its own doesn't usually have a meaningful effect on performance. However, it enabled removing alternation in the subsequent optimization, which reduces backtracking and can have a more direct performance impact. In fact, `extractSuffix` could even contribute to preventing runaway backtracking. Consider e.g. `(?:\d.|\w.)+!`. If this fails to find a match for the `!`, it will backtrack and allow the `\w` side to match characters previously matched by the `\d` (and every combination), giving O(2<sup>n</sup>) complexity. The optimized version `(?:[\d\w].)+!` (future versions will further reduce it to `(?:\w.)+!`) totally avoids this performance problem.
+Performance improvements sometimes result from a combination of transformations. For example, consider the optimization chain `\d!|\w!` → `(?:\d|\w)!` → `(?:[\d\w])!` → `[\d\w]!`. This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. The first step is the result of `extractSuffix`, which on its own doesn't typically have a meaningful effect on performance. However, it enabled removing alternation in the subsequent optimization round, which reduces backtracking and can have a more direct performance impact. In fact, `extractSuffix` (in combination with other optimizations like `alternationToClass`) could even contribute to preventing runaway backtracking. Consider, e.g., `(?:\d.|\w.)+!`. If this fails to find a match for the `!`, it will backtrack and allow the `\w` side to match characters previously matched by the `\d` (and every combination), giving O(2<sup>n</sup>) complexity. The optimized version `(?:[\d\w].)+!` totally avoids this performance problem (future versions will further reduce it to `(?:\w.)+!`).
 
 ## Disable specific optimizations
 
@@ -310,7 +310,7 @@ Adding new optimization transforms is straightforward:
 - Add tests in `spec/optimizer/foo.spec.js`; run them via `pnpm test`.
 - List it in this readme file with a simple example.
 
-Optimizations should be independently useful and can compliment each other; you don’t need to do too much in one. Ideas for new optimizations are listed [here](https://github.com/slevithan/oniguruma-parser/issues/7).
+You don’t need to do too much in one optimization, since optimizations can compliment each other. Ideas for new optimizations are listed [here](https://github.com/slevithan/oniguruma-parser/issues/7).
 
 ## About
 
