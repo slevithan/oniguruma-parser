@@ -6,15 +6,18 @@ Pull leading and trailing assertions out of capturing groups when possible; help
 Ex: `(^abc$)` -> `^(abc)$`.
 */
 const exposeAnchors: Visitor = {
-  // Done for capturing groups only because they can't be unwrapped like noncapturing groups (via
-  // `unwrapUselessGroups` combined with `unwrapUselessGroups`; the latter also avoids hazards from
-  // flags that modify word boundary and grapheme boundary assertions). Pulling anchors out can
-  // subsequently enable unwrapping multi-alternative noncapturing groups within the capturing
-  // group, and has the side benefit that exposed anchors generally improve readability
+  // Done for capturing groups only because they can't be unwrapped like noncapturing groups (done
+  // via `unwrapUselessGroups` combined with `removeUselessFlags`; the latter also avoids hazards
+  // from flags that modify word/grapheme boundary assertions that would need to be handled here).
+  // Pulling anchors out can subsequently enable unwrapping multi-alternative noncapturing groups
+  // within the capturing group, and has the side benefit that exposed anchors improve readability
   CapturingGroup(path: Path) {
     const {node, parent, replaceWithMultiple} = path as Path<CapturingGroupNode>;
-    // TODO: Can't pull out assertions if the group is referenced by a subroutine
-    if (parent!.type === 'Quantifier' || node.alternatives.length > 1) {
+    if (
+      parent!.type === 'Quantifier' ||
+      node.alternatives.length > 1 ||
+      node.hasSubroutine
+    ) {
       return;
     }
     const firstAlt = node.alternatives[0];
