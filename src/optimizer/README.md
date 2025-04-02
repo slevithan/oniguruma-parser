@@ -7,13 +7,13 @@ The optimizer transforms [Oniguruma](https://github.com/kkos/oniguruma) patterns
 Example:
 
 ```
-(?x) (?:\!{1,}) (\baa|\bab|\ba\p{Nd}) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
+(?x) (?:\!{1,}) (\p{Nd}aa|\p{Nd}ab|\p{Nd}az) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
 ```
 
 Becomes:
 
 ```
-!+(\ba[ab\d])[\H\p{L}]\w
+!+(\da[abz])[\H\p{L}]\w
 ```
 
 > [!TIP]
@@ -271,11 +271,26 @@ Optimizations are applied in a loop until no further optimization progress is ma
 
 ## How performance optimizations work
 
-Some optimizations can improve search-time performance by removing unnecessary backtracking (e.g., by reducing the use of alternation, or adjusting quantifiers) or triggering internal optimizations built into regex engines (e.g., by more clearly exposing that a particular token must match for any match to occur). These effects can be significant.
+Although the optimizer's primary purpose is minification, some optimizations can improve search-time performance by:
 
-Minification can also reduce regex compilation time for some extremely long regexes, although this is generally less significant.
+- Reducing backtracking.
+  - Ex: Reducing use of alternation, or adjusting quantifiers.
+  - Although Oniguruma includes numerous sophisticated internal optimizations and, in theory, this library's optimizations could be included directly in the engine, in practice, this library is able to find additional opportunities through a combination of cleverness and not having the same extremely tight constraints on compilation time.
+- Triggering internal optimizations built into regex engines.
+  - Ex: More clearly exposing that a particular token must match for any match to occur.
 
-Performance improvements sometimes result from a combination of transformations. For example, consider the optimization chain `\d!|\w!` → `(?:\d|\w)!` → `(?:[\d\w])!` → `[\d\w]!`. This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. The first step is the result of `extractSuffix`, which on its own typically doesn't impact performance. However, it enabled removing alternation in the subsequent optimization round, which reduces backtracking and can have a more direct performance impact (in some cases, it can even eliminate ReDoS).
+These effects can be significant. Additionally, though less significant, minification can reduce compilation time for some extremely long regexes.
+
+Sometimes, performance improvements result from a combination of transformations. For example, consider the following optimization chain:
+
+1. `^1$|^2$` — Initial
+2. `^(?:1|2)$` — `extractPrefix`, `extractSuffix`
+3. `^(?:[12])$` — `alternationToClass`
+4. `^[12]$` — `unwrapUselessGroups`
+
+This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. Note that, although the `extractSuffix` transform doesn't typically impact performance on its own, its change helped enable removing alternation in the subsequent step, which reduces backtracking and can have a direct performance impact (in some cases, it can even eliminate ReDoS).
+
+A real world example of performance improvements comes from [Better C++](https://github.com/jeff-hykin/better-cpp-syntax), a large collection of complex Oniguruma regexes used for highlighting C++ code in VS Code, Shiki, and other tools. Despite having gone through multiple rounds of performance hand-tuning over the years (and not including any known cases of catastophic backtracking), running its regexes through this library resulted in a ~30% improvement in syntax highlighting performance. And this improvement isn't specific to Oniguruma. Using [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) to transpile the regexes (before and after optimization) to native JavaScript `RegExp`s showed a comparable ~30% performance boost for native JavaScript regex engines.
 
 ## Disable specific optimizations
 

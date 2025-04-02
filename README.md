@@ -77,13 +77,13 @@ This library includes one of the few implementations (for any regex flavor) of a
 Example:
 
 ```
-(?x) (?:\!{1,}) (\baa|\bab|\ba\p{Nd}) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
+(?x) (?:\!{1,}) (\p{Nd}aa|\p{Nd}ab|\p{Nd}az) [[^0-9A-Fa-f]\p{ Letter }] [\p{L}\p{M}\p{N}\p{Pc}]
 ```
 
 Becomes:
 
 ```
-!+(\ba[ab\d])[\H\p{L}]\w
+!+(\da[abz])[\H\p{L}]\w
 ```
 
 Optimized regexes always match exactly the same strings.
