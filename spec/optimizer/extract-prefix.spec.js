@@ -56,18 +56,13 @@ describe('Optimizer: extractPrefix', () => {
   // Just documenting current behavior
   it('should not consider non-simple nodes for the prefix', () => {
     const cases = [
-      '(a)a|(a)b',
-      '[a]a|[a]b',
-      r`\Ka|\Kb`,
-    ];
-    for (const input of cases) {
-      expect(thisOptimization(input)).toBe(input);
-    }
-    const changes = [
+      ['(a)a|(a)b'],
+      ['[a]a|[a]b'],
+      [r`\Ka|\Kb`],
       ['^[a]a|^[a]a', '^(?:[a]a|[a]a)'],
     ];
-    for (const [input, expected] of changes) {
-      expect(thisOptimization(input)).toBe(expected);
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected ?? input);
     }
   });
 });

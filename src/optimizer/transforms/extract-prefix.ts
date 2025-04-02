@@ -5,9 +5,7 @@ import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Extract nodes at the start of every alternative into a prefix.
-- `^aa|^abb|^ac` -> `^a(?:a|bb|c)`
-- `aa|aa` -> `aa`
-- `a|bb|c` -> `a|bb|c` (no common prefix)
+Ex: `^aa|^abb|^ac` -> `^a(?:a|bb|c)`.
 Also works within groups.
 */
 const extractPrefix: Visitor = {
@@ -34,6 +32,7 @@ const extractPrefix: Visitor = {
     if (!prefixNodes.length) {
       return;
     }
+
     for (const alt of node.alternatives) {
       alt.elements = alt.elements.slice(prefixNodes.length);
     }

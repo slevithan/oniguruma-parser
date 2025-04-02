@@ -6,8 +6,8 @@ import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
 
 /**
 Extract alternating prefixes if patterns are repeated for each prefix.
+Ex: `^a|!a|^bb|!bb|^c|!c` -> `(?:^|!)(?:a|bb|c)`.
 Also works within groups.
-- `^a|!a|^bb|!bb|^c|!c` -> `(?:^|!)(?:a|bb|c)`
 */
 const extractPrefix2: Visitor = {
   '*'(path: Path) {

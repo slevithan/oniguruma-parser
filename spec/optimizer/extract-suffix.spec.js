@@ -53,21 +53,25 @@ describe('Optimizer: extractSuffix', () => {
     }
   });
 
-  // Just documenting current behavior
-  it('should not consider non-simple nodes for the suffix', () => {
+  it('should not apply when the suffix is a single node and all alternatives have at least three nodes', () => {
     const cases = [
-      'a(a)|b(a)',
-      'a[a]|b[a]',
-      r`a\K|b\K`,
+      'true|false',
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
     }
-    const changes = [
-      ['a[a]$|a[a]$', '(?:a[a]|a[a])$'],
+  });
+
+  // Just documenting current behavior
+  it('should not consider non-simple nodes for the suffix', () => {
+    const cases = [
+      ['a(a)|b(a)'],
+      ['a[a]|b[a]'],
+      [r`a\K|b\K`],
+      ['a[a]a$|a[a]a$', '(?:a[a]|a[a])a$'],
     ];
-    for (const [input, expected] of changes) {
-      expect(thisOptimization(input)).toBe(expected);
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected ?? input);
     }
   });
 });

@@ -125,7 +125,7 @@ Some of the following optimizations (related to the representation of tokens) do
     <td><code>^a|!a|^bb|!bb|^c|!c</code> → <code>(?:^|!)(?:a|bb|c)</code></td>
   </tr>
   <tr>
-    <td><code>extractSuffix</code> 🚀</td>
+    <td><code>extractSuffix</code></td>
     <td>Extract nodes at the end of every alternative into a suffix</td>
     <td><code>aa$|bba$|ca$</code> → <code>(?:a|bb|c)a$</code></td>
   </tr>
@@ -271,11 +271,11 @@ Optimizations are applied in a loop until no further optimization progress is ma
 
 ## How performance optimizations work
 
-Some optimizations can improve search-time performance by removing unnecessary backtracking (e.g., by reducing the use of alternation, or adjusting quantifiers) or triggering internal optimizations built into regex engines (e.g., by exposing that a particular token must be matched at a certain position for any match to occur, which might have previously been less obvious because it appeared across multiple alternatives). These effects can be significant.
+Some optimizations can improve search-time performance by removing unnecessary backtracking (e.g., by reducing the use of alternation, or adjusting quantifiers) or triggering internal optimizations built into regex engines (e.g., by more clearly exposing that a particular token must match for any match to occur). These effects can be significant.
 
 Minification can also reduce regex compilation time for some extremely long regexes, although this is generally less significant.
 
-Performance improvements sometimes result from a combination of transformations. For example, consider the optimization chain `\d!|\w!` → `(?:\d|\w)!` → `(?:[\d\w])!` → `[\d\w]!`. This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. The first step is the result of `extractSuffix`, which on its own doesn't typically have a meaningful effect on performance. However, it enabled removing alternation in the subsequent optimization round, which reduces backtracking and can have a more direct performance impact (in some cases, it can even eliminate ReDoS).
+Performance improvements sometimes result from a combination of transformations. For example, consider the optimization chain `\d!|\w!` → `(?:\d|\w)!` → `(?:[\d\w])!` → `[\d\w]!`. This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. The first step is the result of `extractSuffix`, which on its own typically doesn't impact performance. However, it enabled removing alternation in the subsequent optimization round, which reduces backtracking and can have a more direct performance impact (in some cases, it can even eliminate ReDoS).
 
 ## Disable specific optimizations
 

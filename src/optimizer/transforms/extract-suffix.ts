@@ -6,9 +6,7 @@ import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
 
 /**
 Extract nodes at the end of every alternative into a suffix.
-- `aa$|bba$|ca$` -> `(?:a|bb|c)a$`
-- `aa|aa` -> `aa`
-- `a|bb|c` -> `a|bb|c` (no common suffix)
+Ex: `aa$|bba$|ca$` -> `(?:a|bb|c)a$`.
 Also works within groups.
 */
 const extractSuffix: Visitor = {
@@ -35,10 +33,18 @@ const extractSuffix: Visitor = {
       i++;
     }
     suffixNodes.pop();
-    if (!suffixNodes.length) {
+    if (
+      !suffixNodes.length ||
+      // Since this optimization doesn't have a performance benefit (unless it leads to collapsing
+      // alternatives in follow-on optimizations, which we do want to enable), avoid applying in
+      // cases when it would unnecessarily lengthen the pattern and make it harder to read, e.g.
+      // `true|false` -> `(?:tru|fals)e`
+      (suffixNodes.length === 1 && node.alternatives.every(alt => alt.elements.length > 2))
+    ) {
       return;
     }
     suffixNodes.reverse();
+
     for (const alt of node.alternatives) {
       alt.elements = alt.elements.slice(0, -suffixNodes.length);
     }
