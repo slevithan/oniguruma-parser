@@ -1,4 +1,4 @@
-import {alternativeContainerTypes, universalCharacterSetKinds} from '../../parser/node-utils.js';
+import {isAlternativeContainer, universalCharacterSetKinds} from '../../parser/node-utils.js';
 import {createAlternative, createCharacterClass} from '../../parser/parse.js';
 import type {AlternativeContainerNode, AlternativeNode, CharacterClassNode, CharacterNode, CharacterSetNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
@@ -9,7 +9,7 @@ Use character classes for adjacent alternatives with single-length values.
 const alternationToClass: Visitor = {
   '*'(path: Path) {
     const {node} = path as Path<AlternativeContainerNode>;
-    if (!alternativeContainerTypes.has(node.type)) {
+    if (!isAlternativeContainer(node)) {
       return;
     }
     const newAlts = [];

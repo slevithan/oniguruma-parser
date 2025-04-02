@@ -1,5 +1,6 @@
 import {alternationToClass} from './transforms/alternation-to-class.js';
 import {dedupeClasses} from './transforms/dedupe-classes.js';
+import {exposeAnchors} from './transforms/expose-anchors.js';
 import {extractPrefix} from './transforms/extract-prefix.js';
 import {extractPrefix2} from './transforms/extract-prefix-2.js';
 import {extractSuffix} from './transforms/extract-suffix.js';
@@ -18,6 +19,7 @@ import type {Visitor} from '../traverser/traverse.js';
 type OptimizationName =
   'alternationToClass' |
   'dedupeClasses' |
+  'exposeAnchors' |
   'extractPrefix' |
   'extractPrefix2' |
   'extractSuffix' |
@@ -35,6 +37,7 @@ type OptimizationName =
 const optimizations = new Map<OptimizationName, Visitor>([
   ['alternationToClass', alternationToClass],
   ['dedupeClasses', dedupeClasses],
+  ['exposeAnchors', exposeAnchors],
   ['extractPrefix', extractPrefix],
   ['extractPrefix2', extractPrefix2],
   ['extractSuffix', extractSuffix],

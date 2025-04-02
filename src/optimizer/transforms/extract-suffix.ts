@@ -1,4 +1,4 @@
-import {alternativeContainerTypes} from '../../parser/node-utils.js';
+import {isAlternativeContainer} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
 import type {AlternativeContainerNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
@@ -14,7 +14,7 @@ Also works within groups.
 const extractSuffix: Visitor = {
   '*'(path: Path) {
     const {node} = path as Path<AlternativeContainerNode>;
-    if (!alternativeContainerTypes.has(node.type) || node.alternatives.length < 2) {
+    if (!isAlternativeContainer(node) || node.alternatives.length < 2) {
       return;
     }
     const firstAltEls = node.alternatives[0].elements;

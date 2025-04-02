@@ -34,7 +34,7 @@ type ParentNode =
   RegexNode;
 
 type AlternativeContainerNode =
-  AbsentFunctionNode |
+  AbsentFunctionNode | // Some sub-kinds are not alternative containers
   CapturingGroupNode |
   GroupNode |
   LookaroundAssertionNode |

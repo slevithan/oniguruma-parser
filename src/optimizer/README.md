@@ -229,9 +229,14 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="2" valign="top" align="left">
+    <th rowspan="3" valign="top" align="left">
       Groups
     </th>
+    <td><code>exposeAnchors</code></td>
+    <td>Pull leading and trailing assertions out of unquantified capturing groups; helps group unwrapping</td>
+    <td><code>(^a$)</code> → <code>^(a)$</code></td>
+  </tr>
+  <tr>
     <td><code>removeEmptyGroups</code></td>
     <td>Remove empty noncapturing, atomic, and flag groups, even if quantified</td>
     <td><code>(?:)a</code> → <code>a</code></td>
@@ -266,9 +271,11 @@ Optimizations are applied in a loop until no further optimization progress is ma
 
 ## How performance optimizations work
 
-Some optimizations can improve search-time performance by removing unnecessary backtracking (e.g., by reducing the use of alternation) or triggering internal optimizations built into regex engines (e.g., by exposing that a particular token must be matched at a certain position for any match to occur). These effects can be significant. For extremely long regexes, in some cases minification can reduce regex compilation time.
+Some optimizations can improve search-time performance by removing unnecessary backtracking (e.g., by reducing the use of alternation, or adjusting quantifiers) or triggering internal optimizations built into regex engines (e.g., by exposing that a particular token must be matched at a certain position for any match to occur, which might have previously been less obvious because it appeared across multiple alternatives). These effects can be significant.
 
-Performance improvements sometimes result from a combination of transformations. For example, consider the optimization chain `\d!|\w!` → `(?:\d|\w)!` → `(?:[\d\w])!` → `[\d\w]!`. This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. The first step is the result of `extractSuffix`, which on its own doesn't typically have a meaningful effect on performance. However, it enabled removing alternation in the subsequent optimization round, which reduces backtracking and can have a more direct performance impact. In fact, `extractSuffix` (in combination with other optimizations like `alternationToClass`) could even contribute to preventing runaway backtracking. Consider, e.g., `(?:\d.|\w.)+!`. If this fails to find a match for the `!`, it will backtrack and allow the `\w` side to match characters previously matched by the `\d` (and every combination), giving O(2<sup>n</sup>) complexity. The optimized version `(?:[\d\w].)+!` totally avoids this performance problem (future versions will further reduce it to `(?:\w.)+!`).
+Minification can also reduce regex compilation time for some extremely long regexes, although this is generally less significant.
+
+Performance improvements sometimes result from a combination of transformations. For example, consider the optimization chain `\d!|\w!` → `(?:\d|\w)!` → `(?:[\d\w])!` → `[\d\w]!`. This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. The first step is the result of `extractSuffix`, which on its own doesn't typically have a meaningful effect on performance. However, it enabled removing alternation in the subsequent optimization round, which reduces backtracking and can have a more direct performance impact (in some cases, it can even eliminate ReDoS).
 
 ## Disable specific optimizations
 
