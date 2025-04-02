@@ -2,14 +2,18 @@ import type {CapturingGroupNode, Node} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
-Pull leading and trailing assertions out of unquantified capturing groups; helps group unwrapping.
+Pull leading and trailing assertions out of capturing groups when possible; helps group unwrapping.
+Ex: `(^abc$)` -> `^(abc)$`.
 */
 const exposeAnchors: Visitor = {
-  // Noncapturing groups are already handled by a combination of `unwrapUselessGroups` and
-  // `removeUselessFlags`, the latter of which also avoids hazards from flags that modify word
-  // boundary and grapheme boundary assertions
+  // Done for capturing groups only because they can't be unwrapped like noncapturing groups (via
+  // `unwrapUselessGroups` combined with `unwrapUselessGroups`; the latter also avoids hazards from
+  // flags that modify word boundary and grapheme boundary assertions). Pulling anchors out can
+  // subsequently enable unwrapping multi-alternative noncapturing groups within the capturing
+  // group, and has the side benefit that exposed anchors generally improve readability
   CapturingGroup(path: Path) {
     const {node, parent, replaceWithMultiple} = path as Path<CapturingGroupNode>;
+    // TODO: Can't pull out assertions if the group is referenced by a subroutine
     if (parent!.type === 'Quantifier' || node.alternatives.length > 1) {
       return;
     }

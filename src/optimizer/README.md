@@ -233,7 +233,7 @@ Some of the following optimizations (related to the representation of tokens) do
       Groups
     </th>
     <td><code>exposeAnchors</code></td>
-    <td>Pull leading and trailing assertions out of unquantified capturing groups; helps group unwrapping</td>
+    <td>Pull leading and trailing assertions out of capturing groups when possible; helps group unwrapping</td>
     <td><code>(^a$)</code> → <code>^(a)$</code></td>
   </tr>
   <tr>

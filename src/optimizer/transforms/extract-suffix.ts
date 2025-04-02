@@ -35,11 +35,18 @@ const extractSuffix: Visitor = {
     suffixNodes.pop();
     if (
       !suffixNodes.length ||
-      // Since this optimization doesn't have a performance benefit (unless it leads to collapsing
-      // alternatives in follow-on optimizations, which we do want to enable), avoid applying in
-      // cases when it would unnecessarily lengthen the pattern and make it harder to read, e.g.
+      // Avoid applying in cases when it would lengthen the pattern without any benefit; ex:
       // `true|false` -> `(?:tru|fals)e`
-      (suffixNodes.length === 1 && node.alternatives.every(alt => alt.elements.length > 2))
+      ( suffixNodes.length === 1 &&
+        // Extract a single-node suffix if it's an assertion, since that provides a readability
+        // benefit and is more likely to trigger follow-on optimizations
+        suffixNodes[0].type !== 'Assertion' &&
+        // Four chars are added by the `(?:)` wrapper, so avoid applying if could be net negative
+        node.alternatives.length < 4 &&
+        // Alts reduced to 0 or 1 node after extracting the suffix can possibly be collapsed in
+        // follow-on optimizations, providing a performance and/or minification benefit
+        node.alternatives.every(alt => alt.elements.length > 2)
+      )
     ) {
       return;
     }

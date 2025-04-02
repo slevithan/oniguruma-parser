@@ -53,12 +53,20 @@ describe('Optimizer: extractSuffix', () => {
     }
   });
 
-  it('should not apply when the suffix is a single node and all alternatives have at least three nodes', () => {
+  it('should not apply if suffix is a single node and unbeneficial', () => {
     const cases = [
-      'true|false',
+      ['true|false'],
+      ['true|false|maybe'],
+      // Single node suffix allowed
+      // - At least four alternatives; net neutral/reduced length
+      ['true|false|maybe|sure', '(?:tru|fals|mayb|sur)e'],
+      // - Suffix is assertion; allows follow-up optimizations
+      [r`big\b|bad\b`, r`(?:big|bad)\b`],
+      // - Alternatives reduced to 0 or 1 node; allows follow-up optimizations
+      ['aa|ba|ca', '(?:a|b|c)a'],
     ];
-    for (const input of cases) {
-      expect(thisOptimization(input)).toBe(input);
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected ?? input);
     }
   });
 
