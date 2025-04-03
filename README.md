@@ -176,42 +176,34 @@ In this library, incomplete `\u` is always an error.
 <details>
   <summary>Invalid standalone encoded bytes <code>\x80</code> to <code>\xFF</code></summary>
 
-> **Context:** Unlike enclosed `\x{HH}`, unenclosed `\xHH` represents an encoded byte, which means that `\x80` to `\xFF` are treated as fragments of a code unit, unlike in other regex flavors. Ex: `[\0-\xE2\x82\xAC]` is equivalent to `[\0-\u20AC]`.
+> **Context:** Unlike enclosed `\x{HH}` which matches a code point, unenclosed `\xHH` represents an encoded byte in Oniguruma (unlike in other regex flavors), which means that `\x80` to `\xFF` are treated as fragments of a code unit. Ex: `[\0-\xE2\x82\xAC]` is equivalent to `[\0-\u20AC]`.
 
-In this library, invalid encoded byte sequences throw an error.
+In this library, invalid encoded byte sequences always throw an error.
 
-Behavior details for invalid encoded bytes in Oniguruma:
+Several bugs related to standalone encoded bytes are present in Oniguruma 6.9.10 and earlier ([report](https://github.com/kkos/oniguruma/issues/345)). Following are the behavior details when these bugs are present:
 
 - Standalone `\x80` to `\xF4` throw an error.
 - Standalone `\xF5` to `\xFF` fail to match anything, but don't throw. *This is a bug.*
-
-Oniguruma's behavior changes if an invalid encoded byte is used as the end value of a character class range:
-
-> **Context:** The on-by-default Oniguruma compile-time option `ONIG_SYN_ALLOW_INVALID_CODE_END_OF_RANGE_IN_CC` means that invalid byte or code point values used at the end of character class ranges are treated as if they were the last preceding valid value. Ex: `[\0-\x{FFFFFFFF}]` is equivalent to `[\0-\x{10FFFF}]`, and `[\0-\xFF]` is equivalent to `[\0-\x7F]` (or rather, it should be, as described below).
-
-- Standalone `\x80` to `\xBF` are treated as `\x7F`.
-- Standalone `\xC0` to `\xF4` throw an error. *This is a bug.*
-- Standalone `\xF5` to `\xFF` are treated as `\x7F`.
+- When used as the end value of a character class range:
+  - Standalone `\x80` to `\xBF` and `\xF5` to `\xFF` are treated as `\x7F`. *This is a bug.*
   - If the range is within a negated, non-nested character class (ex: `[^\0-\xFF]`), `\xF5` to `\xFF` are treated as `\x{10FFFF}`. *This is a bug.*
-
-In future versions, invalid standalone encoded bytes `\x80` to `\xFF` at the end of character class ranges will be treated as `\x7F`, rather than erroring. The bugs in Oniguruma 6.9.10 and earlier that are described above are reported [here](https://github.com/kkos/oniguruma/issues/345).
 </details>
 
 ## Oniguruma version
 
-`oniguruma-parser` (from the first release until the latest version) follows the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0.
+All versions of `oniguruma-parser` to date have followed the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0.
 
-At least since Oniguruma 6.0.0 (released 2016-05-09), regex syntax in [new versions](https://github.com/kkos/oniguruma/releases) of Oniguruma has been backward compatible. Some versions added new syntax that was previously an error (such as new Unicode property names), and in a few cases, edge case parsing bugs were fixed.
+At least since Oniguruma 6.0.0 (released 2016-05-09), regex syntax changes in [new versions](https://github.com/kkos/oniguruma/blob/master/HISTORY) of the library have been backward compatible. Some versions added new syntax that was previously an error (such as new Unicode property names), and in a few cases, edge case parsing bugs were fixed.
 
-Oniguruma version 6.9.8 (released 2022-04-29) is an important baseline for JavaScript projects, since that's the version used by [`vscode-oniguruma`](https://github.com/microsoft/vscode-oniguruma) 1.7.0 to the latest 2.0.1. It's therefore used in recent versions of various projects, including VS Code and Shiki.
+Oniguruma 6.9.8 (released 2022-04-29) is an important baseline for JavaScript projects, since that's the version used by [`vscode-oniguruma`](https://github.com/microsoft/vscode-oniguruma) 1.7.0 to the latest 2.0.1. It's therefore used in recent versions of various projects, including VS Code and Shiki.
 
-It's possible that future versions of `oniguruma-parser` will add an option that allows specifying an Oniguruma version to emulate when parsing. However, the differences so far between 6.9.8 and 6.9.10 have been so minor that this is a non-issue.
+It's possible that future versions of `oniguruma-parser` will add an option that allows specifying an Oniguruma version to emulate when parsing. However, the differences so far between Oniguruma 6.9.8 and later versions have been so minor that this is a non-issue.
 
 ## About
 
 Created by [Steven Levithan](https://github.com/slevithan) and [contributors](https://github.com/slevithan/oniguruma-parser/graphs/contributors).
 
-If you want to support this project, I'd love your help by [contributing](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md) improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
+If you want to support this project, I'd love your help by contributing improvements ([guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md)), sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
 MIT License.
 
