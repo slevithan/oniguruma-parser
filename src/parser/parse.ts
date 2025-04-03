@@ -52,6 +52,7 @@ type AlternativeElementNode =
   DirectiveNode |
   GroupNode |
   LookaroundAssertionNode |
+  NamedCalloutNode |
   QuantifierNode |
   SubroutineNode;
 
@@ -474,80 +475,71 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
   return node;
 }
 
-function parseNamedCallout({kind, tag, args}: NamedCalloutToken): NamedCalloutNode {
-  if (tag === '') {
-    throw new Error(`Empty tag not allowed "${kind}"`);
-  }
-  const argsValues: (string | number)[] =
-    typeof args === 'string' ?
+function parseNamedCallout({kind, name, tag, args}: NamedCalloutToken): NamedCalloutNode {
+  const argumentValues: Array<string | number> =
+    args ?
       args.split(',')
-        .filter((arg: string): boolean => arg !== '') // remove empty args
-        .map((arg: string): string | number => arg.match(/^[+-]?[0-9]+$/) ? +arg : arg) // TODO: 005 becomes 5, losing info. atm argsValues isn't passed on
+        .filter((argument: string): boolean => argument !== '') // oniguruma skips over/ignores redundant/unnecessary commas
+        .map((argument: string): string | number => /^[+-]?\d+$/.exec(argument) ? +argument : argument)
       : [];
-  switch (kind) {
+  const argument0 = argumentValues[0];
+  const argument1 = argumentValues[1];
+  const argument2 = argumentValues[2];
+  switch (name) {
     case 'FAIL':
     case 'MISMATCH':
     case 'SKIP':
-      if (argsValues.length > 0) {
-        throw new Error(`Args not allowed "${argsValues.toString()}"`);
+      if (argumentValues.length > 0) {
+        throw new Error(`Named callout arguments not allowed "${argumentValues}"`);
       }
       break;
     case 'ERROR': {
-      if (argsValues.length > 1) {
-        throw new Error(`Only one arg allowed "${argsValues.toString()}"`);
+      if (argumentValues.length > 1) {
+        throw new Error(`Named callout only one argument allowed "${argumentValues}"`);
       }
-      const arg0 = argsValues[0];
-      if (arg0 !== undefined && typeof arg0 !== 'number') {
-        throw new Error(`Arg must be type number "${arg0}"`);
+      if (typeof argument0 === 'string') {
+        throw new Error(`Named callout argument must be a number "${argument0}"`);
       }
     }
       break;
-    case 'MAX': {
-      if (argsValues.length > 2) {
-        throw new Error(`Only two args allowed "${argsValues.toString()}"`);
+    case 'MAX':
+      if (argumentValues.length < 1 || argumentValues.length > 2) {
+        throw new Error(`Named callout must have one or two arguments "${argumentValues}"`);
       }
-      const arg0 = argsValues[0];
-      if ((typeof arg0 !== 'number' && typeof arg0 !== 'string') || (typeof arg0 === 'string' && !arg0.match(/^[_a-zA-Z][_a-zA-Z0-9]*$/))) {
-        throw new Error(`Arg must be type number or tag "${arg0}"`);
+      if (typeof argument0 === 'string' && !/^[A-Za-z_]\w*$/.exec(argument0)) {
+        throw new Error(`Named callout argument one must be a number or tag "${argument0}"`);
       }
-      const arg1 = argsValues[1];
-      if (arg1 !== undefined && (typeof arg1 !== 'string' || !arg1.match(/^[<>X]$/))) {
-        throw new Error(`Arg must be '<', '>' or 'X' "${arg1}"`);
+      if (argumentValues.length == 2 && typeof argument1 !== 'number' && !/^[<>X]$/.exec(argument1)) { // argument optional
+        throw new Error(`Named callout argument two must be a '<', '>', 'X' or a number "${argument1}"`);
       }
-    }
       break;
     case 'COUNT':
-    case 'TOTAL_COUNT': {
-      if (argsValues.length > 1) {
-        throw new Error(`Only one arg allowed "${argsValues.toString()}"`);
+    case 'TOTAL_COUNT':
+      if (argumentValues.length > 1) {
+        throw new Error(`Named callout only one argument allowed "${argumentValues}"`);
       }
-      const arg1 = argsValues[1];
-      if (arg1 !== undefined && (typeof arg1 !== 'string' || !arg1.match(/^[<>X]$/))) {
-        throw new Error(`Arg must be '<', '>' or 'X' "${arg1}"`);
+      if (argumentValues.length == 1 && typeof argument0 !== 'number' && !/^[<>X]$/.exec(argument0)) { // argument optional
+        throw new Error(`Named callout argument must be '<', '>', 'X' or a number "${argument0}"`);
       }
-    }
       break;
     case 'CMP':
-      if (argsValues.length > 3) {
-        throw new Error(`Only three args allowed "${argsValues.toString()}"`);
+      if (argumentValues.length !== 3) {
+        throw new Error(`Named callout must have three arguments "${argumentValues}"`);
       }
-      const arg0 = argsValues[0];
-      if ((typeof arg0 !== 'number' && typeof arg0 !== 'string') || (typeof arg0 === 'string' && !arg0.match(/^[_a-zA-Z][_a-zA-Z0-9]*$/))) {
-        throw new Error(`Arg must be type number or tag "${arg0}"`);
+      if (typeof argument0 === 'string' && !/^[A-Za-z_]\w*$/.exec(argument0)) {
+        throw new Error(`Named callout argument one must be a tag or number "${argument0}"`);
       }
-      const arg1 = argsValues[1];
-      if (typeof arg1 !== 'string' || !arg1.match(/^(?:==|!=|>|<|>=|<=)$/)) {
-        throw new Error(`Arg must be '==', '!=', '>', '<', '>=' or '<=' "${arg1}"`);
+      if (typeof argument1 === 'number' || !/^(?:[<>!=]=|[<>])$/.exec(argument1)) {
+        throw new Error(`Named callout argument two must be '==', '!=', '>', '<', '>=' or '<=' "${argument1}"`);
       }
-      const arg2 = argsValues[2];
-      if ((typeof arg2 !== 'number' && typeof arg2 !== 'string') || (typeof arg2 === 'string' && !arg2.match(/^[_a-zA-Z][_a-zA-Z0-9]*$/))) {
-        throw new Error(`Arg must be type number or tag "${arg2}"`);
+      if (typeof argument2 === 'string' && !/^[A-Za-z_]\w*$/.exec(argument2)) {
+        throw new Error(`Named callout argument three must be a tag or number "${argument2}"`);
       }
       break;
-    default:
-      throw new Error(`Invalid callout name "${kind}"`);
+    default: // custom callout name
+      break;
   }
-  return createNamedCallout(kind, tag, args);
+  return createNamedCallout(kind, name, tag, args);
 }
 
 function parseQuantifier({kind, min, max}: QuantifierToken, context: Context): QuantifierNode {
@@ -559,7 +551,8 @@ function parseQuantifier({kind, min, max}: QuantifierToken, context: Context): Q
     !quantifiedNode ||
     quantifiedNode.type === 'Assertion' ||
     quantifiedNode.type === 'Directive' ||
-    quantifiedNode.type === 'LookaroundAssertion'
+    quantifiedNode.type === 'LookaroundAssertion' ||
+    quantifiedNode.type === 'NamedCallout'
   ) {
     throw new Error(`Quantifier requires a repeatable token`);
   }
@@ -901,15 +894,17 @@ function createLookaroundAssertion(options?: {
 type NamedCalloutNode = {
   type: 'NamedCallout';
   kind: NodeNamedCalloutKind;
+  name: string;
   tag: string | null;
-  args: string | null; // TODO: Array<string|number>
+  arguments: string | null; // TODO: Array<string|number>
 };
-function createNamedCallout(kind: NodeNamedCalloutKind, tag: string | null, args: string | null): NamedCalloutNode {
+function createNamedCallout(kind: NodeNamedCalloutKind, name: string, tag: string | null, args: string | null): NamedCalloutNode {
   return {
     type: 'NamedCallout',
     kind,
+    name,
     tag,
-    args,
+    arguments: args,
   };
 }
 

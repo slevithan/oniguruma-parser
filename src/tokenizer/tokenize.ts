@@ -1,4 +1,4 @@
-import {PosixClassNames, r, throwIfNullable} from '../utils.js';
+import {CalloutNames, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 type Token =
   AlternatorToken |
@@ -50,14 +50,15 @@ type TokenQuantifierKind =
   'possessive';
 
 type TokenNamedCalloutKind =
-  'FAIL' |
-  'MISMATCH' |
-  'ERROR' |
-  'MAX' |
-  'COUNT' |
-  'TOTAL_COUNT' |
-  'CMP' |
-  'SKIP';
+  'fail' |
+  'mismatch' |
+  'skip' |
+  'error' |
+  'max' |
+  'count' |
+  'total_count' |
+  'cmp' |
+  'unknown';
 
 const charClassOpenPattern = r`\[\^?`;
 const sharedEscapesPattern = `${
@@ -100,7 +101,7 @@ const tokenRe = new RegExp(r`
       | #(?:[^)\\]|\\.?)*
       | [^:)]*[:)]
     )?
-    | \* [^\)]* \)?
+    | \*[^\)]*\)?
   )?
   | ${quantifierRe.source}
   | ${charClassOpenPattern}
@@ -771,13 +772,15 @@ function createGroupOpenToken(
 type NamedCalloutToken = {
   type: 'NamedCallout';
   kind: TokenNamedCalloutKind;
+  name: string;
   tag: string | null;
   args: string | null;
   raw: string;
 };
-function createNamedCalloutToken(kind: TokenNamedCalloutKind, tag: string | null, args: string | null, raw: string): NamedCalloutToken {
+function createNamedCalloutToken(kind: TokenNamedCalloutKind, name: string, tag: string | null, args: string | null, raw: string): NamedCalloutToken {
   return {
     type: 'NamedCallout',
+    name,
     kind,
     tag,
     args,
@@ -904,19 +907,23 @@ function tokenizeFlagModifier(raw: string, context: Context): DirectiveToken | G
 }
 
 function tokenizeNamedCallout(raw: string): NamedCalloutToken {
-  const namedCallout = /\(\*(?<name>[_a-zA-Z][_a-zA-Z0-9]*)?(?:\[(?<tag>(?:[_a-zA-Z][_a-zA-Z0-9]*)?)\])?(?:\{(?<args>[^\}]*)\})?\)/.exec(raw);
+  const namedCallout = /\(\*(?<name>[A-Za-z_]\w*)?(?:\[(?<tag>(?:[A-Za-z_]\w*)?)\])?(?:\{(?<args>[^}]*)\})?\)/.exec(raw);
   if (!namedCallout) {
-    throw new Error(`Invalid named callout "${raw}"`);
+    throw new Error(`Invalid named callout syntax "${raw}"`);
   }
-  const {name, tag, args} = namedCallout.groups as {
-    name: TokenNamedCalloutKind | undefined;
-    tag: string | undefined;
-    args: string | undefined;
-  };
+  const {name, tag, args} = namedCallout.groups as Partial<{
+    name: string;
+    tag: string;
+    args: string;
+  }>;
   if (!name) {
-    throw new Error(`Invalid named callout name "${name}"`);
+    throw new Error(`Invalid callout name "${raw}"`);
   }
-  return createNamedCalloutToken(name, tag ?? null, args ?? null, raw);
+  if (tag === '') {
+    throw new Error(`Named callout empty tag not allowed "${raw}"`);
+  }
+  const kind: TokenNamedCalloutKind = CalloutNames.has(name as Uppercase<Exclude<TokenNamedCalloutKind, 'unknown'>>) ? name.toLocaleLowerCase() as TokenNamedCalloutKind : 'unknown';
+  return createNamedCalloutToken(kind, name, tag ?? null, args ?? null, raw);
 }
 
 function tokenizeQuantifier(raw: string): QuantifierToken {
