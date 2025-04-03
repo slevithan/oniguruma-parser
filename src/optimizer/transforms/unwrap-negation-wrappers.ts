@@ -30,7 +30,7 @@ const unwrapNegationWrappers: Visitor = {
       kid.value === 10 // '\n'
     ) {
       if (parent!.type === 'Quantifier' && parent!.kind !== 'lazy') {
-        // Avoid introducing a trigger for an Oniguruma bug; see <github.com/rosshamish/kuskus/issues/209>
+        // Avoid introducing a trigger for an Oniguruma bug; see <github.com/kkos/oniguruma/issues/347>
         return;
       }
       // `[^\n]` -> `\N`; can only use `\N` if not in a class
