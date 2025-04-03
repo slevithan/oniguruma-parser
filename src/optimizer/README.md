@@ -28,6 +28,7 @@ The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shiki
 - [Type definition](#type-definition)
 - [Flags](#flags)
 - [Optimizations](#optimizations)
+- [How performance optimizations work](#how-performance-optimizations-work)
 - [Disable specific optimizations](#disable-specific-optimizations)
 - [Enable only specific, optional optimizations](#enable-only-specific-optional-optimizations)
 - [Contributing](#contributing)
@@ -106,7 +107,7 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="3" valign="top" align="left">
+    <th rowspan="4" valign="top" align="left">
       Alternation
     </th>
     <td><code>alternationToClass</code> 🚀</td>
@@ -122,6 +123,11 @@ Some of the following optimizations (related to the representation of tokens) do
     <td><code>extractPrefix2</code> 🚀</td>
     <td>Extract alternating prefixes if patterns are repeated for each prefix</td>
     <td><code>^a|!a|^bb|!bb|^c|!c</code> → <code>(?:^|!)(?:a|bb|c)</code></td>
+  </tr>
+  <tr>
+    <td><code>extractSuffix</code></td>
+    <td>Extract nodes at the end of every alternative into a suffix</td>
+    <td><code>aa$|bba$|ca$</code> → <code>(?:a|bb|c)a$</code></td>
   </tr>
 
   <tr>
@@ -223,9 +229,14 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="2" valign="top" align="left">
+    <th rowspan="3" valign="top" align="left">
       Groups
     </th>
+    <td><code>exposeAnchors</code></td>
+    <td>Pull leading and trailing assertions out of capturing groups when possible; helps group unwrapping</td>
+    <td><code>(^a$)</code> → <code>^(a)$</code></td>
+  </tr>
+  <tr>
     <td><code>removeEmptyGroups</code></td>
     <td>Remove empty noncapturing, atomic, and flag groups, even if quantified</td>
     <td><code>(?:)a</code> → <code>a</code></td>
@@ -257,6 +268,29 @@ Some of the following optimizations (related to the representation of tokens) do
 </table>
 
 Optimizations are applied in a loop until no further optimization progress is made. Individual optimization transforms are typically narrow and work best when combined with other optimizations.
+
+## How performance optimizations work
+
+Although the optimizer's primary purpose is minification, some optimizations can improve search-time performance by:
+
+- Reducing backtracking.
+  - Ex: Reducing use of alternation, or adjusting quantifiers.
+  - Although Oniguruma includes numerous sophisticated internal optimizations and, in theory, this library's optimizations could be included directly in the engine, in practice, this library is able to find additional opportunities through a combination of cleverness and not having the same extremely tight constraints on compilation time.
+- Triggering internal optimizations built into regex engines.
+  - Ex: More clearly exposing that a particular token must match for any match to occur.
+
+These effects can be significant. Additionally, though less significant, minification can reduce compilation time for some extremely long regexes.
+
+Sometimes, performance improvements result from a combination of transformations. For example, consider the following optimization chain:
+
+1. `^1$|^2$` — Initial
+2. `^(?:1|2)$` — `extractPrefix`, `extractSuffix`
+3. `^(?:[12])$` — `alternationToClass`
+4. `^[12]$` — `unwrapUselessGroups`
+
+This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. Note that, although the `extractSuffix` transform doesn't typically impact performance on its own, its change helped enable removing alternation in the subsequent step, which reduces backtracking and can have a direct performance impact (in some cases, it can even eliminate ReDoS).
+
+A real world example of performance improvements comes from [Better C++](https://github.com/jeff-hykin/better-cpp-syntax), a large collection of complex Oniguruma regexes used for highlighting C++ code in VS Code, Shiki, and other tools. Despite having gone through multiple rounds of performance hand-tuning over the years (and not including any known cases of catastophic backtracking), running its regexes through this library resulted in a ~30% improvement in syntax highlighting performance. And this improvement isn't specific to Oniguruma. Using [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) to transpile the regexes (before and after optimization) to native JavaScript `RegExp`s showed a comparable ~30% performance boost for native JavaScript regex engines.
 
 ## Disable specific optimizations
 
@@ -298,12 +332,12 @@ Adding new optimization transforms is straightforward:
 - Add tests in `spec/optimizer/foo.spec.js`; run them via `pnpm test`.
 - List it in this readme file with a simple example.
 
-Optimizations should be independently useful and can compliment each other; you don’t need to do too much in one. Ideas for new optimizations are listed [here](https://github.com/slevithan/oniguruma-parser/issues/7).
+You don’t need to do too much in one optimization, since optimizations can compliment each other. Ideas for new optimizations are listed [here](https://github.com/slevithan/oniguruma-parser/issues/7).
 
 ## About
 
 Created by [Steven Levithan](https://github.com/slevithan) and [contributors](https://github.com/slevithan/oniguruma-parser/graphs/contributors). Inspiration for the optimizer included [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
 
-If you want to support this project, I'd love your help by [contributing](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md) improvements, sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
+If you want to support this project, I'd love your help by contributing improvements ([guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md)), sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
 MIT License.

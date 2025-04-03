@@ -34,8 +34,9 @@ type ParentNode =
   QuantifierNode |
   RegexNode;
 
+// See also `isAlternativeContainer`
 type AlternativeContainerNode =
-  AbsentFunctionNode |
+  AbsentFunctionNode | // Some sub-kinds are not alternative containers
   CapturingGroupNode |
   GroupNode |
   LookaroundAssertionNode |
@@ -62,6 +63,7 @@ type CharacterClassElementNode =
   CharacterClassRangeNode |
   CharacterSetNode;
 
+// See also `quantifiableTypes`
 type QuantifiableNode =
   AbsentFunctionNode |
   BackreferenceNode |
@@ -91,6 +93,7 @@ type NodeCharacterClassKind =
   'union' |
   'intersection';
 
+// See also `universalCharacterSetKinds`
 type NodeCharacterSetKind = TokenCharacterSetKind;
 
 type NodeDirectiveKind = TokenDirectiveKind;
@@ -242,10 +245,13 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
       if (ref > capturingGroups.length) {
         throw new Error(`Subroutine uses a group number that's not defined`);
       }
+      capturingGroups[ref - 1].hasSubroutine = true;
     } else if (!namedGroupsByName.has(ref)) {
       throw new Error(r`Subroutine uses a group name that's not defined "\g<${ref}>"`);
     } else if (namedGroupsByName.get(ref)!.length > 1) {
       throw new Error(r`Subroutine uses a duplicate group name "\g<${ref}>"`);
+    } else {
+      namedGroupsByName.get(ref)![0].hasSubroutine = true;
     }
   }
 
@@ -684,6 +690,7 @@ type CapturingGroupNode = {
   kind?: never;
   number: number;
   name?: string;
+  hasSubroutine?: boolean;
   alternatives: Array<AlternativeNode>;
 };
 function createCapturingGroup(number: number, name?: string): CapturingGroupNode {

@@ -1,4 +1,4 @@
-import {alternativeContainerTypes} from '../../parser/node-utils.js';
+import {isAlternativeContainer} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
 import type {AlternativeContainerNode, AlternativeElementNode, AlternativeNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
@@ -6,13 +6,13 @@ import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
 
 /**
 Extract alternating prefixes if patterns are repeated for each prefix.
+Ex: `^a|!a|^bb|!bb|^c|!c` -> `(?:^|!)(?:a|bb|c)`.
 Also works within groups.
-- `^a|!a|^bb|!bb|^c|!c` -> `(?:^|!)(?:a|bb|c)`
 */
 const extractPrefix2: Visitor = {
   '*'(path: Path) {
     const {node} = path as Path<AlternativeContainerNode>;
-    if (!alternativeContainerTypes.has(node.type)) {
+    if (!isAlternativeContainer(node)) {
       return;
     }
     const numDiffPrefixes = 2;

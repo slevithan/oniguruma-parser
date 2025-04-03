@@ -1,12 +1,4 @@
-import type {Node, NodeCharacterSetKind, NodeType} from './parse.js';
-
-const alternativeContainerTypes = new Set<NodeType>([
-  'AbsentFunction',
-  'CapturingGroup',
-  'Group',
-  'LookaroundAssertion',
-  'Pattern',
-]);
+import type {AlternativeContainerNode, Node, NodeCharacterSetKind, NodeType} from './parse.js';
 
 const quantifiableTypes = new Set<NodeType>([
   'AbsentFunction',
@@ -46,9 +38,26 @@ function hasOnlyChild(node: Node, props?: Props): boolean {
   return !props || Object.keys(props).every(key => props[key] === kid[key]);
 }
 
+function isAlternativeContainer(node: Node): node is AlternativeContainerNode {
+  const alternativeContainerTypes = new Set<NodeType>([
+    'AbsentFunction',
+    'CapturingGroup',
+    'Group',
+    'LookaroundAssertion',
+    'Pattern',
+  ]);
+  if (!alternativeContainerTypes.has(node.type)) {
+    return false;
+  }
+  if (node.type === 'AbsentFunction' && node.kind !== 'repeater') {
+    return false;
+  }
+  return true;
+}
+
 export {
-  alternativeContainerTypes,
   hasOnlyChild,
+  isAlternativeContainer,
   quantifiableTypes,
   universalCharacterSetKinds,
 };

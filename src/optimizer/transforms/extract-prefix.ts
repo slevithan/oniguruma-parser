@@ -1,26 +1,24 @@
-import {alternativeContainerTypes} from '../../parser/node-utils.js';
+import {isAlternativeContainer} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
 import type {AlternativeContainerNode, AssertionNode, CharacterNode, CharacterSetNode, Node, NodeType} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 
 /**
 Extract nodes at the start of every alternative into a prefix.
+Ex: `^aa|^abb|^ac` -> `^a(?:a|bb|c)`.
 Also works within groups.
-- `^aa|^abb|^ac` -> `^a(?:a|bb|c)`
-- `aa|aa|aa` -> `aa`
-- `a|b|c` -> `a|b|c` (no common prefix)
 */
 const extractPrefix: Visitor = {
-  '*'(path: Path){
+  '*'(path: Path) {
     const {node} = path as Path<AlternativeContainerNode>;
-    if (!alternativeContainerTypes.has(node.type) || node.alternatives.length < 2) {
+    if (!isAlternativeContainer(node) || node.alternatives.length < 2) {
       return;
     }
     const prefixNodes = [];
     let passedSharedPrefix = false;
     let i = 0;
     while (!passedSharedPrefix) {
-      prefixNodes[i] = node.alternatives[0].elements[i];
+      prefixNodes.push(node.alternatives[0].elements[i]);
       for (const alt of node.alternatives) {
         const kid = alt.elements[i];
         if (!kid || !isAllowedSimpleType(kid.type) || !isNodeEqual(kid, prefixNodes[i])) {
@@ -34,6 +32,7 @@ const extractPrefix: Visitor = {
     if (!prefixNodes.length) {
       return;
     }
+
     for (const alt of node.alternatives) {
       alt.elements = alt.elements.slice(prefixNodes.length);
     }

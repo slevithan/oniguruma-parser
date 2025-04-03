@@ -6,7 +6,7 @@ import type {Path, Visitor} from '../../traverser/traverse.js';
 Remove identified ReDoS vulnerabilities without changing matches.
 */
 const preventReDoS: Visitor = {
-  Quantifier(path: Path){
+  Quantifier(path: Path) {
     const {node} = path as Path<QuantifierNode>;
     // Prevent a common cause of catastrophic backtracking by removing an unneeded nested
     // quantifier from the first alternative of infinitely-quantified groups. Can't remove nested

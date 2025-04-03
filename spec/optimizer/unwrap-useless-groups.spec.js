@@ -11,43 +11,37 @@ describe('Optimizer: unwrapUselessGroups', () => {
     }).pattern;
   }
 
-  it('should unwrap unnecessary groups', () => {
+  it('should unwrap unnecessary groups with a single alternative', () => {
     const cases = [
       ['(?:a)', 'a'],
       ['(?:(?:(?:a)))', 'a'],
-      ['(?>a)', 'a'],
       ['(?:a(?:b))', 'ab'],
       ['(?:(?:ab)(?:c))', 'abc'],
-      ['(?:a+)?', 'a+{0,1}'],
-      ['(?:a+)?+', 'a+{1,0}'],
-      ['(?:a+)+', 'a+{1,}'],
-      ['(?:a+)++', 'a{1,}++'],
+      ['(?>a)', 'a'],
+      ['(?>[ab])', '[ab]'],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
     }
   });
 
-  it('should not unwrap necessary groups', () => {
+  it('should unwrap unnecessary noncapturing groups with multiple alternatives', () => {
     const cases = [
-      '(a)',
-      '(?:a|b)',
-      '(?:ab)*',
-      '(?:^)*',
-      '(?:(?=a))*',
-      '(?>a*)',
-      '(?>(?=a*))',
-      '(?>(?~a))',
-      '(?>(?~a))*',
-      '(?i:a)',
-      '(?i:a)*',
+      ['(?:a|b)', 'a|b'],
+      ['(?:(?:a|b))', 'a|b'],
+      ['((?:a|b))', '(a|b)'],
+      ['(?<n>(?:a|b))', '(?<n>a|b)'],
+      ['(?>(?:a|b))', '(?>a|b)'],
+      ['(?i:(?:a|b))', '(?i:a|b)'],
+      ['(?~(?:a|b))', '(?~a|b)'],
+      ['(?=(?:a|b))', '(?=a|b)'],
     ];
-    for (const input of cases) {
-      expect(thisOptimization(input)).toBe(input);
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
     }
   });
 
-  it('should unwrap and retain the following quantifier if the group contains a single, quantifiable node', () => {
+  it('should unwrap unnecessary quantified groups with a single quantifiable node', () => {
     const cases = [
       ['(?:a)*', 'a*'],
       [r`(?:\s)*`, r`\s*`],
@@ -60,9 +54,35 @@ describe('Optimizer: unwrapUselessGroups', () => {
       ['(?:a*)*', 'a**'],
       ['(?:(?:(?:a)))*', 'a*'],
       ['(?:(?:(?:a*)*)*)*', 'a****'],
+      ['(?:a+)?', 'a+{0,1}'],
+      ['(?:a+)?+', 'a+{1,0}'],
+      ['(?:a+)+', 'a+{1,}'],
+      ['(?:a+)++', 'a{1,}++'],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
+  it('should not unwrap necessary groups', () => {
+    const cases = [
+      '(?:a|b)c',
+      '(?:ab)*',
+      '(?:^)*',
+      '(?:(?=a))*',
+      '(?>a*)',
+      '(?>(?=a*))',
+      '(?>(?~a))',
+      '(?>(?~a))*',
+      '(?i:a)',
+      '(?i:a)*',
+      '(a)',
+      '((a))',
+      '((?>a|b))',
+      '((?i:a|b))',
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
     }
   });
 });
