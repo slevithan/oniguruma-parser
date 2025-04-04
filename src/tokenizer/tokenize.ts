@@ -50,7 +50,6 @@ type TokenQuantifierKind =
   'possessive';
 
 type TokenNamedCalloutKind =
-  'custom' |
   'count' |
   'cmp' |
   'error' |
@@ -58,7 +57,8 @@ type TokenNamedCalloutKind =
   'max' |
   'mismatch' |
   'skip' |
-  'total_count';
+  'total_count' |
+  'custom';
 
 const charClassOpenPattern = r`\[\^?`;
 const sharedEscapesPattern = `${
