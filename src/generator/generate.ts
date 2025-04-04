@@ -1,6 +1,6 @@
 import type {AbsentFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, NamedCalloutNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {FlagProperties} from '../tokenizer/tokenize.js';
-import {cp, r, throwIfNullable} from '../utils.js';
+import {r, throwIfNullable} from '../utils.js';
 
 type Gen = (node: NonRootNode) => string;
 type NonRootNode = Exclude<Node, RegexNode>;
@@ -118,7 +118,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
         `\\x{${value.toString(16).toUpperCase()}}` :
         `\\x${value.toString(16).toUpperCase().padStart(2, '0')}`;
     }
-    const char = cp(value);
+    const char = String.fromCodePoint(value);
     let escape = false;
     if (inCharClass) {
       const isDirectClassKid = parent.type === 'CharacterClass';
@@ -236,8 +236,13 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
   },
 
   NamedCallout(node: Node): string {
-    const {kind, /* name, */ tag, arguments: args} = node as NamedCalloutNode;
-    return `(*${/* kind === 'custom' ? name ?? '' : */ kind.toUpperCase()}${tag ? `[${tag}]` : ''}${Array.isArray(args) ? `{${args.join(',')}}` : ''})`;
+    const {kind, tag, arguments: args} = node as NamedCalloutNode;
+    if (kind === 'custom') {
+      // TODO: If supporting custom callout names in the future (with an added `name` property for
+      // `NamedCalloutNode`s), will need to use `name` instead of `kind` if `kind` is `'custom'`
+      throw new Error(`Unexpected named callout kind "${kind}"`);
+    }
+    return `(*${kind.toUpperCase()}${tag ? `[${tag}]` : ''}${args ? `{${args.join(',')}}` : ''})`;
   },
 
   Pattern(node: Node, _: State, gen: Gen): string {

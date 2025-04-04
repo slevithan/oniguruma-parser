@@ -108,7 +108,7 @@ The following rarely-used features throw errors since they aren't yet supported:
 - Code point sequences: `\x{H H …}`, `\o{O O …}`.
 - Absent expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.
-- Callouts: `(?{…})`, `(*…)`, etc.
+- Non-built-in callouts: `(?{…})`, etc.
 - Numbered *forward* backreferences (incl. relative `\k<+N>`) and backreferences with recursion level (`\k<N+N>`, etc.).
 - Flags `y{g}` `y{w}`, flags `D` `P` `S` `W` within mode modifiers, whole-pattern modifiers `C` `I` `L`.
 
@@ -144,7 +144,7 @@ Although any number of digits are supported for enclosed `\k<…>`/`\k'…'` bac
 
 #### Erroring on patterns that trigger Oniguruma bugs
 
-This library currently throws errors for several edge cases that trigger Oniguruma bugs. In future versions, such errors will be replaced with warnings. This library intentionally doesn't reproduce Oniguruma bugs.
+This library intentionally doesn't reproduce bugs, and it currently throws errors for several edge cases that trigger Oniguruma bugs and undefined behavior.
 
 <details>
   <summary>Nested absent functions</summary>
@@ -159,21 +159,21 @@ In this library, nested absent functions throw an error. In future versions, par
 
 In Oniguruma, `\x` is an escape for the `NUL` character (equivalent to `\0`, `\x00`, etc.) if it's not followed by `{` or a hexadecimal digit.
 
-In this library, it throws an error because `\x` is buggy in Oniguruma 6.9.10 and earlier ([report](https://github.com/kkos/oniguruma/issues/343)).
+In this library, bare `\x` throws an error.
 
-Behavior details for `\x` in Oniguruma:
+Additional behavior details for `\x` in Oniguruma:
 
 - `\x` is an error if followed by a `{` that's followed by a hexadecimal digit but doesn't form a valid `\x{…}` code point escape. Ex: `\x{F` and `\x{0,2}` are errors.
-- `\x` is an identity escape (matching a literal `x`) if followed by a `{` that isn't followed by a hexadecimal digit. Ex: `\x{` matches `x{`, `\x{G` matches `x{G`, and `\x{,2}` matches 0–2 `x` characters, since `{,2}` is a quantifier with an implicit 0 min.
-- In Oniguruma 6.9.10 and earlier, `\x` is an identity escape (matching a literal `x`) if it appears at the very end of a pattern. *This is a bug.*
+- `\x` matches a literal `x` if followed by a `{` that isn't followed by a hexadecimal digit. Ex: `\x{` matches `x{`, `\x{G` matches `x{G`, and `\x{,2}` matches 0–2 `x` characters, since `{,2}` is a quantifier with an implicit 0 min.
+- In Oniguruma 6.9.10 and earlier ([report](https://github.com/kkos/oniguruma/issues/343)), `\x` matches a literal `x` if it appears at the very end of a pattern. *This is a bug.*
 
-In future versions, parsing of `\x` will follow the Oniguruma rules above, removing some cases where it currently errors. A pattern-terminating `\x` will be treated as a `NUL` character.
+In future versions, parsing of `\x` will follow the Oniguruma rules above (excluding bugs), removing some cases where it currently errors.
 </details>
 
 <details>
-  <summary>Pattern-terminating bare <code>\u</code> as an identity escape</summary>
+  <summary>Pattern-terminating bare <code>\u</code></summary>
 
-Normally, any incomplete `\uHHHH` (including bare `\u`) throws an error. However, in Oniguruma 6.9.10 and earlier ([report](https://github.com/kkos/oniguruma/issues/343)), bare `\u` is treated as an identity escape (matching a literal `u`) if it appears at the very end of a pattern. *This is a bug.*
+Normally, any incomplete `\uHHHH` (including bare `\u`) throws an error. However, in Oniguruma 6.9.10 and earlier ([report](https://github.com/kkos/oniguruma/issues/343)), bare `\u` matches a literal `u` if it appears at the very end of a pattern. *This is a bug.*
 
 In this library, incomplete `\u` is always an error.
 </details>

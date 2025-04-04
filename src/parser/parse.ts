@@ -1,6 +1,6 @@
 import {tokenize} from '../tokenizer/tokenize.js';
 import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, NamedCalloutToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenNamedCalloutKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
-import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
+import {cpOf, getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 // Watch out for the DOM `Node` interface!
 type Node =
@@ -195,7 +195,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
       case 'GroupOpen':
         return parseGroupOpen(token, context, state);
       case 'NamedCallout':
-        return createNamedCallout(token.kind, /* token.name, */ token.tag, token.arguments);
+        return createNamedCallout(token.kind, token.tag, token.arguments);
       case 'Quantifier':
         return parseQuantifier(token, context);
       case 'Subroutine':
@@ -364,8 +364,7 @@ function parseCharacterClassHyphen(_: CharacterClassHyphenToken, context: Contex
     }
     throw new Error('Invalid character class range');
   }
-  // Literal hyphen
-  return createCharacter(45);
+  return createCharacter(cpOf('-'));
 }
 
 function parseCharacterClassOpen({negate}: CharacterClassOpenToken, context: Context, state: State): CharacterClassNode {
@@ -834,15 +833,17 @@ function createLookaroundAssertion(options?: {
 type NamedCalloutNode = {
   type: 'NamedCallout';
   kind: NodeNamedCalloutKind;
-  // name: string | null;
   tag: string | null;
   arguments: Array<string | number> | null;
 };
-function createNamedCallout(kind: NodeNamedCalloutKind, /* name: string | null, */ tag: string | null, args: Array<string | number> | null): NamedCalloutNode {
+function createNamedCallout(
+  kind: NodeNamedCalloutKind,
+  tag: string | null,
+  args: Array<string | number> | null
+): NamedCalloutNode {
   return {
     type: 'NamedCallout',
     kind,
-    // name,
     tag,
     arguments: args,
   };

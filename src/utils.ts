@@ -1,8 +1,5 @@
 import type {TokenNamedCalloutKind} from "./tokenizer/tokenize.js";
 
-const cp = String.fromCodePoint;
-const r = String.raw;
-
 const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>>([
   'COUNT',
   'CMP',
@@ -13,6 +10,14 @@ const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>
   'SKIP',
   'TOTAL_COUNT',
 ]);
+
+function cpOf(char: string): number {
+  // Code point length
+  if ([...char].length !== 1) {
+    throw new Error(`Expected single code point "${char}"`);
+  }
+  return char.codePointAt(0)!;
+}
 
 const PosixClassNames = new Set([
   'alnum',
@@ -38,6 +43,8 @@ function getOrInsert<Key, Value>(map: Map<Key, Value>, key: Key, defaultValue: V
   return map.get(key)!;
 }
 
+const r = String.raw;
+
 function throwIfNullable<Value>(value: Value, msg?: string): NonNullable<Value> {
   if (value == null) {
     throw new Error(msg ?? 'Value expected');
@@ -47,7 +54,7 @@ function throwIfNullable<Value>(value: Value, msg?: string): NonNullable<Value> 
 
 export {
   CalloutNames,
-  cp,
+  cpOf,
   getOrInsert,
   PosixClassNames,
   r,

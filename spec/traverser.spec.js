@@ -1,5 +1,6 @@
 import {toOnigurumaAst} from '../dist/index.js';
 import {createCharacter} from '../dist/parser/parse.js';
+import {cpOf} from '../dist/utils.js';
 import {singleAltAst, traversed} from './utils.js';
 
 describe('Traverser', () => {
@@ -12,13 +13,13 @@ describe('Traverser', () => {
           },
         };
         expect(traversed(toOnigurumaAst('(?:a(?:b))'), visitor)).toEqual(singleAltAst([
-          createCharacter(97),
-          createCharacter(98),
+          createCharacter(cpOf('a')),
+          createCharacter(cpOf('b')),
         ]));
         expect(traversed(toOnigurumaAst('(?:a(?:bc))'), visitor)).toEqual(singleAltAst([
-          createCharacter(97),
-          createCharacter(98),
-          createCharacter(99),
+          createCharacter(cpOf('a')),
+          createCharacter(cpOf('b')),
+          createCharacter(cpOf('c')),
         ]));
       });
     });

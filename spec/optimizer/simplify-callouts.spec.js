@@ -1,16 +1,16 @@
 import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 
-describe('Optimizer: removeUselessCalloutArguments', () => {
+describe('Optimizer: simplifyCallouts', () => {
   function thisOptimization(pattern) {
     return optimize(pattern, {
       override: {
         ...getOptionalOptimizations({disable: true}),
-        removeUselessCalloutArguments: true,
+        simplifyCallouts: true,
       },
     }).pattern;
   }
 
-  it('should remove useless brackets {}', () => {
+  it('should remove useless argument braces', () => {
     const cases = [
       ['(*FAIL{})', '(*FAIL)'],
       ['(*MISMATCH[T]{})', '(*MISMATCH[T])'],
@@ -26,7 +26,7 @@ describe('Optimizer: removeUselessCalloutArguments', () => {
     }
   });
 
-  it('should remove useless commas', () => {
+  it('should remove useless argument commas', () => {
     const cases = [
       ['(*FAIL{})', '(*FAIL)'],
       ['(*MISMATCH[T]{,})', '(*MISMATCH[T])'],
@@ -42,7 +42,7 @@ describe('Optimizer: removeUselessCalloutArguments', () => {
     }
   });
 
-  it('should optimize numbers', () => {
+  it('should simplify numbers', () => {
     const cases = [
       ['(*ERROR{-1})', '(*ERROR{-1})'],
       ['(*ERROR{-0003})', '(*ERROR{-3})'],

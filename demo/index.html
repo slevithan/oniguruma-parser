@@ -118,7 +118,6 @@
     // For testing in the console
     Object.assign(globalThis, OnigurumaParser);
     const r = String.raw;
-    const cp = String.fromCodePoint;
     function printAst(ast) {
       if (ast?.type !== 'Regex') {
         throw new Error('Unexpected AST format');

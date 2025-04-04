@@ -1,4 +1,4 @@
-import {CalloutNames, PosixClassNames, r, throwIfNullable} from '../utils.js';
+import {CalloutNames, cpOf, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 type Token =
   AlternatorToken |
@@ -362,7 +362,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
       };
     }
     if (m === '(?(') {
-      // Some forms are supportable; can be added
+      // TODO: Add support
       throw new Error(`Unsupported conditional "${m}"`);
     }
     throw new Error(`Invalid or unsupported group option "${m}"`);
@@ -428,7 +428,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
 
   assertSingleCodePoint(m);
   return {
-    token: createCharacterToken(m.codePointAt(0)!, m),
+    token: createCharacterToken(cpOf(m), m),
   };
 }
 
@@ -498,7 +498,7 @@ function tokenizeAnyTokenWithinCharClass(raw: string): Token | IntermediateToken
     return createCharacterClassIntersectorToken(raw);
   }
   assertSingleCodePoint(raw);
-  return createCharacterToken(raw.codePointAt(0)!, raw);
+  return createCharacterToken(cpOf(raw), raw);
 }
 
 // Tokens shared by base syntax and char class syntax that start with `\`
@@ -531,7 +531,7 @@ function tokenizeSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}
       const tokens = [...decoded].map(char => {
         // Since this regenerates `raw`, it might have different casing for hex A-F than the input
         const raw = [...encoder.encode(char)].map(byte => `\\x${byte.toString(16)}`).join('');
-        return createCharacterToken(char.codePointAt(0)!, raw);
+        return createCharacterToken(cpOf(char), raw);
       });
       return tokens;
     } catch {
@@ -554,7 +554,7 @@ function tokenizeSharedEscape(raw: string, {inCharClass}: {inCharClass: boolean}
   }
   // Meta `\M-x` and `\M-\C-x` are unsupported; avoid treating as an identity escape
   if (char1 === 'M') {
-    // Supportable; see:
+    // TODO: Add support. See:
     // - <github.com/kkos/oniguruma/blob/master/doc/SYNTAX.md#12-onig_syn_op2_esc_capital_m_bar_meta-enable-m-x>
     // - <github.com/kkos/oniguruma/blob/43a8c3f3daf263091f3a74019d4b32ebb6417093/src/regparse.c#L4695>
     // - <github.com/ammar/regexp_parser/blob/8851030feda68223d74f502335fb254a20d77016/lib/regexp_parser/expression/classes/escape_sequence.rb#L75>
@@ -772,15 +772,18 @@ function createGroupOpenToken(
 type NamedCalloutToken = {
   type: 'NamedCallout';
   kind: TokenNamedCalloutKind;
-  // name: string | null;
   tag: string | null;
   arguments: Array<string | number> | null;
   raw: string;
 };
-function createNamedCalloutToken(kind: TokenNamedCalloutKind, /* name: string | null, */ tag: string | null, args: Array<string | number> | null, raw: string): NamedCalloutToken {
+function createNamedCalloutToken(
+  kind: TokenNamedCalloutKind,
+  tag: string | null,
+  args: Array<string | number> | null,
+  raw: string
+): NamedCalloutToken {
   return {
     type: 'NamedCallout',
-    // name,
     kind,
     tag,
     arguments: args,
@@ -869,10 +872,12 @@ function tokenizeControlCharacter(raw: string): CharacterToken {
   const char = raw[1] === 'c' ? raw[2] : raw[3];
   if (!char || !/[A-Za-z]/.test(char)) {
     // Unlike JS, Onig allows any char to follow `\c` or `\C-`, but this is an extreme edge case
-    // Supportable; see <github.com/kkos/oniguruma/blob/master/doc/SYNTAX.md#11-onig_syn_op2_esc_capital_c_bar_control-enable-c-x>, <github.com/kkos/oniguruma/blob/43a8c3f3daf263091f3a74019d4b32ebb6417093/src/regparse.c#L4695>
+    // TODO: Add support. See:
+    // - <github.com/kkos/oniguruma/blob/master/doc/SYNTAX.md#11-onig_syn_op2_esc_capital_c_bar_control-enable-c-x>
+    // - <github.com/kkos/oniguruma/blob/43a8c3f3daf263091f3a74019d4b32ebb6417093/src/regparse.c#L4695>
     throw new Error(`Unsupported control character "${raw}"`);
   }
-  return createCharacterToken(char.toUpperCase().codePointAt(0)! - 64, raw);
+  return createCharacterToken(cpOf(char.toUpperCase()) - 64, raw);
 }
 
 function tokenizeFlagModifier(raw: string, context: Context): DirectiveToken | GroupOpenToken {
@@ -907,11 +912,11 @@ function tokenizeFlagModifier(raw: string, context: Context): DirectiveToken | G
 }
 
 function tokenizeNamedCallout(raw: string): NamedCalloutToken {
-  const namedCallout = /\(\*(?<name>[A-Za-z_]\w*)?(?:\[(?<tag>(?:[A-Za-z_]\w*)?)\])?(?:\{(?<args>[^}]*)\})?\)/.exec(raw);
-  if (!namedCallout) {
-    throw new Error(`Invalid named callout syntax "${raw}"`);
+  const callout = /\(\*(?<name>[A-Za-z_]\w*)?(?:\[(?<tag>(?:[A-Za-z_]\w*)?)\])?(?:\{(?<args>[^}]*)\})?\)/.exec(raw);
+  if (!callout) {
+    throw new Error(`Incomplete or invalid named callout "${raw}"`);
   }
-  const {name, tag, args} = namedCallout.groups as Partial<{
+  const {name, tag, args} = callout.groups as Partial<{
     name: string;
     tag: string;
     args: string;
@@ -922,74 +927,76 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
   if (tag === '') {
     throw new Error(`Named callout tag with empty value not allowed "${raw}"`);
   }
-  const argumentsArray: Array<string | number> =
-    args ?
-      args.split(',').
-        // oniguruma skips over/ignores redundant/unnecessary commas
-        filter((argument) => argument !== '').
-        map((argument) => /^[+-]?\d+$/.test(argument) ? +argument : argument) :
-      [];
-  const argument0 = argumentsArray[0];
-  const argument1 = argumentsArray[1];
-  const argument2 = argumentsArray[2];
-  const kind: TokenNamedCalloutKind = CalloutNames.has(name as Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>) ? name.toLowerCase() as TokenNamedCalloutKind : 'custom';
+  const argsArray: Array<string | number> = args ?
+    args.split(',').
+      // Onig skips over/ignores redundant/unnecessary commas
+      filter(arg => arg !== '').
+      map(arg => /^[+-]?\d+$/.test(arg) ? +arg : arg) :
+    [];
+  const [arg0, arg1, arg2] = argsArray;
+  const kind: TokenNamedCalloutKind = CalloutNames.has(name as Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>) ?
+    name.toLowerCase() as TokenNamedCalloutKind :
+    'custom';
   switch (kind) {
     case 'fail':
     case 'mismatch':
     case 'skip':
-      if (argumentsArray.length > 0) {
-        throw new Error(`Named callout arguments not allowed "${argumentsArray}"`);
+      if (argsArray.length > 0) {
+        throw new Error(`Named callout arguments not allowed "${argsArray}"`);
       }
       break;
     case 'error':
-      if (argumentsArray.length > 1) {
-        throw new Error(`Named callout allows only one argument "${argumentsArray}"`);
+      if (argsArray.length > 1) {
+        throw new Error(`Named callout allows only one argument "${argsArray}"`);
       }
-      if (typeof argument0 === 'string') {
-        throw new Error(`Named callout argument must be a number "${argument0}"`);
+      if (typeof arg0 === 'string') {
+        throw new Error(`Named callout argument must be a number "${arg0}"`);
       }
       break;
     case 'max':
-      if (!argumentsArray.length || argumentsArray.length > 2) {
-        throw new Error(`Named callout must have one or two arguments "${argumentsArray}"`);
+      if (!argsArray.length || argsArray.length > 2) {
+        throw new Error(`Named callout must have one or two arguments "${argsArray}"`);
       }
-      if (typeof argument0 === 'string' && !/^[A-Za-z_]\w*$/.test(argument0)) {
-        throw new Error(`Named callout argument one must be a tag or number "${argument0}"`);
+      if (typeof arg0 === 'string' && !/^[A-Za-z_]\w*$/.test(arg0)) {
+        throw new Error(`Named callout argument one must be a tag or number "${arg0}"`);
       }
-      if (argumentsArray.length === 2 && (typeof argument1 === 'number' || !/^[<>X]$/.test(argument1))) {
-        throw new Error(`Named callout optional argument two must be '<', '>' or 'X' "${argument1}"`);
+      if (argsArray.length === 2 && (typeof arg1 === 'number' || !/^[<>X]$/.test(arg1))) {
+        throw new Error(`Named callout optional argument two must be '<', '>', or 'X' "${arg1}"`);
       }
       break;
     case 'count':
     case 'total_count':
-      if (argumentsArray.length > 1) {
-        throw new Error(`Named callout allows only one argument "${argumentsArray}"`);
+      if (argsArray.length > 1) {
+        throw new Error(`Named callout allows only one argument "${argsArray}"`);
       }
-      if (argumentsArray.length === 1 && (typeof argument0 === 'number' || !/^[<>X]$/.test(argument0))) {
-        throw new Error(`Named callout optional argument must be '<', '>' or 'X' "${argument0}"`);
+      if (argsArray.length === 1 && (typeof arg0 === 'number' || !/^[<>X]$/.test(arg0))) {
+        throw new Error(`Named callout optional argument must be '<', '>', or 'X' "${arg0}"`);
       }
       break;
     case 'cmp':
-      if (argumentsArray.length !== 3) {
-        throw new Error(`Named callout must have three arguments "${argumentsArray}"`);
+      if (argsArray.length !== 3) {
+        throw new Error(`Named callout must have three arguments "${argsArray}"`);
       }
-      if (typeof argument0 === 'string' && !/^[A-Za-z_]\w*$/.test(argument0)) {
-        throw new Error(`Named callout argument one must be a tag or number "${argument0}"`);
+      if (typeof arg0 === 'string' && !/^[A-Za-z_]\w*$/.test(arg0)) {
+        throw new Error(`Named callout argument one must be a tag or number "${arg0}"`);
       }
-      if (typeof argument1 === 'number' || !/^(?:[<>!=]=|[<>])$/.test(argument1)) {
-        throw new Error(`Named callout argument two must be '==', '!=', '>', '<', '>=' or '<=' "${argument1}"`);
+      if (typeof arg1 === 'number' || !/^(?:[<>!=]=|[<>])$/.test(arg1)) {
+        throw new Error(`Named callout argument two must be '==', '!=', '>', '<', '>=', or '<=' "${arg1}"`);
       }
-      if (typeof argument2 === 'string' && !/^[A-Za-z_]\w*$/.test(argument2)) {
-        throw new Error(`Named callout argument three must be a tag or number "${argument2}"`);
+      if (typeof arg2 === 'string' && !/^[A-Za-z_]\w*$/.test(arg2)) {
+        throw new Error(`Named callout argument three must be a tag or number "${arg2}"`);
       }
       break;
     case 'custom':
-      // TODO: Maybe allow custom named user Callouts in the future :tm:
-      throw new Error(`Unsupported callout name "${name}"`);
+      // TODO: Can support custom callout names via a new option that allows providing a list of
+      // allowed, non-built-in names
+      throw new Error(`Undefined callout name "${name}"`);
     default:
-      throw new Error(`Unexpected callout kind "${kind}"`);
+      throw new Error(`Unexpected named callout kind "${kind}"`);
   }
-  return createNamedCalloutToken(kind, /* kind === 'custom' ? name : null, */ tag ?? null, args?.split(',') ?? null, raw);
+  // TODO: If supporting custom callout names in the future (with an added `name` property for
+  // `NamedCalloutToken`s), will need to set `name` to `null` unless `kind` is `'custom'`
+  return createNamedCalloutToken(kind, tag ?? null, args?.split(',') ?? null, raw);
 }
 
 function tokenizeQuantifier(raw: string): QuantifierToken {
@@ -1148,7 +1155,7 @@ function splitEscapedNumberToken(token: EscapedNumberToken, numCaptures: number)
         throw new Error(r`Octal encoded byte above 177 unsupported "${raw}"`);
       }
     } else {
-      value = m.codePointAt(0)!;
+      value = cpOf(m);
     }
     tokens.push(createCharacterToken(value, (i === 0 ? '\\' : '') + m));
   }

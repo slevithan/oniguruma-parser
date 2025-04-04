@@ -142,6 +142,15 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
+    <th rowspan="1" valign="top" align="left">
+      Callouts
+    </th>
+    <td><code>simplifyCallouts</code></td>
+    <td>Cleanup callout arguments, removing redundant commas, leading zeros, and empty braces</td>
+    <td><code>(*FAIL{,})a</code> → <code>(*FAIL)a</code></td>
+  </tr>
+
+  <tr>
     <th rowspan="4" valign="top" align="left">
       Characters
     </th>

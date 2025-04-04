@@ -7,7 +7,7 @@ describe('generate: NamedCallout', () => {
     return generate(toOnigurumaAst(pattern)).pattern;
   }
 
-  it('should support all named callout names', () => {
+  it('should support built-in named callout names', () => {
     const cases = [
       '(*FAIL)',
       '(*MISMATCH)',
@@ -23,7 +23,7 @@ describe('generate: NamedCallout', () => {
     }
   });
 
-  it('should support tag', () => {
+  it('should support named callouts with a tag', () => {
     const cases = [
       '(*FAIL[Tag])',
       '(*MISMATCH[Tag])',
@@ -39,7 +39,7 @@ describe('generate: NamedCallout', () => {
     }
   });
 
-  it('should support redundant argument syntax', () => {
+  it('should support unneeded empty arguments and redundant argument-separating commas', () => {
     const cases = [
       '(*FAIL{})',
       '(*MISMATCH{,})',
@@ -55,11 +55,12 @@ describe('generate: NamedCallout', () => {
     }
   });
 
-  // https://github.com/kkos/oniguruma/blob/master/doc/CALLOUTS.BUILTIN
-  // https://github.com/kkos/oniguruma/blob/3eb317dc4413692e4eaa92a68839c74aa74fbc77/test/test_utf8.c#L1376-L1382
-  // https://github.com/kkos/oniguruma/blob/3eb317dc4413692e4eaa92a68839c74aa74fbc77/sample/callout.c#L242-L256
-  // https://github.com/kkos/oniguruma/blob/3eb317dc4413692e4eaa92a68839c74aa74fbc77/sample/count.c#L106-L116
-  it('should support large examples', () => {
+  // See:
+  // - <github.com/kkos/oniguruma/blob/master/doc/CALLOUTS.BUILTIN>
+  // - <github.com/kkos/oniguruma/blob/3eb317dc4413692e4eaa92a68839c74aa74fbc77/test/test_utf8.c#L1376-L1382>
+  // - <github.com/kkos/oniguruma/blob/3eb317dc4413692e4eaa92a68839c74aa74fbc77/sample/callout.c#L242-L256>
+  // - <github.com/kkos/oniguruma/blob/3eb317dc4413692e4eaa92a68839c74aa74fbc77/sample/count.c#L106-L116>
+  it('should support a list of examples', () => {
     const cases = [
       '(?:(*COUNT[T]{X})a)*(?:(*MAX{T})c)*',
       '(?:(*MAX[TA]{7})a|(*MAX[TB]{5})b)*(*CMP{TA,>=,4})',
@@ -83,8 +84,8 @@ describe('generate: NamedCallout', () => {
       'abc(.(*COUNT[x]))*f',
       'a(.(*COUNT[x]))*z',
       'a(.(*TOTAL_COUNT[x]))*z',
-      // '(?(*FAIL)123|456)', // TODO: conditionals
-      // r`\A(?(*FAIL)then|else)\z`, // TODO: conditionals
+      // '(?(*FAIL)123|456)', // TODO: Conditionals
+      // r`\A(?(*FAIL)then|else)\z`, // TODO: Conditionals
     ];
     for (const input of cases) {
       expect(gen(input)).toBe(input);
@@ -94,6 +95,8 @@ describe('generate: NamedCallout', () => {
   it('should throw for invalid syntax', () => {
     const cases = [
       '(*',
+      '(*)',
+      '(*FAIL',
       '(*FAIL@)',
       '(*FAIL{1})',
       '(*MISMATCH[])',
@@ -107,6 +110,7 @@ describe('generate: NamedCallout', () => {
       '(*TOTAL_COUNT{-05})',
       '(*TOTAL_COUNT{S})',
       '(*TOTAL_COUNT{1,2})',
+      '(*CMP)',
       '(*CMP{1,==})',
       '(*CMP[tag]{1,==,3,4})',
     ];
@@ -115,7 +119,7 @@ describe('generate: NamedCallout', () => {
     }
   });
 
-  it('should throw for unsupported custom named callouts', () => {
+  it('should throw for unsupported custom callout names', () => {
     const cases = [
       '(*foo)',
       '(*foo[Tag])',

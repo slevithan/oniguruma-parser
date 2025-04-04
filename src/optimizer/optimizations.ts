@@ -6,8 +6,8 @@ import {extractPrefix2} from './transforms/extract-prefix-2.js';
 import {extractSuffix} from './transforms/extract-suffix.js';
 import {preventReDoS} from './transforms/prevent-redos.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
-import {removeUselessCalloutArguments} from './transforms/remove-useless-callout-arguments.js';
 import {removeUselessFlags} from './transforms/remove-useless-flags.js';
+import {simplifyCallouts} from './transforms/simplify-callouts.js';
 import {unnestUselessClasses} from './transforms/unnest-useless-classes.js';
 import {unwrapNegationWrappers} from './transforms/unwrap-negation-wrappers.js';
 import {unwrapUselessClasses} from './transforms/unwrap-useless-classes.js';
@@ -26,8 +26,8 @@ type OptimizationName =
   'extractSuffix' |
   'preventReDoS' |
   'removeEmptyGroups' |
-  'removeUselessCalloutArguments' |
   'removeUselessFlags' |
+  'simplifyCallouts' |
   'unnestUselessClasses' |
   'unwrapNegationWrappers' |
   'unwrapUselessClasses' |
@@ -45,8 +45,8 @@ const optimizations = new Map<OptimizationName, Visitor>([
   ['extractSuffix', extractSuffix],
   ['preventReDoS', preventReDoS],
   ['removeEmptyGroups', removeEmptyGroups],
-  ['removeUselessCalloutArguments', removeUselessCalloutArguments],
   ['removeUselessFlags', removeUselessFlags],
+  ['simplifyCallouts', simplifyCallouts],
   ['unnestUselessClasses', unnestUselessClasses],
   ['unwrapNegationWrappers', unwrapNegationWrappers],
   ['unwrapUselessClasses', unwrapUselessClasses],
