@@ -245,7 +245,9 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
       if (ref > capturingGroups.length) {
         throw new Error(`Subroutine uses a group number that's not defined`);
       }
-      capturingGroups[ref - 1].hasSubroutine = true;
+      if (ref) {
+        capturingGroups[ref - 1].hasSubroutine = true;
+      }
     } else if (!namedGroupsByName.has(ref)) {
       throw new Error(r`Subroutine uses a group name that's not defined "\g<${ref}>"`);
     } else if (namedGroupsByName.get(ref)!.length > 1) {
