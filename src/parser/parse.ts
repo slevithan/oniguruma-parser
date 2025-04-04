@@ -1,5 +1,5 @@
 import {tokenize} from '../tokenizer/tokenize.js';
-import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
+import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, NamedCalloutToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenNamedCalloutKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 // Watch out for the DOM `Node` interface!
@@ -17,6 +17,7 @@ type Node =
   FlagsNode |
   GroupNode |
   LookaroundAssertionNode |
+  NamedCalloutNode |
   PatternNode |
   QuantifierNode |
   RegexNode |
@@ -52,6 +53,7 @@ type AlternativeElementNode =
   DirectiveNode |
   GroupNode |
   LookaroundAssertionNode |
+  NamedCalloutNode |
   QuantifierNode |
   SubroutineNode;
 
@@ -99,6 +101,8 @@ type NodeDirectiveKind = TokenDirectiveKind;
 type NodeLookaroundAssertionKind =
   'lookahead' |
   'lookbehind';
+
+type NodeNamedCalloutKind = TokenNamedCalloutKind;
 
 type NodeQuantifierKind = TokenQuantifierKind;
 
@@ -190,6 +194,8 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
         return createDirective(token.kind, {flags: token.flags});
       case 'GroupOpen':
         return parseGroupOpen(token, context, state);
+      case 'NamedCallout':
+        return createNamedCallout(token.kind, /* token.name, */ token.tag, token.arguments);
       case 'Quantifier':
         return parseQuantifier(token, context);
       case 'Subroutine':
@@ -484,7 +490,8 @@ function parseQuantifier({kind, min, max}: QuantifierToken, context: Context): Q
     !quantifiedNode ||
     quantifiedNode.type === 'Assertion' ||
     quantifiedNode.type === 'Directive' ||
-    quantifiedNode.type === 'LookaroundAssertion'
+    quantifiedNode.type === 'LookaroundAssertion' ||
+    quantifiedNode.type === 'NamedCallout'
   ) {
     throw new Error(`Quantifier requires a repeatable token`);
   }
@@ -824,6 +831,23 @@ function createLookaroundAssertion(options?: {
   };
 }
 
+type NamedCalloutNode = {
+  type: 'NamedCallout';
+  kind: NodeNamedCalloutKind;
+  // name: string | null;
+  tag: string | null;
+  arguments: Array<string | number> | null;
+};
+function createNamedCallout(kind: NodeNamedCalloutKind, /* name: string | null, */ tag: string | null, args: Array<string | number> | null): NamedCalloutNode {
+  return {
+    type: 'NamedCallout',
+    kind,
+    // name,
+    tag,
+    arguments: args,
+  };
+}
+
 type PatternNode = {
   type: 'Pattern';
   alternatives: Array<AlternativeNode>;
@@ -1010,6 +1034,7 @@ export {
   createFlags,
   createGroup,
   createLookaroundAssertion,
+  createNamedCallout,
   createPattern,
   createPosixClass,
   createQuantifier,
@@ -1034,6 +1059,7 @@ export {
   type FlagsNode,
   type GroupNode,
   type LookaroundAssertionNode,
+  type NamedCalloutNode,
   type Node,
   type NodeAbsentFunctionKind,
   type NodeAssertionKind,

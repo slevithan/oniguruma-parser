@@ -1,4 +1,4 @@
-import {PosixClassNames, r, throwIfNullable} from '../utils.js';
+import {CalloutNames, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 type Token =
   AlternatorToken |
@@ -13,6 +13,7 @@ type Token =
   DirectiveToken |
   GroupCloseToken |
   GroupOpenToken |
+  NamedCalloutToken |
   QuantifierToken |
   SubroutineToken;
 
@@ -47,6 +48,17 @@ type TokenQuantifierKind =
   'greedy' |
   'lazy' |
   'possessive';
+
+type TokenNamedCalloutKind =
+  'count' |
+  'cmp' |
+  'error' |
+  'fail' |
+  'max' |
+  'mismatch' |
+  'skip' |
+  'total_count' |
+  'custom';
 
 const charClassOpenPattern = r`\[\^?`;
 const sharedEscapesPattern = `${
@@ -89,7 +101,7 @@ const tokenRe = new RegExp(r`
       | #(?:[^)\\]|\\.?)*
       | [^:)]*[:)]
     )?
-    | \*
+    | \*[^\)]*\)?
   )?
   | ${quantifierRe.source}
   | ${charClassOpenPattern}
@@ -273,8 +285,10 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
   }
 
   if (m0 === '(') {
-    if (m === '(*') {
-      throw new Error(`Unsupported named callout "${m}"`);
+    if (m1 === '*') {
+      return {
+        token: tokenizeNamedCallout(m),
+      };
     }
     if (m === '(?{') {
       throw new Error(`Unsupported callout "${m}"`);
@@ -755,6 +769,25 @@ function createGroupOpenToken(
   };
 }
 
+type NamedCalloutToken = {
+  type: 'NamedCallout';
+  kind: TokenNamedCalloutKind;
+  // name: string | null;
+  tag: string | null;
+  arguments: Array<string | number> | null;
+  raw: string;
+};
+function createNamedCalloutToken(kind: TokenNamedCalloutKind, /* name: string | null, */ tag: string | null, args: Array<string | number> | null, raw: string): NamedCalloutToken {
+  return {
+    type: 'NamedCallout',
+    // name,
+    kind,
+    tag,
+    arguments: args,
+    raw,
+  };
+};
+
 type QuantifierToken = {
   type: 'Quantifier';
   kind: TokenQuantifierKind;
@@ -871,6 +904,92 @@ function tokenizeFlagModifier(raw: string, context: Context): DirectiveToken | G
     });
   }
   throw new Error(`Unexpected flag modifier "${raw}"`);
+}
+
+function tokenizeNamedCallout(raw: string): NamedCalloutToken {
+  const namedCallout = /\(\*(?<name>[A-Za-z_]\w*)?(?:\[(?<tag>(?:[A-Za-z_]\w*)?)\])?(?:\{(?<args>[^}]*)\})?\)/.exec(raw);
+  if (!namedCallout) {
+    throw new Error(`Invalid named callout syntax "${raw}"`);
+  }
+  const {name, tag, args} = namedCallout.groups as Partial<{
+    name: string;
+    tag: string;
+    args: string;
+  }>;
+  if (!name) {
+    throw new Error(`Invalid callout name "${raw}"`);
+  }
+  if (tag === '') {
+    throw new Error(`Named callout tag with empty value not allowed "${raw}"`);
+  }
+  const argumentsArray: Array<string | number> =
+    args ?
+      args.split(',').
+        // oniguruma skips over/ignores redundant/unnecessary commas
+        filter((argument) => argument !== '').
+        map((argument) => /^[+-]?\d+$/.test(argument) ? +argument : argument) :
+      [];
+  const argument0 = argumentsArray[0];
+  const argument1 = argumentsArray[1];
+  const argument2 = argumentsArray[2];
+  const kind: TokenNamedCalloutKind = CalloutNames.has(name as Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>) ? name.toLowerCase() as TokenNamedCalloutKind : 'custom';
+  switch (kind) {
+    case 'fail':
+    case 'mismatch':
+    case 'skip':
+      if (argumentsArray.length > 0) {
+        throw new Error(`Named callout arguments not allowed "${argumentsArray}"`);
+      }
+      break;
+    case 'error':
+      if (argumentsArray.length > 1) {
+        throw new Error(`Named callout allows only one argument "${argumentsArray}"`);
+      }
+      if (typeof argument0 === 'string') {
+        throw new Error(`Named callout argument must be a number "${argument0}"`);
+      }
+      break;
+    case 'max':
+      if (!argumentsArray.length || argumentsArray.length > 2) {
+        throw new Error(`Named callout must have one or two arguments "${argumentsArray}"`);
+      }
+      if (typeof argument0 === 'string' && !/^[A-Za-z_]\w*$/.test(argument0)) {
+        throw new Error(`Named callout argument one must be a tag or number "${argument0}"`);
+      }
+      if (argumentsArray.length === 2 && (typeof argument1 === 'number' || !/^[<>X]$/.test(argument1))) {
+        throw new Error(`Named callout optional argument two must be '<', '>' or 'X' "${argument1}"`);
+      }
+      break;
+    case 'count':
+    case 'total_count':
+      if (argumentsArray.length > 1) {
+        throw new Error(`Named callout allows only one argument "${argumentsArray}"`);
+      }
+      if (argumentsArray.length === 1 && (typeof argument0 === 'number' || !/^[<>X]$/.test(argument0))) {
+        throw new Error(`Named callout optional argument must be '<', '>' or 'X' "${argument0}"`);
+      }
+      break;
+    case 'cmp':
+      if (argumentsArray.length !== 3) {
+        throw new Error(`Named callout must have three arguments "${argumentsArray}"`);
+      }
+      if (typeof argument0 === 'string' && !/^[A-Za-z_]\w*$/.test(argument0)) {
+        throw new Error(`Named callout argument one must be a tag or number "${argument0}"`);
+      }
+      if (typeof argument1 === 'number' || !/^(?:[<>!=]=|[<>])$/.test(argument1)) {
+        throw new Error(`Named callout argument two must be '==', '!=', '>', '<', '>=' or '<=' "${argument1}"`);
+      }
+      if (typeof argument2 === 'string' && !/^[A-Za-z_]\w*$/.test(argument2)) {
+        throw new Error(`Named callout argument three must be a tag or number "${argument2}"`);
+      }
+      break;
+    case 'custom':
+      // TODO: Maybe allow custom named user Callouts in the future :tm:
+      throw new Error(`Unsupported callout name "${name}"`);
+    default:
+      throw new Error(`Unexpected callout kind "${kind}"`);
+  }
+  return createNamedCalloutToken(kind, /* kind === 'custom' ? name : null, */ tag ?? null, args?.split(',') ?? null, raw);
 }
 
 function tokenizeQuantifier(raw: string): QuantifierToken {
@@ -1052,10 +1171,12 @@ export {
   type FlagProperties,
   type GroupCloseToken,
   type GroupOpenToken,
+  type NamedCalloutToken,
   type QuantifierToken,
   type SubroutineToken,
   type Token,
   type TokenCharacterSetKind,
   type TokenDirectiveKind,
+  type TokenNamedCalloutKind,
   type TokenQuantifierKind,
 };

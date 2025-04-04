@@ -1,5 +1,18 @@
+import type {TokenNamedCalloutKind} from "./tokenizer/tokenize.js";
+
 const cp = String.fromCodePoint;
 const r = String.raw;
+
+const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>>([
+  'COUNT',
+  'CMP',
+  'ERROR',
+  'FAIL',
+  'MAX',
+  'MISMATCH',
+  'SKIP',
+  'TOTAL_COUNT',
+]);
 
 const PosixClassNames = new Set([
   'alnum',
@@ -33,6 +46,7 @@ function throwIfNullable<Value>(value: Value, msg?: string): NonNullable<Value> 
 }
 
 export {
+  CalloutNames,
   cp,
   getOrInsert,
   PosixClassNames,

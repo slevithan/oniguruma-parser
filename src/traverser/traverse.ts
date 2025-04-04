@@ -121,6 +121,7 @@ function traverse<State = null>(ast: OnigurumaAst, visitor: Visitor<State>, stat
         case 'CharacterSet':
         case 'Directive':
         case 'Flags':
+        case 'NamedCallout':
         // @ts-expect-error TODO: Remove `Recursion`; see <github.com/slevithan/oniguruma-parser/issues/3>
         case 'Recursion':
         case 'Subroutine':
