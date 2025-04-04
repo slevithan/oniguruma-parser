@@ -1,4 +1,4 @@
-import {traverse} from "../dist/traverser/traverse.js";
+import {traverse} from "../../dist/traverser/traverse.js";
 
 function singleAltAst(elements) {
   return {

@@ -1,7 +1,7 @@
-import {toOnigurumaAst} from '../dist/index.js';
-import {createCharacter} from '../dist/parser/parse.js';
-import {cpOf} from '../dist/utils.js';
-import {singleAltAst, traversed} from './utils.js';
+import {toOnigurumaAst} from '../../dist/index.js';
+import {createCharacter} from '../../dist/parser/parse.js';
+import {cpOf} from '../../dist/utils.js';
+import {singleAltAst, traversed} from '../support/spec-utils.js';
 
 describe('Traverser', () => {
   describe('traverse', () => {

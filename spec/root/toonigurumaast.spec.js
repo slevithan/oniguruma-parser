@@ -1,5 +1,5 @@
-import {toOnigurumaAst} from '../dist/index.js';
-import {singleAltAst} from './utils.js';
+import {toOnigurumaAst} from '../../dist/index.js';
+import {singleAltAst} from '../support/spec-utils.js';
 
 describe('toOnigurumaAst', () => {
   it('should throw for non-string patterns', () => {
