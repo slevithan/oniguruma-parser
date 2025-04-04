@@ -176,11 +176,13 @@ In this library, incomplete `\u` is always an error.
 <details>
   <summary>Invalid standalone encoded bytes <code>\x80</code> to <code>\xFF</code></summary>
 
-> **Context:** Unlike enclosed `\x{HH}` which matches a code point, unenclosed `\xHH` represents an encoded byte in Oniguruma (unlike in other regex flavors), which means that `\x80` to `\xFF` are treated as fragments of a code unit. Ex: `[\0-\xE2\x82\xAC]` is equivalent to `[\0-\u20AC]`.
+> **Context:** Unlike `\uHHHH` and enclosed `\x{H…}` (which match code points), Oniguruma's unenclosed `\xHH` represents an encoded byte, which means that, unlike in other regex flavors, `\x80` to `\xFF` are treated as fragments of a code unit. Ex: `[\0-\xE2\x82\xAC]` is equivalent to `[\0-\u20AC]`.
 
-In this library, invalid encoded byte sequences always throw an error.
+Invalid standalone encoded bytes should throw an error, but several related bugs are present in Oniguruma 6.9.10 and earlier ([report](https://github.com/kkos/oniguruma/issues/345)).
 
-Several bugs related to standalone encoded bytes are present in Oniguruma 6.9.10 and earlier ([report](https://github.com/kkos/oniguruma/issues/345)). Following are the behavior details when these bugs are present:
+In this library, they always throw an error.
+
+Behavior details in Oniguruma:
 
 - Standalone `\x80` to `\xF4` throw an error.
 - Standalone `\xF5` to `\xFF` fail to match anything, but don't throw. *This is a bug.*
