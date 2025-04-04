@@ -195,7 +195,7 @@ function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
       case 'GroupOpen':
         return parseGroupOpen(token, context, state);
       case 'NamedCallout':
-        return createNamedCallout(token.kind, token.name, token.tag, token.arguments);
+        return createNamedCallout(token.kind, /* token.name, */ token.tag, token.arguments);
       case 'Quantifier':
         return parseQuantifier(token, context);
       case 'Subroutine':
@@ -834,15 +834,15 @@ function createLookaroundAssertion(options?: {
 type NamedCalloutNode = {
   type: 'NamedCallout';
   kind: NodeNamedCalloutKind;
-  name: string;
+  // name: string | null;
   tag: string | null;
   arguments: Array<string | number> | null;
 };
-function createNamedCallout(kind: NodeNamedCalloutKind, name: string, tag: string | null, args: Array<string | number> | null): NamedCalloutNode {
+function createNamedCallout(kind: NodeNamedCalloutKind, /* name: string | null, */ tag: string | null, args: Array<string | number> | null): NamedCalloutNode {
   return {
     type: 'NamedCallout',
     kind,
-    name,
+    // name,
     tag,
     arguments: args,
   };

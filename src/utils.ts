@@ -3,7 +3,7 @@ import type {TokenNamedCalloutKind} from "./tokenizer/tokenize.js";
 const cp = String.fromCodePoint;
 const r = String.raw;
 
-const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'unknown'>>>([
+const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>>([
   'COUNT',
   'CMP',
   'ERROR',

@@ -17,7 +17,6 @@ describe('generate: NamedCallout', () => {
       '(*COUNT)',
       '(*TOTAL_COUNT)',
       '(*CMP{5,>=,4})',
-      '(*foo)', // custom callout name
     ];
     for (const input of cases) {
       expect(gen(input)).toBe(input);
@@ -34,7 +33,6 @@ describe('generate: NamedCallout', () => {
       '(*COUNT[Tag])',
       '(*TOTAL_COUNT[Tag])',
       '(*CMP[Tag]{5,>=,4})',
-      '(*foo[Tag])',
     ];
     for (const input of cases) {
       expect(gen(input)).toBe(input);
@@ -51,7 +49,6 @@ describe('generate: NamedCallout', () => {
       '(*COUNT{,,2})',
       '(*TOTAL_COUNT{,,3,,})',
       '(*CMP{,1,,==,,,3,,,,})',
-      '(*foo{,1,@,A,,,anything,[]})',
     ];
     for (const input of cases) {
       expect(gen(input)).toBe(input);
@@ -68,14 +65,10 @@ describe('generate: NamedCallout', () => {
       '(?:(*MAX[TA]{7})a|(*MAX[TB]{5})b)*(*CMP{TA,>=,4})',
       '(?:[ab]|(*MAX{2}).)*',
       '(?:(*COUNT[AB]{X})[ab]|(*COUNT[CD]{X})[cd])*(*CMP{AB,<,CD})',
-      r`\A(*foo)abc`,
       'abc(?:(*FAIL)|$)',
       'abc(?:$|(*MISMATCH)|abc$)',
       'abc(?:(*ERROR)|$)',
-      'ab(*foo{})(*FAIL)',
       'abc(d|(*ERROR{-999}))',
-      `ab(*bar{372,I am a bar's argument,あ})c(*FAIL)`,
-      'ab(*bar{1234567890})',
       '(?:a(*MAX{2})|b)*',
       '(?:(*MAX{2})a|b)*',
       '(?:(*MAX{1})a|b)*',
@@ -114,6 +107,21 @@ describe('generate: NamedCallout', () => {
       '(*TOTAL_COUNT{1,2})',
       '(*CMP{1,==})',
       '(*CMP[tag]{1,==,3,4})',
+    ];
+    for (const input of cases) {
+      expect(() => gen(input)).toThrow();
+    }
+  });
+
+  it('should throw for unsupported custom named callouts', () => {
+    const cases = [
+      '(*foo)',
+      '(*foo[Tag])',
+      '(*foo{,1,@,A,,,anything,[]})',
+      'ab(*foo{})(*FAIL)',
+      r`\A(*foo)abc`,
+      `ab(*bar{372,I am a bar's argument,あ})c(*FAIL)`,
+      'ab(*bar{1234567890})',
     ];
     for (const input of cases) {
       expect(() => gen(input)).toThrow();

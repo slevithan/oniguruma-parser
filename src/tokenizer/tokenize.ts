@@ -50,7 +50,7 @@ type TokenQuantifierKind =
   'possessive';
 
 type TokenNamedCalloutKind =
-  'unknown' |
+  'custom' |
   'count' |
   'cmp' |
   'error' |
@@ -772,15 +772,15 @@ function createGroupOpenToken(
 type NamedCalloutToken = {
   type: 'NamedCallout';
   kind: TokenNamedCalloutKind;
-  name: string;
+  // name: string | null;
   tag: string | null;
   arguments: Array<string | number> | null;
   raw: string;
 };
-function createNamedCalloutToken(kind: TokenNamedCalloutKind, name: string, tag: string | null, args: Array<string | number> | null, raw: string): NamedCalloutToken {
+function createNamedCalloutToken(kind: TokenNamedCalloutKind, /* name: string | null, */ tag: string | null, args: Array<string | number> | null, raw: string): NamedCalloutToken {
   return {
     type: 'NamedCallout',
-    name,
+    // name,
     kind,
     tag,
     arguments: args,
@@ -922,7 +922,6 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
   if (tag === '') {
     throw new Error(`Named callout tag with empty value not allowed "${raw}"`);
   }
-  const kind: TokenNamedCalloutKind = CalloutNames.has(name as Uppercase<Exclude<TokenNamedCalloutKind, 'unknown'>>) ? name.toLowerCase() as TokenNamedCalloutKind : 'unknown';
   const argumentsArray: Array<string | number> =
     args ?
       args.split(',').
@@ -933,24 +932,24 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
   const argument0 = argumentsArray[0];
   const argument1 = argumentsArray[1];
   const argument2 = argumentsArray[2];
-  switch (name) {
-    case 'FAIL':
-    case 'MISMATCH':
-    case 'SKIP':
+  const kind: TokenNamedCalloutKind = CalloutNames.has(name as Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>) ? name.toLowerCase() as TokenNamedCalloutKind : 'custom';
+  switch (kind) {
+    case 'fail':
+    case 'mismatch':
+    case 'skip':
       if (argumentsArray.length > 0) {
         throw new Error(`Named callout arguments not allowed "${argumentsArray}"`);
       }
       break;
-    case 'ERROR': {
+    case 'error':
       if (argumentsArray.length > 1) {
         throw new Error(`Named callout allows only one argument "${argumentsArray}"`);
       }
       if (typeof argument0 === 'string') {
         throw new Error(`Named callout argument must be a number "${argument0}"`);
       }
-    }
       break;
-    case 'MAX':
+    case 'max':
       if (!argumentsArray.length || argumentsArray.length > 2) {
         throw new Error(`Named callout must have one or two arguments "${argumentsArray}"`);
       }
@@ -961,8 +960,8 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
         throw new Error(`Named callout optional argument two must be a '<', '>', 'X' or a number "${argument1}"`);
       }
       break;
-    case 'COUNT':
-    case 'TOTAL_COUNT':
+    case 'count':
+    case 'total_count':
       if (argumentsArray.length > 1) {
         throw new Error(`Named callout allows only one argument "${argumentsArray}"`);
       }
@@ -970,7 +969,7 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
         throw new Error(`Named callout optional argument must be '<', '>', 'X' or a number "${argument0}"`);
       }
       break;
-    case 'CMP':
+    case 'cmp':
       if (argumentsArray.length !== 3) {
         throw new Error(`Named callout must have three arguments "${argumentsArray}"`);
       }
@@ -984,11 +983,13 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
         throw new Error(`Named callout argument three must be a tag or number "${argument2}"`);
       }
       break;
-    default: // custom callout name
-      break;
+    case 'custom':
+      // TODO: Maybe allow custom named user Callouts in the future :tm:
+      throw new Error(`Unsupported callout name "${name}"`);
+    default:
+      throw new Error(`Unexpected callout kind "${kind}"`);
   }
-
-  return createNamedCalloutToken(kind, name, tag ?? null, args?.split(',') ?? null, raw);
+  return createNamedCalloutToken(kind, /* kind === 'custom' ? name : null, */ tag ?? null, args?.split(',') ?? null, raw);
 }
 
 function tokenizeQuantifier(raw: string): QuantifierToken {
