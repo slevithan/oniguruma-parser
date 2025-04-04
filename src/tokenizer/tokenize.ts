@@ -954,10 +954,10 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
         throw new Error(`Named callout must have one or two arguments "${argumentsArray}"`);
       }
       if (typeof argument0 === 'string' && !/^[A-Za-z_]\w*$/.test(argument0)) {
-        throw new Error(`Named callout argument one must be a number or tag "${argument0}"`);
+        throw new Error(`Named callout argument one must be a tag or number "${argument0}"`);
       }
-      if (argumentsArray.length === 2 && typeof argument1 === 'string' && !/^[<>X]$/.test(argument1)) {
-        throw new Error(`Named callout optional argument two must be a '<', '>', 'X' or a number "${argument1}"`);
+      if (argumentsArray.length === 2 && (typeof argument1 === 'number' || !/^[<>X]$/.test(argument1))) {
+        throw new Error(`Named callout optional argument two must be '<', '>' or 'X' "${argument1}"`);
       }
       break;
     case 'count':
@@ -965,8 +965,8 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
       if (argumentsArray.length > 1) {
         throw new Error(`Named callout allows only one argument "${argumentsArray}"`);
       }
-      if (argumentsArray.length === 1 && typeof argument0 === 'string' && !/^[<>X]$/.test(argument0)) {
-        throw new Error(`Named callout optional argument must be '<', '>', 'X' or a number "${argument0}"`);
+      if (argumentsArray.length === 1 && (typeof argument0 === 'number' || !/^[<>X]$/.test(argument0))) {
+        throw new Error(`Named callout optional argument must be '<', '>' or 'X' "${argument0}"`);
       }
       break;
     case 'cmp':

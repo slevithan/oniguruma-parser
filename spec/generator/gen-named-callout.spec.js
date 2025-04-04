@@ -46,8 +46,8 @@ describe('generate: NamedCallout', () => {
       '(*SKIP{,,})',
       '(*ERROR{,,,})',
       '(*MAX{1,,})',
-      '(*COUNT{,,2})',
-      '(*TOTAL_COUNT{,,3,,})',
+      '(*COUNT{,,X})',
+      '(*TOTAL_COUNT{,,<,,})',
       '(*CMP{,1,,==,,,3,,,,})',
     ];
     for (const input of cases) {
@@ -103,6 +103,8 @@ describe('generate: NamedCallout', () => {
       '(*MAX)',
       '(*MAX{1,X,3})',
       '(*COUNT[0])',
+      '(*COUNT{1})',
+      '(*TOTAL_COUNT{-05})',
       '(*TOTAL_COUNT{S})',
       '(*TOTAL_COUNT{1,2})',
       '(*CMP{1,==})',
