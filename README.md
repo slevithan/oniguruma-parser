@@ -4,9 +4,12 @@
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![bundle][bundle-src]][bundle-href]
 
-`oniguruma-parser` is a TypeScript library for parsing, validating, traversing, transforming, and optimizing [Oniguruma](https://github.com/kkos/oniguruma) regular expressions. It's been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which are used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
+`oniguruma-parser` is a TypeScript library for parsing, validating, traversing, transforming, and optimizing [Oniguruma](https://github.com/kkos/oniguruma) regular expressions.
 
+> [!NOTE]
 > Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, etc.), and many other tools.
+
+This library has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which are used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
 
 ## Contents
 
@@ -72,7 +75,7 @@ See details and examples in the [traverser module's readme](https://github.com/s
 
 ## Optimize regexes
 
-This library includes one of the few implementations (for any regex flavor) of a "regex optimizer" that can minify and improve the performance and readability of regexes prior to use. Such transformations must be specific to a particular regex flavor in order to be accurate, and `oniguruma-parser`'s [optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md) is of course built for Oniguruma regexes.
+This library includes one of the few implementations (for any regex flavor) of a "regex optimizer" that can minify and improve the performance and readability of regexes prior to use.
 
 Example:
 
@@ -87,6 +90,8 @@ Becomes:
 ```
 
 Optimized regexes always match exactly the same strings.
+
+See more details and examples in the [optimizer module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md).
 
 > [!TIP]
 > 👉 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
@@ -135,7 +140,7 @@ The following don't yet throw errors, but should:
 
 Although any number of digits are supported for enclosed `\k<…>`/`\k'…'` backreferences (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently support only up to three digits (`\999`). In other words, `\1000` is handled as `\100` followed by `0` even if 1,000+ captures appear to the left.
 
-Note that, although Oniguruma theoretically supports `\1000` and higher when as many capturing groups appear to the left, Oniguruma regexes with more than 999 captures never actually work. They fail to match anything, with no error, due to an apparent bug. Tested in Oniguruma 6.9.8 via `vscode-oniguruma`.
+> **Note:** An apparent bug in `vscode-oniguruma` (v2.0.1 tested) prevents any regex with more than 999 captures from working. They fail to match anything, with no error.
 
 #### Erroring on patterns that trigger Oniguruma bugs
 

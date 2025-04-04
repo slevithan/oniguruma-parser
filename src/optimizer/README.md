@@ -1,7 +1,8 @@
-# `oniguruma-parser`: Optimizer module
+# Optimizer module: `oniguruma-parser/optimizer`
 
 The optimizer transforms [Oniguruma](https://github.com/kkos/oniguruma) patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match exactly the same strings and include exactly the same subpattern matches.
 
+> [!NOTE]
 > Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, etc.), and many other tools.
 
 Example:
@@ -26,9 +27,9 @@ The optimizer has been battle-tested by [`tm-grammars`](https://github.com/shiki
 - [Benefits](#benefits)
 - [Install and use](#install-and-use)
 - [Type definition](#type-definition)
-- [Flags](#flags)
 - [Optimizations](#optimizations)
 - [How performance optimizations work](#how-performance-optimizations-work)
+- [Flags](#flags)
 - [Disable specific optimizations](#disable-specific-optimizations)
 - [Enable only specific, optional optimizations](#enable-only-specific-optional-optimizations)
 - [Contributing](#contributing)
@@ -73,10 +74,6 @@ function optimize(
   flags: string;
 };
 ```
-
-## Flags
-
-Although the optimizer takes provided flags into account and includes a `flags` property on the returned object, it never changes top-level flags in ways that would change the meaning of the regex if you didn't provide the updated flags to Oniguruma. As a result, the optimized pattern can be used in situations when you aren't able to change flags. For example, the optimizer removes `x` from the returned flags (since its effects are always applied), but it doesn't add flags.
 
 ## Optimizations
 
@@ -290,7 +287,11 @@ Sometimes, performance improvements result from a combination of transformations
 
 This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. Note that, although the `extractSuffix` transform doesn't typically impact performance on its own, its change helped enable removing alternation in the subsequent step, which reduces backtracking and can have a direct performance impact (in some cases, it can even eliminate ReDoS).
 
-A real world example of performance improvements comes from [Better C++](https://github.com/jeff-hykin/better-cpp-syntax), a large collection of complex Oniguruma regexes used for highlighting C++ code in VS Code, Shiki, and other tools. Despite having gone through multiple rounds of performance hand-tuning over the years (and not including any known cases of catastophic backtracking), running its regexes through this library resulted in a ~30% improvement in syntax highlighting performance. And this improvement isn't specific to Oniguruma. Using [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) to transpile the regexes (before and after optimization) to native JavaScript `RegExp`s showed a comparable ~30% performance boost for native JavaScript regex engines.
+A real world example of performance improvements comes from [Better C++](https://github.com/jeff-hykin/better-cpp-syntax), which includes a large collection of complex Oniguruma regexes used for highlighting C++ code in VS Code, Shiki, and other tools. Despite having gone through multiple rounds of performance hand-tuning over the years (and not including any known cases of catastophic backtracking), running its regexes through this library resulted in a ~30% improvement in syntax highlighting performance. And this improvement wasn't specific to Oniguruma. Using [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) to transpile the regexes (before and after optimization) to native JavaScript `RegExp`s showed a comparable ~30% performance boost for native JavaScript regex engines.
+
+## Flags
+
+Although the optimizer takes provided flags into account and includes a `flags` property on the returned object, it never changes top-level flags in ways that would change the meaning of the regex if you didn't provide the updated flags to Oniguruma. As a result, the optimized pattern can be used in situations when you aren't able to change flags. For example, the optimizer removes `x` from the returned flags (since its effects are always applied), but it doesn't add flags.
 
 ## Disable specific optimizations
 
@@ -323,16 +324,14 @@ const optimized = optimize(pattern, {
 
 ## Contributing
 
-See this library's [contributing guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md).
+Contributions are welcome! In addition to reviewing this library's [contributing guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md), use the following steps to add a new optimization transform:
 
-Adding new optimization transforms is straightforward:
-
-- Add your optimization in a new file, e.g. `src/optimizer/transforms/foo.js`.
-- Import and list it in `src/optimizer/optimizations.js`.
+- Add your optimization in a new file, e.g. `src/optimizer/transforms/foo.ts`.
+- Import and list it in `src/optimizer/optimizations.ts`.
 - Add tests in `spec/optimizer/foo.spec.js`; run them via `pnpm test`.
 - List it in this readme file with a simple example.
 
-You don’t need to do too much in one optimization, since optimizations can compliment each other. Ideas for new optimizations are listed [here](https://github.com/slevithan/oniguruma-parser/issues/7).
+You don’t need to do too much in one optimization, since optimizations can compliment each other. Ideas for new optimizations are collected [here](https://github.com/slevithan/oniguruma-parser/issues/7).
 
 ## About
 

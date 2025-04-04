@@ -1,4 +1,4 @@
-# `oniguruma-parser`: Code generator module
+# Code generator module: `oniguruma-parser/generator`
 
 Generates an Oniguruma pattern and flags from an AST.
 
