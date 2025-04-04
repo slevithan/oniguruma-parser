@@ -237,7 +237,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
 
   NamedCallout(node: Node): string {
     const {name, tag, arguments: args} = node as NamedCalloutNode;
-    return `(*${name}${tag ? `[${tag}]` : ''}${typeof args === 'string' ? `{${args}}` : ''})`;
+    return `(*${name}${tag ? `[${tag}]` : ''}${Array.isArray(args) ? `{${args.join(',')}}` : ''})`;
   },
 
   Pattern(node: Node, _: State, gen: Gen): string {

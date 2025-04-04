@@ -774,10 +774,10 @@ type NamedCalloutToken = {
   kind: TokenNamedCalloutKind;
   name: string;
   tag: string | null;
-  arguments: string | null;
+  arguments: Array<string | number> | null;
   raw: string;
 };
-function createNamedCalloutToken(kind: TokenNamedCalloutKind, name: string, tag: string | null, args: string | null, raw: string): NamedCalloutToken {
+function createNamedCalloutToken(kind: TokenNamedCalloutKind, name: string, tag: string | null, args: Array<string | number> | null, raw: string): NamedCalloutToken {
   return {
     type: 'NamedCallout',
     name,
@@ -923,7 +923,72 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
     throw new Error(`Named callout tag with empty value not allowed "${raw}"`);
   }
   const kind: TokenNamedCalloutKind = CalloutNames.has(name as Uppercase<Exclude<TokenNamedCalloutKind, 'unknown'>>) ? name.toLowerCase() as TokenNamedCalloutKind : 'unknown';
-  return createNamedCalloutToken(kind, name, tag ?? null, args ?? null, raw);
+  const argumentsArray: Array<string | number> =
+    args ?
+      args.split(',').
+        // oniguruma skips over/ignores redundant/unnecessary commas
+        filter((argument) => argument !== '').
+        map((argument) => /^[+-]?\d+$/.test(argument) ? +argument : argument) :
+      [];
+  const argument0 = argumentsArray[0];
+  const argument1 = argumentsArray[1];
+  const argument2 = argumentsArray[2];
+  switch (name) {
+    case 'FAIL':
+    case 'MISMATCH':
+    case 'SKIP':
+      if (argumentsArray.length > 0) {
+        throw new Error(`Named callout arguments not allowed "${argumentsArray}"`);
+      }
+      break;
+    case 'ERROR': {
+      if (argumentsArray.length > 1) {
+        throw new Error(`Named callout allows only one argument "${argumentsArray}"`);
+      }
+      if (typeof argument0 === 'string') {
+        throw new Error(`Named callout argument must be a number "${argument0}"`);
+      }
+    }
+      break;
+    case 'MAX':
+      if (!argumentsArray.length || argumentsArray.length > 2) {
+        throw new Error(`Named callout must have one or two arguments "${argumentsArray}"`);
+      }
+      if (typeof argument0 === 'string' && !/^[A-Za-z_]\w*$/.test(argument0)) {
+        throw new Error(`Named callout argument one must be a number or tag "${argument0}"`);
+      }
+      if (argumentsArray.length === 2 && typeof argument1 === 'string' && !/^[<>X]$/.test(argument1)) {
+        throw new Error(`Named callout optional argument two must be a '<', '>', 'X' or a number "${argument1}"`);
+      }
+      break;
+    case 'COUNT':
+    case 'TOTAL_COUNT':
+      if (argumentsArray.length > 1) {
+        throw new Error(`Named callout allows only one argument "${argumentsArray}"`);
+      }
+      if (argumentsArray.length === 1 && typeof argument0 === 'string' && !/^[<>X]$/.test(argument0)) {
+        throw new Error(`Named callout optional argument must be '<', '>', 'X' or a number "${argument0}"`);
+      }
+      break;
+    case 'CMP':
+      if (argumentsArray.length !== 3) {
+        throw new Error(`Named callout must have three arguments "${argumentsArray}"`);
+      }
+      if (typeof argument0 === 'string' && !/^[A-Za-z_]\w*$/.test(argument0)) {
+        throw new Error(`Named callout argument one must be a tag or number "${argument0}"`);
+      }
+      if (typeof argument1 === 'number' || !/^(?:[<>!=]=|[<>])$/.test(argument1)) {
+        throw new Error(`Named callout argument two must be '==', '!=', '>', '<', '>=' or '<=' "${argument1}"`);
+      }
+      if (typeof argument2 === 'string' && !/^[A-Za-z_]\w*$/.test(argument2)) {
+        throw new Error(`Named callout argument three must be a tag or number "${argument2}"`);
+      }
+      break;
+    default: // custom callout name
+      break;
+  }
+
+  return createNamedCalloutToken(kind, name, tag ?? null, args?.split(',') ?? null, raw);
 }
 
 function tokenizeQuantifier(raw: string): QuantifierToken {
