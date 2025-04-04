@@ -2,7 +2,7 @@ import {createCharacter, createQuantifier, parse} from '../../dist/parser/parse.
 import {cpOf, r} from '../../dist/utils.js';
 import {singleAltAst} from '../support/spec-utils.js';
 
-describe('parse: Quantifier', () => {
+describe('Parser: Quantifier', () => {
   function star(element) {
     return createQuantifier('greedy', 0, Infinity, element);
   }

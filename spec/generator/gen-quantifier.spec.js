@@ -1,7 +1,7 @@
 import {toOnigurumaAst} from '../../dist/index.js';
 import {generate} from '../../dist/generator/generate.js';
 
-describe('generate: Quantifier', () => {
+describe('Generator: Quantifier', () => {
   function gen(pattern) {
     return generate(toOnigurumaAst(pattern)).pattern;
   }

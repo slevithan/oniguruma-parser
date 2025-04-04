@@ -2,7 +2,7 @@ import {toOnigurumaAst} from '../../dist/index.js';
 import {generate} from '../../dist/generator/generate.js';
 import {r} from '../../dist/utils.js';
 
-describe('generate: NamedCallout', () => {
+describe('Generator: NamedCallout', () => {
   function gen(pattern) {
     return generate(toOnigurumaAst(pattern)).pattern;
   }
@@ -23,7 +23,7 @@ describe('generate: NamedCallout', () => {
     }
   });
 
-  it('should support named callouts with a tag', () => {
+  it('should support tags', () => {
     const cases = [
       '(*FAIL[Tag])',
       '(*MISMATCH[Tag])',
@@ -119,7 +119,7 @@ describe('generate: NamedCallout', () => {
     }
   });
 
-  it('should throw for unsupported custom callout names', () => {
+  it('should throw for undefined custom callout names', () => {
     const cases = [
       '(*foo)',
       '(*foo[Tag])',
