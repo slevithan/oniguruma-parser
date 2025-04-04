@@ -127,22 +127,4 @@ describe('generate: NamedCallout', () => {
       expect(() => gen(input)).toThrow();
     }
   });
-
-  // TODO: empty arguments can be optimized out. move to ./optimizer
-  xit('should optimize arguments. oniguruma skips over/ignores redundant/unnecessary commas', () => {
-    const cases = [
-      ['(*FAIL{})', '(*FAIL)'],
-      ['(*MISMATCH{,})', '(*MISMATCH)'],
-      ['(*SKIP{,,})', '(*SKIP)'],
-      ['(*ERROR{,,,})', '(*ERROR)'],
-      ['(*MAX{1,,})', '(*MAX{1})'],
-      ['(*COUNT{,,2})', '(*COUNT{2})'],
-      ['(*TOTAL_COUNT{,,3,,})', '(*TOTAL_COUNT{3})'],
-      ['(*CMP{,T,,==,,,5,,,,})', '(*CMP{T,==,5})'],
-    ];
-    for (const [input, expected] of cases) {
-      expect(gen(input)).toBe(expected);
-    }
-  });
-
 });

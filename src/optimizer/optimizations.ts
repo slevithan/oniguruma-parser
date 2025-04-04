@@ -6,6 +6,7 @@ import {extractPrefix2} from './transforms/extract-prefix-2.js';
 import {extractSuffix} from './transforms/extract-suffix.js';
 import {preventReDoS} from './transforms/prevent-redos.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
+import {removeUselessCalloutArguments} from './transforms/remove-useless-callout-arguments.js';
 import {removeUselessFlags} from './transforms/remove-useless-flags.js';
 import {unnestUselessClasses} from './transforms/unnest-useless-classes.js';
 import {unwrapNegationWrappers} from './transforms/unwrap-negation-wrappers.js';
@@ -25,6 +26,7 @@ type OptimizationName =
   'extractSuffix' |
   'preventReDoS' |
   'removeEmptyGroups' |
+  'removeUselessCalloutArguments' |
   'removeUselessFlags' |
   'unnestUselessClasses' |
   'unwrapNegationWrappers' |
@@ -43,6 +45,7 @@ const optimizations = new Map<OptimizationName, Visitor>([
   ['extractSuffix', extractSuffix],
   ['preventReDoS', preventReDoS],
   ['removeEmptyGroups', removeEmptyGroups],
+  ['removeUselessCalloutArguments', removeUselessCalloutArguments],
   ['removeUselessFlags', removeUselessFlags],
   ['unnestUselessClasses', unnestUselessClasses],
   ['unwrapNegationWrappers', unwrapNegationWrappers],
