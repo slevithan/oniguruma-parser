@@ -4,14 +4,14 @@ const cp = String.fromCodePoint;
 const r = String.raw;
 
 const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'unknown'>>>([
+  'COUNT',
+  'CMP',
+  'ERROR',
   'FAIL',
+  'MAX',
   'MISMATCH',
   'SKIP',
-  'ERROR',
-  'MAX',
-  'COUNT',
   'TOTAL_COUNT',
-  'CMP',
 ]);
 
 const PosixClassNames = new Set([

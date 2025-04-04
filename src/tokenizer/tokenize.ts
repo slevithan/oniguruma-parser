@@ -50,15 +50,15 @@ type TokenQuantifierKind =
   'possessive';
 
 type TokenNamedCalloutKind =
+  'unknown' |
+  'count' |
+  'cmp' |
+  'error' |
   'fail' |
+  'max' |
   'mismatch' |
   'skip' |
-  'error' |
-  'max' |
-  'count' |
-  'total_count' |
-  'cmp' |
-  'unknown';
+  'total_count';
 
 const charClassOpenPattern = r`\[\^?`;
 const sharedEscapesPattern = `${
@@ -774,7 +774,7 @@ type NamedCalloutToken = {
   kind: TokenNamedCalloutKind;
   name: string;
   tag: string | null;
-  args: string | null;
+  arguments: string | null;
   raw: string;
 };
 function createNamedCalloutToken(kind: TokenNamedCalloutKind, name: string, tag: string | null, args: string | null, raw: string): NamedCalloutToken {
@@ -783,7 +783,7 @@ function createNamedCalloutToken(kind: TokenNamedCalloutKind, name: string, tag:
     name,
     kind,
     tag,
-    args,
+    arguments: args,
     raw,
   };
 };
@@ -920,9 +920,9 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
     throw new Error(`Invalid callout name "${raw}"`);
   }
   if (tag === '') {
-    throw new Error(`Named callout empty tag not allowed "${raw}"`);
+    throw new Error(`Named callout tag with empty value not allowed "${raw}"`);
   }
-  const kind: TokenNamedCalloutKind = CalloutNames.has(name as Uppercase<Exclude<TokenNamedCalloutKind, 'unknown'>>) ? name.toLocaleLowerCase() as TokenNamedCalloutKind : 'unknown';
+  const kind: TokenNamedCalloutKind = CalloutNames.has(name as Uppercase<Exclude<TokenNamedCalloutKind, 'unknown'>>) ? name.toLowerCase() as TokenNamedCalloutKind : 'unknown';
   return createNamedCalloutToken(kind, name, tag ?? null, args ?? null, raw);
 }
 

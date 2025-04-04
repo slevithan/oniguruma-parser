@@ -1,5 +1,6 @@
 import {toOnigurumaAst} from '../../dist/index.js';
 import {generate} from '../../dist/generator/generate.js';
+import {r} from '../../dist/utils.js';
 
 describe('generate: NamedCallout', () => {
   function gen(pattern) {
@@ -58,22 +59,22 @@ describe('generate: NamedCallout', () => {
   });
 
   // https://github.com/kkos/oniguruma/blob/master/doc/CALLOUTS.BUILTIN
-  // https://github.com/kkos/oniguruma/blob/master/test/test_utf8.c#L1369-L1375
-  // https://github.com/kkos/oniguruma/blob/master/sample/callout.c#L243-L256
-  // https://github.com/kkos/oniguruma/blob/master/sample/count.c#L106-L116
+  // https://github.com/kkos/oniguruma/blob/3eb317dc4413692e4eaa92a68839c74aa74fbc77/test/test_utf8.c#L1376-L1382
+  // https://github.com/kkos/oniguruma/blob/3eb317dc4413692e4eaa92a68839c74aa74fbc77/sample/callout.c#L242-L256
+  // https://github.com/kkos/oniguruma/blob/3eb317dc4413692e4eaa92a68839c74aa74fbc77/sample/count.c#L106-L116
   it('should support large examples', () => {
     const cases = [
       '(?:(*COUNT[T]{X})a)*(?:(*MAX{T})c)*',
       '(?:(*MAX[TA]{7})a|(*MAX[TB]{5})b)*(*CMP{TA,>=,4})',
       '(?:[ab]|(*MAX{2}).)*',
       '(?:(*COUNT[AB]{X})[ab]|(*COUNT[CD]{X})[cd])*(*CMP{AB,<,CD})',
-      '\\A(*foo)abc',
+      r`\A(*foo)abc`,
       'abc(?:(*FAIL)|$)',
       'abc(?:$|(*MISMATCH)|abc$)',
       'abc(?:(*ERROR)|$)',
       'ab(*foo{})(*FAIL)',
       'abc(d|(*ERROR{-999}))',
-      'ab(*bar{372,I am a bar\'s argument,あ})c(*FAIL)',
+      `ab(*bar{372,I am a bar's argument,あ})c(*FAIL)`,
       'ab(*bar{1234567890})',
       '(?:a(*MAX{2})|b)*',
       '(?:(*MAX{2})a|b)*',
@@ -90,7 +91,7 @@ describe('generate: NamedCallout', () => {
       'a(.(*COUNT[x]))*z',
       'a(.(*TOTAL_COUNT[x]))*z',
       // '(?(*FAIL)123|456)', // TODO: conditionals
-      // '\\A(?(*FAIL)then|else)\\z', // TODO: conditionals
+      // r`\A(?(*FAIL)then|else)\z`, // TODO: conditionals
     ];
     for (const input of cases) {
       expect(gen(input)).toBe(input);
@@ -102,27 +103,38 @@ describe('generate: NamedCallout', () => {
       '(*',
       '(*FAIL@)',
       '(*FAIL{1})',
-      '(*MAX)',
       '(*MISMATCH[])',
       '(*SKIP[@])',
+      '(*ERROR{2,3})',
+      '(*ERROR{T})',
+      '(*MAX)',
+      '(*MAX{1,X,3})',
+      '(*COUNT[0])',
+      '(*TOTAL_COUNT{S})',
       '(*TOTAL_COUNT{1,2})',
       '(*CMP{1,==})',
-      '(*CMP{1,==,3,4})',
+      '(*CMP[tag]{1,==,3,4})',
     ];
     for (const input of cases) {
       expect(() => gen(input)).toThrow();
     }
   });
 
+  // TODO: empty arguments can be optimized out. move to ./optimizer
+  xit('should optimize arguments. oniguruma skips over/ignores redundant/unnecessary commas', () => {
+    const cases = [
+      ['(*FAIL{})', '(*FAIL)'],
+      ['(*MISMATCH{,})', '(*MISMATCH)'],
+      ['(*SKIP{,,})', '(*SKIP)'],
+      ['(*ERROR{,,,})', '(*ERROR)'],
+      ['(*MAX{1,,})', '(*MAX{1})'],
+      ['(*COUNT{,,2})', '(*COUNT{2})'],
+      ['(*TOTAL_COUNT{,,3,,})', '(*TOTAL_COUNT{3})'],
+      ['(*CMP{,T,,==,,,5,,,,})', '(*CMP{T,==,5})'],
+    ];
+    for (const [input, expected] of cases) {
+      expect(gen(input)).toBe(expected);
+    }
+  });
+
 });
-
-
-// TODO: empty arguments can be optimized out. oniguruma skips over/ignores redundant/unnecessary commas
-// ['(*FAIL{})', '(*FAIL)'],
-// ['(*MISMATCH{,})', '(*MISMATCH)'],
-// ['(*SKIP{,,})', '(*SKIP)'],
-// ['(*ERROR{,,,})', '(*ERROR)'],
-// ['(*MAX{1,,})', '(*MAX{1})'],
-// ['(*COUNT{,,2})', '(*COUNT{2})'],
-// ['(*TOTAL_COUNT{,,3,,})', '(*TOTAL_COUNT{3})'],
-// ['(*CMP{,T,,==,,,5,,,,})', '(*CMP{T,==,5})'],
