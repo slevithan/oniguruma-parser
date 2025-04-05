@@ -128,7 +128,7 @@ type Context = {
   singleline: boolean;
 };
 
-type TokenizerOptions = {
+type TokenizeOptions = {
   flags?: string;
   rules?: {
     captureGroup?: boolean;
@@ -136,12 +136,10 @@ type TokenizerOptions = {
   };
 };
 
-type TokenizerResult = {
+function tokenize(pattern: string, options: TokenizeOptions = {}): {
   tokens: Array<Token>;
   flags: FlagProperties;
-};
-
-function tokenize(pattern: string, options: TokenizerOptions = {}): TokenizerResult {
+} {
   const opts = {
     flags: '',
     ...options,
@@ -1163,7 +1161,6 @@ function splitEscapedNumberToken(token: EscapedNumberToken, numCaptures: number)
 }
 
 export {
-  tokenize,
   type AlternatorToken,
   type AssertionToken,
   type BackreferenceToken,
@@ -1186,4 +1183,5 @@ export {
   type TokenDirectiveKind,
   type TokenNamedCalloutKind,
   type TokenQuantifierKind,
+  tokenize,
 };

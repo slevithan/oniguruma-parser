@@ -1,5 +1,5 @@
-import {slug} from "./parser/parse.js";
 import type {UnicodePropertyMap} from "./parser/parse.js";
+import {slug} from "./parser/parse.js";
 
 /**
 All Unicode properties supported by Oniguruma as of v6.9.10 (Unicode v16.0.0).

@@ -1,7 +1,7 @@
-import {isAlternativeContainer, universalCharacterSetKinds} from '../../parser/node-utils.js';
-import {createAlternative, createCharacterClass} from '../../parser/parse.js';
 import type {AlternativeContainerNode, AlternativeNode, CharacterClassNode, CharacterNode, CharacterSetNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
+import {isAlternativeContainer, universalCharacterSetKinds} from '../../parser/node-utils.js';
+import {createAlternative, createCharacterClass} from '../../parser/parse.js';
 
 /**
 Use character classes for adjacent alternatives with single-length values.

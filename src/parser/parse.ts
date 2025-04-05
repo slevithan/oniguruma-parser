@@ -1,5 +1,5 @@
+import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenNamedCalloutKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {tokenize} from '../tokenizer/tokenize.js';
-import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, NamedCalloutToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenNamedCalloutKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {cpOf, getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
 
 // Watch out for the DOM `Node` interface!
@@ -1024,28 +1024,6 @@ function throwIfUnclosedGroup<T>(token: T): NonNullable<T> {
 }
 
 export {
-  createAbsentFunction,
-  createAlternative,
-  createAssertion,
-  createBackreference,
-  createCapturingGroup,
-  createCharacter,
-  createCharacterClass,
-  createCharacterClassRange,
-  createCharacterSet,
-  createDirective,
-  createFlags,
-  createGroup,
-  createLookaroundAssertion,
-  createNamedCallout,
-  createPattern,
-  createPosixClass,
-  createQuantifier,
-  createRegex,
-  createSubroutine,
-  createUnicodeProperty,
-  parse,
-  slug,
   type AbsentFunctionNode,
   type AlternativeNode,
   type AlternativeContainerNode,
@@ -1081,4 +1059,26 @@ export {
   type RegexNode,
   type SubroutineNode,
   type UnicodePropertyMap,
+  createAbsentFunction,
+  createAlternative,
+  createAssertion,
+  createBackreference,
+  createCapturingGroup,
+  createCharacter,
+  createCharacterClass,
+  createCharacterClassRange,
+  createCharacterSet,
+  createDirective,
+  createFlags,
+  createGroup,
+  createLookaroundAssertion,
+  createNamedCallout,
+  createPattern,
+  createPosixClass,
+  createQuantifier,
+  createRegex,
+  createSubroutine,
+  createUnicodeProperty,
+  parse,
+  slug,
 };

@@ -1,6 +1,6 @@
-import {createCharacterSet} from '../../parser/parse.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
+import {createCharacterSet} from '../../parser/parse.js';
 
 /**
 Unwrap negated classes used to negate an individual character set.

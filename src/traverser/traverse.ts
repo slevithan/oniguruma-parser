@@ -169,7 +169,7 @@ function numericKey(value: unknown): number {
 }
 
 export {
-  traverse,
   type Path,
   type Visitor,
+  traverse,
 };

@@ -1,4 +1,4 @@
-import type {TokenNamedCalloutKind} from "./tokenizer/tokenize.js";
+import type {TokenNamedCalloutKind} from './tokenizer/tokenize.js';
 
 const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>>([
   'COUNT',

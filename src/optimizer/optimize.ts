@@ -1,10 +1,10 @@
-import {generate} from '../generator/generate.js';
 import type {OnigurumaRegex} from '../generator/generate.js';
+import type {OptimizationName} from './optimizations.js';
+import {generate} from '../generator/generate.js';
 import {parse} from '../parser/parse.js';
 import {traverse} from '../traverser/traverse.js';
 import {OnigUnicodePropertyMap} from '../unicode.js';
 import {optimizations} from './optimizations.js';
-import type {OptimizationName} from './optimizations.js';
 
 type OptimizationStates = {[key in OptimizationName]: boolean};
 
@@ -88,7 +88,7 @@ function getOptionalOptimizations(options: {disable?: boolean} = {}): Optimizati
 }
 
 export {
+  type OptimizeOptions,
   getOptionalOptimizations,
   optimize,
-  type OptimizeOptions,
 };

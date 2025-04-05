@@ -1,6 +1,6 @@
-import {createUnicodeProperty} from '../../parser/parse.js';
 import type {CharacterSetNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
+import {createUnicodeProperty} from '../../parser/parse.js';
 import {isRange} from './use-shorthands.js';
 
 /**

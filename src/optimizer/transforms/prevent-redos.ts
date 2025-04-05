@@ -1,6 +1,6 @@
-import {hasOnlyChild} from '../../parser/node-utils.js';
 import type {QuantifierNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
+import {hasOnlyChild} from '../../parser/node-utils.js';
 
 /**
 Remove identified ReDoS vulnerabilities without changing matches.

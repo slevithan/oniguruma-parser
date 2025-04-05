@@ -1,5 +1,5 @@
-import {parse} from './parser/parse.js';
 import type {OnigurumaAst} from './parser/parse.js';
+import {parse} from './parser/parse.js';
 import {OnigUnicodePropertyMap} from './unicode.js';
 
 type ToOnigurumaAstOptions = {
@@ -30,6 +30,6 @@ function toOnigurumaAst(pattern: string, options: ToOnigurumaAstOptions = {}): O
 }
 
 export {
-  toOnigurumaAst,
   type ToOnigurumaAstOptions,
+  toOnigurumaAst,
 };

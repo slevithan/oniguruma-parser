@@ -1,3 +1,4 @@
+import type {Visitor} from '../traverser/traverse.js';
 import {alternationToClass} from './transforms/alternation-to-class.js';
 import {dedupeClasses} from './transforms/dedupe-classes.js';
 import {exposeAnchors} from './transforms/expose-anchors.js';
@@ -15,7 +16,6 @@ import {unwrapUselessGroups} from './transforms/unwrap-useless-groups.js';
 import {useShorthands} from './transforms/use-shorthands.js';
 import {useUnicodeAliases} from './transforms/use-unicode-aliases.js';
 import {useUnicodeProps} from './transforms/use-unicode-props.js';
-import type {Visitor} from '../traverser/traverse.js';
 
 type OptimizationName =
   'alternationToClass' |
@@ -57,6 +57,6 @@ const optimizations = new Map<OptimizationName, Visitor>([
 ]);
 
 export {
-  optimizations,
   type OptimizationName,
+  optimizations,
 };

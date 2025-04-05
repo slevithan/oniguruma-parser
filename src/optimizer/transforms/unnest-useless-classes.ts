@@ -1,6 +1,6 @@
-import {hasOnlyChild} from '../../parser/node-utils.js';
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
+import {hasOnlyChild} from '../../parser/node-utils.js';
 
 /**
 Unnest character classes when possible.

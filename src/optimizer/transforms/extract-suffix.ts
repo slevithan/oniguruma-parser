@@ -1,7 +1,7 @@
-import {isAlternativeContainer} from '../../parser/node-utils.js';
-import {createAlternative, createGroup} from '../../parser/parse.js';
 import type {AlternativeContainerNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
+import {isAlternativeContainer} from '../../parser/node-utils.js';
+import {createAlternative, createGroup} from '../../parser/parse.js';
 import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
 
 /**

@@ -1,6 +1,6 @@
-import {createCharacterSet} from '../../parser/parse.js';
 import type {CharacterClassNode, CharacterSetNode, Node} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
+import {createCharacterSet} from '../../parser/parse.js';
 
 /**
 Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.

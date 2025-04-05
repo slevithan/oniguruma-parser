@@ -457,6 +457,6 @@ function isSymbolQuantifierCandidate({min, max}: QuantifierNode): boolean {
 }
 
 export {
-  generate,
   type OnigurumaRegex,
+  generate,
 };

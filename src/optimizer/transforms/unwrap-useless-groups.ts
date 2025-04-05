@@ -1,6 +1,6 @@
-import {isAlternativeContainer, quantifiableTypes} from '../../parser/node-utils.js';
 import type {AlternativeContainerNode, AlternativeElementNode, GroupNode, NodeType, QuantifiableNode, QuantifierNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
+import {isAlternativeContainer, quantifiableTypes} from '../../parser/node-utils.js';
 
 /**
 Unwrap nonbeneficial noncapturing and atomic groups.
