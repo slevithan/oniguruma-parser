@@ -202,9 +202,9 @@ All versions of `oniguruma-parser` to date have followed the rules of Oniguruma 
 
 At least since Oniguruma 6.0.0 (released 2016-05-09), regex syntax changes in [new versions](https://github.com/kkos/oniguruma/blob/master/HISTORY) of the library have been backward compatible. Some versions added new syntax that was previously an error (such as new Unicode property names), and in a few cases, edge case parsing bugs were fixed.
 
-Oniguruma 6.9.8 (released 2022-04-29) is an important baseline for JavaScript projects, since that's the version used by [`vscode-oniguruma`](https://github.com/microsoft/vscode-oniguruma) 1.7.0 to the latest 2.0.1. It's therefore used in recent versions of various projects, including VS Code and Shiki.
-
-It's possible that future versions of `oniguruma-parser` will add an option that allows specifying an Oniguruma version to emulate when parsing. However, the differences so far between Oniguruma 6.9.8 and later versions have been so minor that this is a non-issue.
+> Oniguruma 6.9.8 (released 2022-04-29) is an important baseline for JavaScript projects, since that's the version used by [`vscode-oniguruma`](https://github.com/microsoft/vscode-oniguruma) 1.7.0 to the latest 2.0.1. It's therefore used in recent versions of various projects, including VS Code and Shiki.
+>
+> It's possible that future versions of `oniguruma-parser` will add an option that allows specifying an Oniguruma version to emulate when parsing. However, the differences so far between regex syntax in Oniguruma 6.9.8 and later versions have been so minor that this is a non-issue.
 
 ## About
 
