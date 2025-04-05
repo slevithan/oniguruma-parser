@@ -1,6 +1,7 @@
+import type {GroupNode} from '../../dist/parser/parse.js';
+import type {Visitor} from '../../dist/traverser/traverse.js';
 import {toOnigurumaAst} from '../../dist/index.js';
-import {createCharacter, GroupNode} from '../../dist/parser/parse.js';
-import {Visitor} from '../../dist/traverser/traverse.js';
+import {createCharacter} from '../../dist/parser/parse.js';
 import {cpOf} from '../../dist/utils.js';
 import {singleAltAst, traversed} from '../spec-utils.js';
 import {describe, expect, it} from 'vitest';

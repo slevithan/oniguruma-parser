@@ -31,4 +31,5 @@ function toOnigurumaAst(pattern: string, options: ToOnigurumaAstOptions = {}): O
 
 export {
   toOnigurumaAst,
+  type ToOnigurumaAstOptions,
 };

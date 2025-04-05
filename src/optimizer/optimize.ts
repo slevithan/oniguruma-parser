@@ -8,7 +8,7 @@ import type {OptimizationName} from './optimizations.js';
 
 type OptimizationStates = {[key in OptimizationName]: boolean};
 
-type OptimizerOptions = {
+type OptimizeOptions = {
   flags?: string;
   override?: Partial<OptimizationStates>;
   rules?: {
@@ -21,7 +21,7 @@ type OptimizerOptions = {
 /**
 Returns an optimized Oniguruma pattern and flags.
 */
-function optimize(pattern: string, options?: OptimizerOptions): OnigurumaRegex {
+function optimize(pattern: string, options?: OptimizeOptions): OnigurumaRegex {
   const opts = getOptions(options);
   const ast = parse(pattern, {
     flags: opts.flags,
@@ -57,7 +57,7 @@ function optimize(pattern: string, options?: OptimizerOptions): OnigurumaRegex {
   return optimized;
 }
 
-function getOptions(options: OptimizerOptions = {}): Required<OptimizerOptions> {
+function getOptions(options: OptimizeOptions = {}): Required<OptimizeOptions> {
   return {
     // Oniguruma flags; a string with `imxDPSW` in any order (all optional). Oniguruma's `m` is
     // equivalent to JavaScript's `s` (`dotAll`).
@@ -90,4 +90,5 @@ function getOptionalOptimizations(options: {disable?: boolean} = {}): Optimizati
 export {
   getOptionalOptimizations,
   optimize,
+  type OptimizeOptions,
 };

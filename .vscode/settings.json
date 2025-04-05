@@ -5,4 +5,5 @@
   "files.insertFinalNewline": true,
   "typescript.format.semicolons": "insert",
   "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
 }

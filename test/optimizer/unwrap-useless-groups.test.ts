@@ -1,7 +1,6 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
-import {describe, expect, it} from 'vitest';
 import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: unwrapUselessGroups', () => {
   const thisOptimization = getNarrowOptimizer('unwrapUselessGroups');

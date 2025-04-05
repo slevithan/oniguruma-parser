@@ -132,7 +132,7 @@ type State = {
   isInNegLookbehind?: boolean;
 };
 
-type ParserOptions = {
+type ParseOptions = {
   flags?: string;
   normalizeUnknownPropertyNames?: boolean;
   rules?: {
@@ -145,8 +145,8 @@ type ParserOptions = {
   unicodePropertyMap?: UnicodePropertyMap | null;
 };
 
-function parse(pattern: string, options: ParserOptions = {}): OnigurumaAst {
-  const opts: Required<ParserOptions> = {
+function parse(pattern: string, options: ParseOptions = {}): OnigurumaAst {
+  const opts: Required<ParseOptions> = {
     flags: '',
     normalizeUnknownPropertyNames: false,
     skipBackrefValidation: false,
@@ -1074,6 +1074,7 @@ export {
   type NodeType,
   type OnigurumaAst,
   type ParentNode,
+  type ParseOptions,
   type PatternNode,
   type QuantifiableNode,
   type QuantifierNode,

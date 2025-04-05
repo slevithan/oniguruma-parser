@@ -1,4 +1,5 @@
-import {createCharacter, createQuantifier, parse, QuantifiableNode, QuantifierNode} from '../../dist/parser/parse.js';
+import type {QuantifiableNode, QuantifierNode} from '../../dist/parser/parse.js';
+import {createCharacter, createQuantifier, parse} from '../../dist/parser/parse.js';
 import {cpOf, r} from '../../dist/utils.js';
 import {singleAltAst} from '../spec-utils.js';
 import {describe, expect, it} from 'vitest';
