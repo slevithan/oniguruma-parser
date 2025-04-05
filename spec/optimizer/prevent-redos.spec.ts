@@ -1,15 +1,9 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: preventReDoS', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        preventReDoS: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('preventReDoS');
 
   it('should avoid ReDoS for quantified groups with qualifying nested quantifiers', () => {
     const cases = [

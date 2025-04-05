@@ -1,15 +1,9 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: unwrapNegationWrappers', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        unwrapNegationWrappers: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('unwrapNegationWrappers');
 
   it('should unwrap outermost negation wrappers', () => {
     const cases = [

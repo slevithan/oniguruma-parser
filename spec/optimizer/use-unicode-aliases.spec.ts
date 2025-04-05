@@ -1,15 +1,9 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: useUnicodeAliases', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        useUnicodeAliases: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('useUnicodeAliases');
 
   it('should replace Unicode property names with aliases when available', () => {
     const cases = [

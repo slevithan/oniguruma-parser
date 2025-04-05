@@ -1,15 +1,9 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: unnestUselessClasses', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        unnestUselessClasses: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('unnestUselessClasses');
 
   it('should unnest unnecessary classes', () => {
     const cases = [

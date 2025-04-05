@@ -1,9 +1,10 @@
-import {createCharacter, createQuantifier, parse} from '../../dist/parser/parse.js';
+import {createCharacter, createQuantifier, parse, QuantifiableNode, QuantifierNode} from '../../dist/parser/parse.js';
 import {cpOf, r} from '../../dist/utils.js';
-import {singleAltAst} from '../support/spec-utils.js';
+import {singleAltAst} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Parser: Quantifier', () => {
-  function star(element) {
+  function star(element: QuantifiableNode): QuantifierNode {
     return createQuantifier('greedy', 0, Infinity, element);
   }
 

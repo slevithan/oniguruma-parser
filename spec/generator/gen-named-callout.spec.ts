@@ -1,12 +1,8 @@
-import {toOnigurumaAst} from '../../dist/index.js';
-import {generate} from '../../dist/generator/generate.js';
 import {r} from '../../dist/utils.js';
+import {gen} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Generator: NamedCallout', () => {
-  function gen(pattern) {
-    return generate(toOnigurumaAst(pattern)).pattern;
-  }
-
   it('should support built-in named callout names', () => {
     const cases = [
       '(*FAIL)',

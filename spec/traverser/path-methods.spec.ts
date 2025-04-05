@@ -1,14 +1,17 @@
 import {toOnigurumaAst} from '../../dist/index.js';
-import {createCharacter} from '../../dist/parser/parse.js';
+import {createCharacter, GroupNode} from '../../dist/parser/parse.js';
+import {Visitor} from '../../dist/traverser/traverse.js';
 import {cpOf} from '../../dist/utils.js';
-import {singleAltAst, traversed} from '../support/spec-utils.js';
+import {singleAltAst, traversed} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Traverser: path', () => {
   describe('replaceWithMultiple', () => {
     it('should replace a node with multiple nodes', () => {
-      const visitor = {
+      const visitor: Visitor = {
         Group({node, replaceWithMultiple}) {
-          replaceWithMultiple(node.alternatives[0].elements, {traverse: true});
+          const {alternatives} = node as GroupNode;
+          replaceWithMultiple(alternatives[0].elements, {traverse: true});
         },
       };
       expect(traversed(toOnigurumaAst('(?:a(?:b))'), visitor)).toEqual(singleAltAst([

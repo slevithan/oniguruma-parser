@@ -1,15 +1,9 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: dedupeClasses', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        dedupeClasses: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('dedupeClasses');
 
   it('should dedupe characters in classes', () => {
     const cases = [

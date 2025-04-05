@@ -1,21 +1,17 @@
-import {toOnigurumaAst} from '../../dist/index.js';
-import {generate} from '../../dist/generator/generate.js';
+import {gen} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
+
+// Rendering Onig quantifiers is wildly, unnecessarily complex compared to other regex flavors
+// because of the combination of a few features unique to Oniguruma:
+// - You can create quantifier chains (i.e., quantify a quantifier).
+// - An implicit zero min is allowed for interval quantifiers (ex: `{,2}`).
+// - Interval quantifiers can't use `+` to make them possessive (it creates a quantifier chain),
+//   even though quantifiers `?` `*` `+` can.
+// - A reversed range in a quantifier makes it possessive (ex: `{2,1}`).
+//   - `{,n}` is always greedy with an implicit zero min, and can't represent a possesive range
+//     from n to infinity.
 
 describe('Generator: Quantifier', () => {
-  function gen(pattern) {
-    return generate(toOnigurumaAst(pattern)).pattern;
-  }
-
-  // Rendering Onig quantifiers is wildly, unnecessarily complex compared to other regex flavors
-  // because of the combination of a few features unique to Oniguruma:
-  // - You can create quantifier chains (i.e., quantify a quantifier).
-  // - An implicit zero min is allowed for interval quantifiers (ex: `{,2}`).
-  // - Interval quantifiers can't use `+` to make them possessive (it creates a quantifier
-  //   chain), even though quantifiers `?` `*` `+` can.
-  // - A reversed range in a quantifier makes it possessive (ex: `{2,1}`).
-  //   - `{,n}` is always greedy with an implicit zero min, and can't represent a possesive range
-  //     from n to infinity.
-
   it('should support symbol quantifiers', () => {
     const cases = [
       // `?`

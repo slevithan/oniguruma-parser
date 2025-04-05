@@ -1,18 +1,13 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
+import {getOptionalOptimizations, optimize} from '../../dist/optimizer/optimize.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: removeUselessFlags', () => {
-  function thisOptimizationObj(pattern, options) {
-    return optimize(pattern, {
-      ...options,
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        removeUselessFlags: true,
-      },
-    });
-  }
-  function thisOptimization(pattern) {
-    return thisOptimizationObj(pattern).pattern;
-  }
+  const thisOverride = {
+    ...getOptionalOptimizations({disable: true}),
+    removeUselessFlags: true,
+  };
+  const thisOptimization = getNarrowOptimizer('removeUselessFlags');
 
   it('should remove useless flags from groups', () => {
     const cases = [
@@ -56,6 +51,9 @@ describe('Optimizer: removeUselessFlags', () => {
   });
 
   it('should remove useless top-level flags', () => {
-    expect(thisOptimizationObj('a', {flags: 'ix'}).flags).toBe('i');
+    expect(optimize('a', {
+      flags: 'ix',
+      override: thisOverride,
+    }).flags).toBe('i');
   });
 });

@@ -1,15 +1,10 @@
 import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {describe, expect, it} from 'vitest';
+import {getNarrowOptimizer} from '../spec-utils.js';
 
 describe('Optimizer: unwrapUselessGroups', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        unwrapUselessGroups: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('unwrapUselessGroups');
 
   it('should unwrap unnecessary groups with a single alternative', () => {
     const cases = [

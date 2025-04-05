@@ -1,15 +1,9 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: exposeAnchors', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        exposeAnchors: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('exposeAnchors');
 
   it('should pull leading and trailing assertions out of unquantified capturing groups', () => {
     const cases = [

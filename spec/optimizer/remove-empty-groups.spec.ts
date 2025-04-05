@@ -1,14 +1,8 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: removeEmptyGroups', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        removeEmptyGroups: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('removeEmptyGroups');
 
   it('should remove empty qualifying groups', () => {
     const cases = [

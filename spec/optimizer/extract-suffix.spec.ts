@@ -1,15 +1,9 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: extractSuffix', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        extractSuffix: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('extractSuffix');
 
   it('should extract a suffix found in all alternatives', () => {
     const cases = [

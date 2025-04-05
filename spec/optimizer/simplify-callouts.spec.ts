@@ -1,14 +1,8 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: simplifyCallouts', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        simplifyCallouts: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('simplifyCallouts');
 
   it('should remove useless argument braces', () => {
     const cases = [

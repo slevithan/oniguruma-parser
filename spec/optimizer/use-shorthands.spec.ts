@@ -1,14 +1,14 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
+import {getOptionalOptimizations, optimize} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: useShorthands', () => {
   const thisOverride = {
     ...getOptionalOptimizations({disable: true}),
     useShorthands: true,
   };
-  function thisOptimization(pattern) {
-    return optimize(pattern, {override: thisOverride}).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('useShorthands');
 
   it(r`should use \d when possible`, () => {
     const cases = [

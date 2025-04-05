@@ -40,7 +40,7 @@
     "prebuild": "rimraf --glob dist/*",
     "build": "pnpm run bundle:global && pnpm run build:esm && tsc",
     "pretest": "pnpm run build",
-    "test": "jasmine",
+    "test": "vitest",
     "prepublishOnly": "pnpm test"
   },
   "files": [
@@ -58,9 +58,9 @@
   ],
   "devDependencies": {
     "esbuild": "^0.25.1",
-    "jasmine": "^5.6.0",
     "rimraf": "^6.0.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.1.1"
   },
   "packageManager": "pnpm@10.7.0"
 }

@@ -1,15 +1,9 @@
-import {optimize, getOptionalOptimizations} from '../../dist/optimizer/optimize.js';
 import {r} from '../../dist/utils.js';
+import {getNarrowOptimizer} from '../spec-utils.js';
+import {describe, expect, it} from 'vitest';
 
 describe('Optimizer: extractPrefix2', () => {
-  function thisOptimization(pattern) {
-    return optimize(pattern, {
-      override: {
-        ...getOptionalOptimizations({disable: true}),
-        extractPrefix2: true,
-      },
-    }).pattern;
-  }
+  const thisOptimization = getNarrowOptimizer('extractPrefix2');
 
   it('should extract alternating prefixes if patterns are repeated for each prefix', () => {
     const cases = [
