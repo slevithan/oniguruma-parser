@@ -424,7 +424,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     };
   }
 
-  assertSingleCodePoint(m);
+  // `cpOf` asserts that it's a single code point
   return {
     token: createCharacterToken(cpOf(m), m),
   };
@@ -495,7 +495,7 @@ function tokenizeAnyTokenWithinCharClass(raw: string): Token | IntermediateToken
   if (raw === '&&') {
     return createCharacterClassIntersectorToken(raw);
   }
-  assertSingleCodePoint(raw);
+  // `cpOf` asserts that it's a single code point
   return createCharacterToken(cpOf(raw), raw);
 }
 
@@ -858,13 +858,6 @@ const EscapeCharCodes = new Map([
   ['v', 11], // vertical tab
 ]);
 
-function assertSingleCodePoint(raw: string) {
-  // Count code point length
-  if ([...raw].length !== 1) {
-    throw new Error(`Expected "${raw}" to be a single code point`);
-  }
-}
-
 // Expects `\cx` or `\C-x`
 function tokenizeControlCharacter(raw: string): CharacterToken {
   const char = raw[1] === 'c' ? raw[2] : raw[3];
@@ -920,7 +913,7 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
     args: string;
   }>;
   if (!name) {
-    throw new Error(`Invalid callout name "${raw}"`);
+    throw new Error(`Invalid named callout "${raw}"`);
   }
   if (tag === '') {
     throw new Error(`Named callout tag with empty value not allowed "${raw}"`);

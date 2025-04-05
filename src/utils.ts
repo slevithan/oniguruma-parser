@@ -12,9 +12,9 @@ const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>
 ]);
 
 function cpOf(char: string): number {
-  // Code point length
+  // Count code point length
   if ([...char].length !== 1) {
-    throw new Error(`Expected single code point "${char}"`);
+    throw new Error(`Expected "${char}" to be a single code point`);
   }
   return char.codePointAt(0)!;
 }
