@@ -9,7 +9,7 @@ function gen(pattern: string): string {
 }
 
 function getNarrowOptimizer(optimization: OptimizationName): (pattern: string) => string {
-  return function (pattern) {
+  return pattern => {
     return optimize(pattern, {
       override: {
         ...getOptionalOptimizations({disable: true}),

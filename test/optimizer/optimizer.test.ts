@@ -8,7 +8,7 @@ describe('Optimizer', () => {
       const cases = [
         ['[[^[^a]]&&[b]]', '[a&&b]'],
         [r`a(?#comment\)) (b (?x)| c) #d${'\n'}(?x)e#comment${'\n'}f`, r`a (b |c) #d\nef`],
-        [r`(?x) (?:\!{1,}) (\p{Nd}aa|\p{Nd}ab|\p{Nd}az) [[^0-9A-Fa-f]\p{ Letter }] [\0-\x{10FFFF}] [\p{L}\p{M}\p{N}\p{Pc}]`, r`!+(\da[abz])[\H\p{L}]\O\w`],
+        [r`(?x) (?:\!{1,}) (\b(?:ark|arm|art)\b) [[^0-9A-Fa-f]\P{^Nd}\p{ Letter }]`, r`!+\b(ar[kmt])\b[\H\d\p{L}]`],
       ];
       for (const [input, expected] of cases) {
         expect(optimize(input)).toEqual({
