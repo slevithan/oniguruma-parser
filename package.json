@@ -42,7 +42,7 @@
     "build:esm": "esbuild \"src/**/*.ts\" --outdir=dist --minify --sourcemap",
     "prebuild": "rimraf --glob dist/*",
     "build": "pnpm run bundle:global && pnpm run build:esm && tsc",
-    "pretest": "pnpm run build",
+    "pretest": "pnpm build",
     "test": "vitest run",
     "prepublishOnly": "pnpm test"
   },
@@ -57,10 +57,10 @@
     "parser"
   ],
   "devDependencies": {
-    "esbuild": "^0.25.1",
+    "esbuild": "^0.25.2",
     "rimraf": "^6.0.1",
-    "typescript": "^5.8.2",
+    "typescript": "^5.8.3",
     "vitest": "^3.1.1"
   },
-  "packageManager": "pnpm@10.7.0"
+  "packageManager": "pnpm@10.7.1"
 }
