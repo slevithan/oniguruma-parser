@@ -110,9 +110,9 @@ type UnicodePropertyMap = Map<string, string>;
 
 type Context = {
   capturingGroups: Array<CapturingGroupNode>;
-  current: number;
   hasNumberedRef: boolean;
   namedGroupsByName: Map<string, Array<CapturingGroupNode>>;
+  nextIndex: number;
   normalizeUnknownPropertyNames: boolean;
   parent: ParentNode;
   skipBackrefValidation: boolean;
@@ -170,10 +170,10 @@ function parse(pattern: string, options: ParseOptions = {}): OnigurumaAst {
     },
   });
   const walk: Context['walk'] = (parent, state) => {
-    const token = tokenized.tokens[context.current];
+    const token = tokenized.tokens[context.nextIndex];
     context.parent = parent;
     // Advance for the next iteration
-    context.current++;
+    context.nextIndex++;
     switch (token.type) {
       case 'Alternator':
         // Top-level only; groups handle their own alternators
@@ -206,9 +206,9 @@ function parse(pattern: string, options: ParseOptions = {}): OnigurumaAst {
   }
   const context: Context = {
     capturingGroups: [],
-    current: 0,
     hasNumberedRef: false,
     namedGroupsByName: new Map(),
+    nextIndex: 0,
     normalizeUnknownPropertyNames: opts.normalizeUnknownPropertyNames,
     parent: null!, // Assigned by `walk`
     skipBackrefValidation: opts.skipBackrefValidation,
@@ -223,7 +223,7 @@ function parse(pattern: string, options: ParseOptions = {}): OnigurumaAst {
   // ## AST construction from tokens
   const ast = createRegex(createPattern(), createFlags(tokenized.flags));
   let top = ast.pattern.alternatives[0];
-  while (context.current < tokenized.tokens.length) {
+  while (context.nextIndex < tokenized.tokens.length) {
     const node = walk(top, {});
     if (node.type === 'Alternative') {
       ast.pattern.alternatives.push(node);
@@ -345,7 +345,7 @@ function parseCharacterClassHyphen(_: CharacterClassHyphenToken, context: Contex
   const {tokens, walk} = context;
   const parent = context.parent as CharacterClassNode;
   const prevSiblingNode = parent.elements.at(-1);
-  const nextToken = tokens[context.current];
+  const nextToken = tokens[context.nextIndex];
   if (
     !state.isCheckingRangeEnd &&
     prevSiblingNode &&
@@ -371,19 +371,19 @@ function parseCharacterClassHyphen(_: CharacterClassHyphenToken, context: Contex
 
 function parseCharacterClassOpen({negate}: CharacterClassOpenToken, context: Context, state: State): CharacterClassNode {
   const {tokens, walk} = context;
-  const firstClassToken = tokens[context.current];
+  const firstClassToken = tokens[context.nextIndex];
   const intersections = [createCharacterClass()];
   let nextToken = throwIfUnclosedCharacterClass(firstClassToken);
   while (nextToken.type !== 'CharacterClassClose') {
     if (nextToken.type === 'CharacterClassIntersector') {
       intersections.push(createCharacterClass());
       // Skip the intersector
-      context.current++;
+      context.nextIndex++;
     } else {
       const cc = intersections.at(-1)!; // Always at least one
       cc.elements.push(walk(cc, state) as CharacterClassElementNode);
     }
-    nextToken = throwIfUnclosedCharacterClass(tokens[context.current], firstClassToken);
+    nextToken = throwIfUnclosedCharacterClass(tokens[context.nextIndex], firstClassToken);
   }
   const node = createCharacterClass({negate});
   if (intersections.length === 1) {
@@ -393,7 +393,7 @@ function parseCharacterClassOpen({negate}: CharacterClassOpenToken, context: Con
     node.elements = intersections.map(cc => cc.elements.length === 1 ? cc.elements[0] : cc);
   }
   // Skip the closing square bracket
-  context.current++;
+  context.nextIndex++;
   return node;
 }
 
@@ -439,12 +439,12 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
     // Is officially unsupported in Onig but doesn't throw, gives strange results
     throw new Error('Nested absent function not supported by Oniguruma');
   }
-  let nextToken = throwIfUnclosedGroup(tokens[context.current]);
+  let nextToken = throwIfUnclosedGroup(tokens[context.nextIndex]);
   while (nextToken.type !== 'GroupClose') {
     if (nextToken.type === 'Alternator') {
       node.alternatives.push(createAlternative());
       // Skip the alternator
-      context.current++;
+      context.nextIndex++;
     } else {
       const alt = node.alternatives.at(-1)!; // Always at least one
       const child = walk(alt, {
@@ -475,10 +475,10 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
         }
       }
     }
-    nextToken = throwIfUnclosedGroup(tokens[context.current]);
+    nextToken = throwIfUnclosedGroup(tokens[context.nextIndex]);
   }
   // Skip the closing parenthesis
-  context.current++;
+  context.nextIndex++;
   return node;
 }
 
