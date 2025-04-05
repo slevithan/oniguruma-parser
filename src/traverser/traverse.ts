@@ -51,19 +51,25 @@ type Visitor<State = null> = {
 type VisitorNodeFn<State> = (path: Path, state: State) => void;
 
 /**
-Traverses an AST and calls the `visitor`'s node functions for each node. Visitor node functions can
-modify the AST in place and use methods on the `path` (provided as their first argument) to help
-modify the AST. Provided `state` is passed through to all visitor node functions as their second
-argument.
+Traverses an AST and calls the provided `visitor`'s node function for each node. Returns the same
+object, possibly modified.
+
+Visitor node functions can modify the AST in place and use methods on the `path` (provided as their
+first argument) to help modify the AST. Provided `state` is passed through to all visitor node
+functions as their second argument.
 
 Visitor node functions are called in the following order:
 1. `enter` function of the `'*'` node type (if any)
 2. `enter` function of the given node's type (if any)
-3. The node's kids (if any) are traversed recursively, unless `skip` is called
+3. [The node's kids (if any) are traversed recursively, unless `skip` is called]
 4. `exit` function of the given node's type (if any)
 5. `exit` function of the `'*'` node type (if any)
 */
-function traverse<State = null>(ast: OnigurumaAst, visitor: Visitor<State>, state: State | null = null) {
+function traverse<State = null>(
+  root: OnigurumaAst,
+  visitor: Visitor<State>,
+  state: State | null = null
+): OnigurumaAst {
   function traverseArray(array: NonNullable<Path['container']>, parent: Path['parent']) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);
@@ -83,7 +89,7 @@ function traverse<State = null>(ast: OnigurumaAst, visitor: Visitor<State>, stat
       parent,
       key,
       container,
-      root: ast,
+      root,
       remove() {
         arrayContainer(container).splice(Math.max(0, numericKey(key) + keyShift), 1);
         keyShift--;
@@ -185,7 +191,8 @@ function traverse<State = null>(ast: OnigurumaAst, visitor: Visitor<State>, stat
     (anyTypeVisitor as Exclude<typeof anyTypeVisitor, Function>)?.exit?.(path, state!);
     return keyShift;
   }
-  traverseNode(ast);
+  traverseNode(root);
+  return root;
 }
 
 function arrayContainer(value: unknown): Array<Node> {

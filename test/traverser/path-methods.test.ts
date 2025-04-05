@@ -2,8 +2,9 @@ import type {GroupNode} from '../../dist/parser/parse.js';
 import type {Visitor} from '../../dist/traverser/traverse.js';
 import {toOnigurumaAst} from '../../dist/index.js';
 import {createCharacter} from '../../dist/parser/parse.js';
+import {traverse} from '../../dist/traverser/traverse.js';
 import {cpOf} from '../../dist/utils.js';
-import {singleAltAst, traversed} from '../spec-utils.js';
+import {singleAltAst} from '../spec-utils.js';
 import {describe, expect, it} from 'vitest';
 
 describe('Traverser: path', () => {
@@ -15,11 +16,11 @@ describe('Traverser: path', () => {
           replaceWithMultiple(alternatives[0].elements, {traverse: true});
         },
       };
-      expect(traversed(toOnigurumaAst('(?:a(?:b))'), visitor)).toEqual(singleAltAst([
+      expect(traverse(toOnigurumaAst('(?:a(?:b))'), visitor)).toEqual(singleAltAst([
         createCharacter(cpOf('a')),
         createCharacter(cpOf('b')),
       ]));
-      expect(traversed(toOnigurumaAst('(?:a(?:bc))'), visitor)).toEqual(singleAltAst([
+      expect(traverse(toOnigurumaAst('(?:a(?:bc))'), visitor)).toEqual(singleAltAst([
         createCharacter(cpOf('a')),
         createCharacter(cpOf('b')),
         createCharacter(cpOf('c')),

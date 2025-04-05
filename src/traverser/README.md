@@ -12,7 +12,7 @@ import {traverse} from 'oniguruma-parser/traverser';
 
 ```ts
 function traverse<State = null>(
-  ast: OnigurumaAst,
+  root: OnigurumaAst,
   visitor: Visitor<State>,
   state: State | null = null
 ): void;

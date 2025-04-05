@@ -45,14 +45,8 @@ function singleAltAst(elements: Array<AlternativeElementNode>): OnigurumaAst {
   }
 }
 
-function traversed(ast: OnigurumaAst, visitor: Visitor, state = null): OnigurumaAst {
-  traverse(ast, visitor, state);
-  return ast;
-}
-
 export {
   gen,
   getNarrowOptimizer,
   singleAltAst,
-  traversed,
 };
