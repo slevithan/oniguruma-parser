@@ -1,20 +1,46 @@
 import type {AlternativeElementNode, AlternativeNode, CharacterClassElementNode, Node, NodeType, OnigurumaAst, ParentNode, RegexNode} from '../parser/parse.js';
 import {throwIfNullable} from '../utils.js';
 
+type ContainerElementNode =
+  // Node type used within an `alternatives` container of any `AlternativeContainerNode`
+  AlternativeNode |
+  // Any node type used within an `elements` container of an `AlternativeNode`
+  AlternativeElementNode |
+  // Any node type used within an `elements` container of a `CharacterClassNode`
+  CharacterClassElementNode;
+
 type Path<T = Node> = {
+  // The current node being traversed
   node: T;
+  // Parent node of the current node; `null` for the root node
   parent: ParentNode | null;
+  // String property where the current node in held by the parent node, or numeric index in the
+  // parent's `container` array; `null` for the root node
   key: number | string | null;
+  // Container array holding the current node in the parent node; `null` for the root node or if
+  // the parent isn't a type that contains a list of nodes
   container: Array<ContainerElementNode> | null;
-  root: RegexNode; // Same as `OnigurumaAst`
+  // Root node of the AST
+  root: RegexNode;
+  // Removes the current node; its kids won't be traversed
   remove: () => void;
+  // Removes all siblings to the right of the current node, without traversing them; returns the
+  // removed nodes
   removeAllNextSiblings: () => Array<Node>;
+  // Removes all siblings to the left of the current node, which have already been traversed;
+  // returns the removed nodes
   removeAllPrevSiblings: () => Array<Node>;
+  // Replaces the current node with a new node; kids of the replaced node won't be traversed;
+  // optionally traverses the new node
   replaceWith: (newNode: Node, options?: {traverse?: boolean}) => void;
+  // Replaces the current node with multiple new nodes; kids of the replaced node won't be
+  // traversed; optionally traverses the new nodes
   replaceWithMultiple: (newNodes: Array<Node>, options?: {traverse?: boolean}) => void;
+  // Skips traversing kids of the current node
   skip: () => void;
 };
 
+// `NodeType() {…}` is shorthand for `NodeType: {enter() {…}}`.
 type Visitor<State = null> = {
   [key in '*' | NodeType]?: VisitorNodeFn<State> | {
     enter?: VisitorNodeFn<State>;
@@ -24,11 +50,19 @@ type Visitor<State = null> = {
 
 type VisitorNodeFn<State> = (path: Path, state: State) => void;
 
-type ContainerElementNode =
-  AlternativeNode | // Within `alternatives` container of any `AlternativeContainerNode`
-  AlternativeElementNode | // Within `elements` container of `AlternativeNode`
-  CharacterClassElementNode; // Within `elements` container of `CharacterClassNode`
+/**
+Traverses an AST and calls the `visitor`'s node functions for each node. Visitor node functions can
+modify the AST in place and use methods on the `path` (provided as their first argument) to help
+modify the AST. Provided `state` is passed through to all visitor node functions as their second
+argument.
 
+Visitor node functions are called in the following order:
+1. `enter` function of the `'*'` node type (if any)
+2. `enter` function of the given node's type (if any)
+3. The node's kids (if any) are traversed recursively, unless `skip` is called
+4. `exit` function of the given node's type (if any)
+5. `exit` function of the `'*'` node type (if any)
+*/
 function traverse<State = null>(ast: OnigurumaAst, visitor: Visitor<State>, state: State | null = null) {
   function traverseArray(array: NonNullable<Path['container']>, parent: Path['parent']) {
     for (let i = 0; i < array.length; i++) {
@@ -147,8 +181,8 @@ function traverse<State = null>(ast: OnigurumaAst, visitor: Visitor<State>, stat
       }
     }
 
-    (anyTypeVisitor as Exclude<typeof anyTypeVisitor, Function>)?.exit?.(path, state!);
     (thisTypeVisitor as Exclude<typeof thisTypeVisitor, Function>)?.exit?.(path, state!);
+    (anyTypeVisitor as Exclude<typeof anyTypeVisitor, Function>)?.exit?.(path, state!);
     return keyShift;
   }
   traverseNode(ast);
