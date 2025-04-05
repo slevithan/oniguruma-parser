@@ -337,7 +337,7 @@ Contributions are welcome! In addition to reviewing this library's [contributing
 
 - Add your optimization in a new file, e.g. `src/optimizer/transforms/foo.ts`.
 - Import and list it in `src/optimizer/optimizations.ts`.
-- Add tests in `spec/optimizer/foo.spec.js`; run them via `pnpm test`.
+- Add tests in `test/optimizer/foo.test.ts`; run them via `pnpm test`.
 - List it in this readme file with a simple example.
 
 You don’t need to do too much in one optimization, since optimizations can compliment each other. Ideas for new optimizations are collected [here](https://github.com/slevithan/oniguruma-parser/issues/7).
