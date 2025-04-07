@@ -1,6 +1,6 @@
 # Optimizer module: `oniguruma-parser/optimizer`
 
-The optimizer transforms [Oniguruma](https://github.com/kkos/oniguruma) patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match exactly the same strings with the same subpattern matches.
+The optimizer transforms [Oniguruma](https://github.com/kkos/oniguruma) patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match exactly the same strings, with the same subpattern matches.
 
 > [!NOTE]
 > Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, etc.), and many other tools.
@@ -296,7 +296,7 @@ Sometimes, performance improvements result from a combination of transformations
 
 This sequence of changes happens automatically, assuming none of the individual transforms have been disabled. Note that, although the `extractSuffix` transform doesn't typically impact performance on its own, its change helped enable removing alternation in the subsequent step, which reduces backtracking and can have a direct performance impact (in some cases, it can even eliminate ReDoS).
 
-A real world example of performance improvements comes from [Better C++](https://github.com/jeff-hykin/better-cpp-syntax), which includes a large collection of complex Oniguruma regexes used for highlighting C++ code in VS Code, Shiki, and other tools. Despite having gone through multiple rounds of performance hand-tuning over the years (and not including any known cases of catastophic backtracking), running its regexes through this library resulted in a ~30% improvement in syntax highlighting performance. And this improvement wasn't specific to Oniguruma. Using [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) to transpile the regexes (before and after optimization) to native JavaScript `RegExp`s showed a comparable ~30% performance boost for native JavaScript regex engines.
+A real world example of performance improvements comes from [Better C++](https://github.com/jeff-hykin/better-cpp-syntax), which includes a large collection of complex Oniguruma regexes used for highlighting C++ code in VS Code, Shiki, and other tools. Despite having gone through multiple rounds of performance hand-tuning over the years (and despite not including known cases of catastophic backtracking, which could lead to even greater opportunities for performance optimization), running its regexes through this library resulted in a ~30% improvement in syntax highlighting performance. And this improvement wasn't specific to Oniguruma. Using [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) to transpile the regexes (before and after optimization) to native JavaScript `RegExp`s showed a comparable ~30% performance boost for native JavaScript regex engines.
 
 ## Flags
 

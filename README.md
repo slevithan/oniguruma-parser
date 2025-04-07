@@ -14,8 +14,9 @@ This library has been battle-tested by [`oniguruma-to-es`](https://github.com/sl
 ## Contents
 
 - [Install and use](#install-and-use)
-- [Generate an AST](#generate-an-ast)
+- [Convert a pattern to an AST](#convert-a-pattern-to-an-ast)
 - [Traverse and transform an AST](#traverse-and-transform-an-ast)
+- [Convert an AST to a pattern](#convert-an-ast-to-a-pattern)
 - [Optimize regexes](#optimize-regexes)
 - [Known differences](#known-differences)
 - [Oniguruma version](#oniguruma-version)
@@ -28,29 +29,16 @@ npm install oniguruma-parser
 
 ```js
 import {toOnigurumaAst} from 'oniguruma-parser';
-
-const ast = toOnigurumaAst('.*');
-console.log(ast.pattern.alternatives[0].elements[0]);
-/* → {
-  type: 'Quantifier',
-  kind: 'greedy',
-  min: 0,
-  max: Infinity,
-  element: {
-    type: 'CharacterSet',
-    kind: 'dot',
-  },
-} */
 ```
 
 The following modules are available in addition to the root `'oniguruma-parser'` export:
 
-- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes `parse` which is similar to `toOnigurumaAst` but adds options for specialized use. Also exports numerous functions and types for constructing and working with `OnigurumaAst` nodes.
+- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the `parse` function that's wrapped by `toOnigurumaAst`.
+- [Traverser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md): Traverse and transform an `OnigurumaAst`.
 - [Generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
 - [Optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md): Minify and improve the performance of Oniguruma regexes.
-- [Traverser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md): Traverse and transform an `OnigurumaAst`.
 
-## Generate an AST
+## Convert a pattern to an AST
 
 To parse an Oniguruma regex pattern (with optional flags and compile-time options) and return an AST, call `toOnigurumaAst`, which uses the following type definition:
 
@@ -67,11 +55,61 @@ function toOnigurumaAst(
 ): OnigurumaAst;
 ```
 
-An error is thrown if the pattern or flags aren't valid in Oniguruma.
+For example:
+
+```js
+import {toOnigurumaAst} from 'oniguruma-parser';
+
+const ast = toOnigurumaAst('.*');
+console.log(ast);
+/* →
+{
+  type: 'Regex',
+  pattern: {
+    type: 'Pattern',
+    alternatives: [
+      {
+        type: 'Alternative',
+        elements: [
+          {
+            type: 'Quantifier',
+            kind: 'greedy',
+            min: 0,
+            max: Infinity,
+            element: {
+              type: 'CharacterSet',
+              kind: 'dot',
+            },
+          },
+        ],
+      },
+    ],
+  },
+  flags: {
+    type: 'Flags',
+    ignoreCase: false,
+    dotAll: false,
+    extended: false,
+    digitIsAscii: false,
+    posixIsAscii: false,
+    spaceIsAscii: false,
+    wordIsAscii: false,
+  },
+}
+*/
+```
+
+An error is thrown if the provided pattern or flags aren't valid in Oniguruma.
+
+> **Note:** `toOnigurumaAst` is a wrapper around the [parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md)'s `parse` function that makes it easier to use by automatically providing the appropriate `unicodePropertyMap`.
 
 ## Traverse and transform an AST
 
 See details and examples in the [traverser module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md).
+
+## Convert an AST to a pattern
+
+See details and examples in the [generator module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md).
 
 ## Optimize regexes
 
