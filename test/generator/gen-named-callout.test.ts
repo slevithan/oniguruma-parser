@@ -93,6 +93,8 @@ describe('Generator: NamedCallout', () => {
       '(*',
       '(*)',
       '(*FAIL',
+      '(*FAIL )',
+      '(* FAIL)',
       '(*FAIL@)',
       '(*FAIL{1})',
       '(*MISMATCH[])',
@@ -117,6 +119,7 @@ describe('Generator: NamedCallout', () => {
 
   it('should throw for undefined custom callout names', () => {
     const cases = [
+      '(*fail)',
       '(*foo)',
       '(*foo[Tag])',
       '(*foo{,1,@,A,,,anything,[]})',
