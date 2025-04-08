@@ -138,7 +138,7 @@ All of the following optimizations are on by default. Optimizations with names c
     </th>
     <td><code>simplifyCallouts</code></td>
     <td>Cleanup callout arguments, removing redundant commas, leading zeros, and empty braces</td>
-    <td><code>(*FAIL{,})a</code> → <code>(*FAIL)a</code></td>
+    <td><code>(*SKIP{,})</code> → <code>(*SKIP)</code></td>
   </tr>
 
   <tr>

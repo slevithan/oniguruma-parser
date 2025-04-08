@@ -4,9 +4,13 @@ import {describe, expect, it} from 'vitest';
 describe('Optimizer: simplifyCallouts', () => {
   const thisOptimization = getNarrowOptimizer('simplifyCallouts');
 
+  it('should change (*FAIL) to (?!)', () => {
+    expect(thisOptimization('(*FAIL)')).toBe('(?!)');
+  });
+
   it('should remove useless argument braces', () => {
     const cases = [
-      ['(*FAIL{})', '(*FAIL)'],
+      ['(*FAIL{})', '(?!)'],
       ['(*MISMATCH[T]{})', '(*MISMATCH[T])'],
       ['(*SKIP{})', '(*SKIP)'],
       ['(*ERROR[abc]{})', '(*ERROR[abc])'],
@@ -22,7 +26,7 @@ describe('Optimizer: simplifyCallouts', () => {
 
   it('should remove useless argument commas', () => {
     const cases = [
-      ['(*FAIL{})', '(*FAIL)'],
+      ['(*FAIL{,})', '(?!)'],
       ['(*MISMATCH[T]{,})', '(*MISMATCH[T])'],
       ['(*SKIP{,,})', '(*SKIP)'],
       ['(*ERROR{,,-1,})', '(*ERROR{-1})'],
