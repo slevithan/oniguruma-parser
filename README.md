@@ -142,7 +142,7 @@ Known differences will be resolved in future versions.
 
 The following rarely-used features throw errors since they aren't yet supported:
 
-- Rarely-used character specifiers: Non-A-Za-z with `\cx` `\C-x`, meta `\M-x` `\M-\C-x`, bracketed octals `\o{…}`, and octal encoded bytes ≥ `\200`.
+- Rarely-used character specifiers: Non-A-Za-z with `\cx` `\C-x`, meta `\M-x` `\M-\C-x`, octal code points `\o{…}`, and octal encoded bytes ≥ `\200`.
 - Code point sequences: `\x{H H …}`, `\o{O O …}`.
 - Absent expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.

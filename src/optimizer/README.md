@@ -77,21 +77,7 @@ function optimize(
 
 ## Optimizations
 
-### Always on
-
-The following optimizations are always enabled. They result from the nature of the parser, which builds an AST.
-
-| Description | Example |
-|-|-|
-| Remove comment groups | `(?#comment)a` → `a` |
-| Remove free-spacing and line comments with flag `x` | `(?x) a b` → `(?x)ab` |
-| Remove duplicate flags in mode modifiers | `(?ii-m-m)` → `(?i-m)` |
-| Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
-| Resolve relative backreference/subroutine numbers | `()\k<-1>` → `()\k<1>` |
-
-### On by default
-
-Some of the following optimizations (related to the representation of tokens) don't yet have names listed because, currently, they're always enabled. They'll become optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
+All of the following optimizations are on by default. Optimizations with names can optionally be disabled. Optimizations that don't yet have a name listed below are always enabled, but will become optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
 
 🚀 = Can improve performance.
 
@@ -128,8 +114,8 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 
   <tr>
-    <th rowspan="2" valign="top" align="left">
-      Backrefs and<br>subroutines
+    <th rowspan="3" valign="top" align="left">
+      Backrefs and subroutines
     </th>
     <td></td>
     <td>Unenclose numbered backreferences</td>
@@ -139,6 +125,11 @@ Some of the following optimizations (related to the representation of tokens) do
     <td></td>
     <td>Remove leading zeros from backreference/subroutine numbers</td>
     <td><code>()\k&lt;01></code> → <code>()\k&lt;1></code></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Resolve relative backreference/subroutine numbers</td>
+    <td><code>()\k&lt;-1></code> → <code>()\k&lt;1></code></td>
   </tr>
 
   <tr>
@@ -176,7 +167,7 @@ Some of the following optimizations (related to the representation of tokens) do
 
   <tr>
     <th rowspan="4" valign="top" align="left">
-      Character<br>classes
+      Character classes
     </th>
     <td><code>dedupeClasses</code></td>
     <td>Remove duplicate characters, sets, and ranges from character classes</td>
@@ -223,6 +214,20 @@ Some of the following optimizations (related to the representation of tokens) do
     <td></td>
     <td>Use outer negation for Unicode properties</td>
     <td><code>\p{^L}</code> → <code>\P{L}</code></td>
+  </tr>
+
+  <tr>
+    <th rowspan="2" valign="top" align="left">
+      Comments and whitespace
+    </th>
+    <td></td>
+    <td>Remove comment groups and flag <code>x</code> line comments</td>
+    <td><code>(?#comment)a</code> → <code>a</code></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Remove flag <code>x</code> insignificant whitespace</td>
+    <td><code>(?x) a b</code> → <code>(?x)ab</code></td>
   </tr>
 
   <tr>
@@ -273,7 +278,14 @@ Some of the following optimizations (related to the representation of tokens) do
   </tr>
 </table>
 
-Optimizations are applied in a loop until no further optimization progress is made. Individual optimization transforms are typically narrow and work best when combined with other optimizations.
+Optimizations are applied in a loop until no further optimization progress is made. Individual optimization transforms are typically narrow and work best when combined with others.
+
+The following additional optimizations are always enabled. They're not expected to become optional in the future, since they result from the nature of the parser.
+
+| Description | Example |
+|-|-|
+| Remove duplicate flags | `(?ii-m-m)` → `(?i-m)` |
+| Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
 
 ## How performance optimizations work
 
