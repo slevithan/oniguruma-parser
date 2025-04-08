@@ -66,7 +66,9 @@ function getOptions(options: OptimizeOptions = {}): Required<OptimizeOptions> {
     override: {},
     ...options,
     rules: {
-      // Useful with TextMate grammars that merge backreferences across patterns.
+      // Useful with TextMate grammars that merge backreferences across patterns. Maps to the
+      // parser's `skipBackrefValidation` option, but placed/named differently to match its use
+      // in `oniguruma-to-es`, which offers it for the same purpose that the optimizer does.
       allowOrphanBackrefs: false,
       // Allow unnamed captures and numbered calls (backreferences and subroutines) when using
       // named capture. This is Oniguruma option `ONIG_OPTION_CAPTURE_GROUP`; on by default in
