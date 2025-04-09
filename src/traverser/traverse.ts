@@ -147,9 +147,11 @@ function traverse<State = null>(
 
     if (!skipTraversingKidsOfPath) {
       switch (type) {
-        case 'Regex':
-          traverseNode(node.pattern, node, 'pattern');
-          traverseNode(node.flags, node, 'flags');
+        case 'AbsenceFunction':
+        case 'CapturingGroup':
+        case 'Group':
+        case 'Pattern':
+          traverseArray(node.alternatives, node);
           break;
         case 'Alternative':
         case 'CharacterClass':
@@ -164,12 +166,6 @@ function traverse<State = null>(
         case 'NamedCallout':
         case 'Subroutine':
           break;
-        case 'AbsentFunction':
-        case 'CapturingGroup':
-        case 'Group':
-        case 'Pattern':
-          traverseArray(node.alternatives, node);
-          break;
         case 'CharacterClassRange':
           traverseNode(node.min, node, 'min');
           traverseNode(node.max, node, 'max');
@@ -179,6 +175,10 @@ function traverse<State = null>(
           break;
         case 'Quantifier':
           traverseNode(node.element, node, 'element');
+          break;
+        case 'Regex':
+          traverseNode(node.pattern, node, 'pattern');
+          traverseNode(node.flags, node, 'flags');
           break;
         default:
           throw new Error(`Unexpected node type "${type}"`);

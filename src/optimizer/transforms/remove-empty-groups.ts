@@ -5,7 +5,7 @@ import type {Path, Visitor} from '../../traverser/traverse.js';
 Remove empty noncapturing, atomic, and flag groups, even if quantified.
 */
 const removeEmptyGroups: Visitor = {
-  AbsentFunction({node, remove}: Path) {
+  AbsenceFunction({node, remove}: Path) {
     if (isQualifiedAndEmpty(node)) {
       remove();
     }
@@ -41,7 +41,7 @@ function hasOnlyEmptyAlts(node: AlternativeContainerNode): boolean {
 
 function isQualifiedAndEmpty(node: Node): boolean {
   switch (node.type) {
-    case 'AbsentFunction':
+    case 'AbsenceFunction':
       return node.kind === 'repeater' && hasOnlyEmptyAlts(node);
     case 'Group':
       return hasOnlyEmptyAlts(node);

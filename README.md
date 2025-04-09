@@ -144,7 +144,7 @@ The following rarely-used features throw errors since they aren't yet supported:
 
 - Rarely-used character specifiers: Non-A-Za-z with `\cx` `\C-x`, meta `\M-x` `\M-\C-x`, octal code points `\o{…}`, and octal encoded bytes ≥ `\200`.
 - Code point sequences: `\x{H H …}`, `\o{O O …}`.
-- Absent expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
+- Absence expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.
 - Non-built-in callouts: `(?{…})`, etc.
 - Numbered *forward* backreferences (incl. relative `\k<+N>`) and backreferences with recursion level (`\k<N+N>`, etc.).
@@ -185,11 +185,11 @@ Although any number of digits are supported for enclosed `\k<…>`/`\k'…'` bac
 This library intentionally doesn't reproduce bugs, and it currently throws errors for several edge cases that trigger Oniguruma bugs and undefined behavior.
 
 <details>
-  <summary>Nested absent functions</summary>
+  <summary>Nested absence functions</summary>
 
-Although nested absent functions like `(?~(?~…))` don't throw an error in Oniguruma, they produce self-described "strange" results, and Oniguruma's docs state that "nested absent functions are not supported and the behavior is undefined".
+Although nested absence functions like `(?~(?~…))` don't throw an error in Oniguruma, they produce self-described "strange" results, and Oniguruma's docs state that "nested absent functions are not supported and the behavior is undefined".
 
-In this library, nested absent functions throw an error. In future versions, parsing of nested absent functions will follow Oniguruma and no longer error.
+In this library, nested absence functions throw an error. In future versions, parsing of nested absence functions will follow Oniguruma and no longer error.
 </details>
 
 <details>

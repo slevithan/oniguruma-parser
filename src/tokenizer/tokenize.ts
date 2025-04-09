@@ -37,7 +37,7 @@ type TokenDirectiveKind =
   'keep';
 
 type TokenGroupOpenKind =
-  'absent_repeater' |
+  'absence_repeater' |
   'atomic' |
   'capturing' |
   'group' |
@@ -353,10 +353,10 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     }
     if (m.startsWith('(?~')) {
       if (m === '(?~|') {
-        throw new Error(`Unsupported absent function kind "${m}"`);
+        throw new Error(`Unsupported absence function kind "${m}"`);
       }
       return {
-        token: createGroupOpenToken('absent_repeater', m),
+        token: createGroupOpenToken('absence_repeater', m),
       };
     }
     if (m === '(?(') {

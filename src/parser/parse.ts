@@ -4,7 +4,7 @@ import {cpOf, getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.j
 
 // Watch out for the DOM `Node` interface!
 type Node =
-  AbsentFunctionNode |
+  AbsenceFunctionNode |
   AlternativeNode |
   AssertionNode |
   BackreferenceNode |
@@ -36,14 +36,14 @@ type ParentNode =
 
 // See also `isAlternativeContainer`
 type AlternativeContainerNode =
-  AbsentFunctionNode | // Some sub-kinds are not alternative containers
+  AbsenceFunctionNode | // Some sub-kinds aren't alternative containers
   CapturingGroupNode |
   GroupNode |
   LookaroundAssertionNode |
   PatternNode;
 
 type AlternativeElementNode =
-  AbsentFunctionNode |
+  AbsenceFunctionNode |
   AssertionNode |
   BackreferenceNode |
   CapturingGroupNode |
@@ -65,7 +65,7 @@ type CharacterClassElementNode =
 
 // See also `quantifiableTypes`
 type QuantifiableNode =
-  AbsentFunctionNode |
+  AbsenceFunctionNode |
   BackreferenceNode |
   CapturingGroupNode |
   CharacterNode |
@@ -76,7 +76,7 @@ type QuantifiableNode =
   SubroutineNode;
 
 // TODO: Support remaining kinds; see <github.com/slevithan/oniguruma-to-es/issues/13>
-type NodeAbsentFunctionKind =
+type NodeAbsenceFunctionKind =
   'repeater';
 
 type NodeAssertionKind =
@@ -127,7 +127,7 @@ type Context = {
 // Top-level `walk` calls are given empty state; nested calls can add data specific to their `walk`
 type State = {
   isCheckingRangeEnd?: boolean;
-  isInAbsentFunction?: boolean;
+  isInAbsenceFunction?: boolean;
   isInLookbehind?: boolean;
   isInNegLookbehind?: boolean;
 };
@@ -420,10 +420,10 @@ function parseCharacterSet({kind, negate, value}: CharacterSetToken, context: Co
   return createCharacterSet(kind, {negate});
 }
 
-function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
+function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): AbsenceFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
   const {tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context;
   let node = createByGroupKind(token);
-  const isThisAbsentFunction = node.type === 'AbsentFunction';
+  const isThisAbsenceFunction = node.type === 'AbsenceFunction';
   const isThisLookbehind = isLookbehind(node);
   const isThisNegLookbehind = isThisLookbehind && node.negate;
   // Track capturing group details for backrefs and subroutines (before parsing the group's
@@ -434,10 +434,10 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
       getOrInsert(namedGroupsByName, node.name, []).push(node);
     }
   }
-  // Don't allow nested absent functions
-  if (isThisAbsentFunction && state.isInAbsentFunction) {
+  // Don't allow nested absence functions
+  if (isThisAbsenceFunction && state.isInAbsenceFunction) {
     // Is officially unsupported in Onig but doesn't throw, gives strange results
-    throw new Error('Nested absent function not supported by Oniguruma');
+    throw new Error('Nested absence function not supported by Oniguruma');
   }
   let nextToken = throwIfUnclosedGroup(tokens[context.nextIndex]);
   while (nextToken.type !== 'GroupClose') {
@@ -449,14 +449,14 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
       const alt = node.alternatives.at(-1)!; // Always at least one
       const child = walk(alt, {
         ...state,
-        isInAbsentFunction: state.isInAbsentFunction || isThisAbsentFunction,
+        isInAbsenceFunction: state.isInAbsenceFunction || isThisAbsenceFunction,
         isInLookbehind: state.isInLookbehind || isThisLookbehind,
         isInNegLookbehind: state.isInNegLookbehind || isThisNegLookbehind,
       }) as AlternativeElementNode;
       alt.elements.push(child);
       // Centralized validation of lookbehind contents
       if ((isThisLookbehind || state.isInLookbehind) && !skipLookbehindValidation) {
-        // JS supports all features within lookbehind, but Onig doesn't. Absent functions of form
+        // JS supports all features within lookbehind, but Onig doesn't. Absence functions of form
         // `(?~|)` and `(?~|…)` are also invalid in lookbehind (the `(?~…)` and `(?~|…|…)` forms
         // are allowed), but all forms with `(?~|` throw since they aren't yet supported
         const msg = 'Lookbehind includes a pattern not allowed by Oniguruma';
@@ -558,17 +558,17 @@ function parseSubroutine({raw}: SubroutineToken, context: Context): SubroutineNo
 // --- Node creation and types ---
 // -------------------------------
 
-type AbsentFunctionNode = {
-  type: 'AbsentFunction';
-  kind: NodeAbsentFunctionKind;
+type AbsenceFunctionNode = {
+  type: 'AbsenceFunction';
+  kind: NodeAbsenceFunctionKind;
   alternatives: Array<AlternativeNode>;
 };
-function createAbsentFunction(kind: NodeAbsentFunctionKind): AbsentFunctionNode {
+function createAbsenceFunction(kind: NodeAbsenceFunctionKind): AbsenceFunctionNode {
   if (kind !== 'repeater') {
-    throw new Error(`Unexpected absent function kind "${kind}"`);
+    throw new Error(`Unexpected absence function kind "${kind}"`);
   }
   return {
-    type: 'AbsentFunction',
+    type: 'AbsenceFunction',
     kind,
     alternatives: [createAlternative()],
   };
@@ -956,10 +956,10 @@ function createUnicodeProperty(name: string, options?: CreateUnicodePropertyOpti
 // --- Helpers ---
 // ---------------
 
-function createByGroupKind({flags, kind, name, negate, number}: GroupOpenToken): AbsentFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
+function createByGroupKind({flags, kind, name, negate, number}: GroupOpenToken): AbsenceFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
   switch (kind) {
-    case 'absent_repeater':
-      return createAbsentFunction('repeater');
+    case 'absence_repeater':
+      return createAbsenceFunction('repeater');
     case 'atomic':
       return createGroup({atomic: true});
     case 'capturing':
@@ -1024,7 +1024,7 @@ function throwIfUnclosedGroup<T>(token: T): NonNullable<T> {
 }
 
 export {
-  type AbsentFunctionNode,
+  type AbsenceFunctionNode,
   type AlternativeNode,
   type AlternativeContainerNode,
   type AlternativeElementNode,
@@ -1042,7 +1042,7 @@ export {
   type LookaroundAssertionNode,
   type NamedCalloutNode,
   type Node,
-  type NodeAbsentFunctionKind,
+  type NodeAbsenceFunctionKind,
   type NodeAssertionKind,
   type NodeCharacterClassKind,
   type NodeCharacterSetKind,
@@ -1059,7 +1059,7 @@ export {
   type RegexNode,
   type SubroutineNode,
   type UnicodePropertyMap,
-  createAbsentFunction,
+  createAbsenceFunction,
   createAlternative,
   createAssertion,
   createBackreference,
