@@ -162,8 +162,6 @@ function traverse<State = null>(
         case 'Directive':
         case 'Flags':
         case 'NamedCallout':
-        // @ts-expect-error TODO: Remove `Recursion`; see <github.com/slevithan/oniguruma-parser/issues/3>
-        case 'Recursion':
         case 'Subroutine':
           break;
         case 'AbsentFunction':
