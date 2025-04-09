@@ -7,12 +7,12 @@ Remove duplicate characters, sets, and ranges from character classes.
 const dedupeClasses: Visitor = {
   CharacterClass(path: Path) {
     const {node} = path as Path<CharacterClassNode>;
-    const {kind, elements} = node;
+    const {body, kind} = node;
     if (kind !== 'union') {
       return;
     }
     const keep: Array<CharacterClassElementNode> = [];
-    for (const el of elements) {
+    for (const el of body) {
       // Preserve the order; ignore formatting differences
       if (
         ( el.type === 'Character' &&
@@ -42,7 +42,7 @@ const dedupeClasses: Visitor = {
       // Keep non-duplicate nodes (first instance) and any `CharacterClass` nodes
       keep.push(el);
     }
-    node.elements = keep;
+    node.body = keep;
   },
 };
 

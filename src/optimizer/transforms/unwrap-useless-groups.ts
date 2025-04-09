@@ -15,14 +15,14 @@ const unwrapUselessGroups: Visitor = {
     if (hasNoncapturingMultiAltOnlyChild(node)) {
       // Isn't needed in some cases like if `node` is itself a basic noncapturing group (since
       // there's already handling in `Group`), but it doesn't hurt to handle it here instead
-      node.body = (node.body[0].elements[0] as GroupNode).body;
+      node.body = (node.body[0].body[0] as GroupNode).body;
     }
   },
 
   Group(path: Path) {
     const {node, parent, replaceWithMultiple} = path as Path<GroupNode>;
     const {atomic, body, flags} = node;
-    const firstAltEls = body[0].elements;
+    const firstAltEls = body[0].body;
     if (body.length > 1 || parent!.type === 'Quantifier') {
       return;
     }
@@ -51,7 +51,7 @@ const unwrapUselessGroups: Visitor = {
     if (quantifiedGroup.body.length > 1) {
       return;
     }
-    const groupKids = quantifiedGroup.body[0].elements;
+    const groupKids = quantifiedGroup.body[0].body;
     if (groupKids.length !== 1) {
       return;
     }
@@ -78,7 +78,7 @@ const atomicTypes = new Set<NodeType>([
 ]);
 
 function hasNoncapturingMultiAltOnlyChild({body}: AlternativeContainerNode): boolean {
-  const firstAltEls = body[0].elements;
+  const firstAltEls = body[0].body;
   return (
     body.length === 1 &&
     firstAltEls.length === 1 &&

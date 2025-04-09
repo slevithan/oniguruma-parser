@@ -20,7 +20,7 @@ const extractPrefix2: Visitor = {
     if (numAlts < (numDiffPrefixes * 2) || numAlts % numDiffPrefixes) {
       return;
     }
-    const prefixAltElsByI = [...node.body.slice(0, numDiffPrefixes).map(alt => alt.elements)];
+    const prefixAltElsByI = [...node.body.slice(0, numDiffPrefixes).map(alt => alt.body)];
     const prefixNodesByI = Array.from({length: numDiffPrefixes}, (): Array<AlternativeElementNode> => []);
     const prefixIsFinishedByI = Array(numDiffPrefixes).fill(false);
     const longestOf = Math.max(...prefixAltElsByI.map(els => els.length));
@@ -47,7 +47,7 @@ const extractPrefix2: Visitor = {
     let counter = 0;
     for (let i = 0; i < numAlts; i++) {
       const alt = createAlternative();
-      alt.elements = node.body[i].elements.slice(prefixNodesByI[counter].length);
+      alt.body = node.body[i].body.slice(prefixNodesByI[counter].length);
       strippedAlts.push(alt);
       counter = counter < (numDiffPrefixes - 1) ? counter + 1 : 0;
     }
@@ -55,13 +55,13 @@ const extractPrefix2: Visitor = {
     for (let i = 0; i < (numAlts / numDiffPrefixes); i++) {
       const altComparisonSet = strippedAlts.slice(i * numDiffPrefixes, (i * numDiffPrefixes) + numDiffPrefixes);
       for (let j = 1; j < altComparisonSet.length; j++) {
-        const els = altComparisonSet[j].elements;
-        if (els.length !== altComparisonSet[0].elements.length) {
+        const els = altComparisonSet[j].body;
+        if (els.length !== altComparisonSet[0].body.length) {
           return;
         }
         if (!els.every((el, k) => (
           isAllowedSimpleType(el.type) &&
-          isNodeEqual(el, altComparisonSet[0].elements[k])
+          isNodeEqual(el, altComparisonSet[0].body[k])
         ))) {
           return;
         }
@@ -72,18 +72,18 @@ const extractPrefix2: Visitor = {
     const prefixAlts = [];
     for (let i = 0; i < numDiffPrefixes; i++) {
       const alt = createAlternative();
-      alt.elements = prefixNodesByI[i];
+      alt.body = prefixNodesByI[i];
       prefixAlts.push(alt);
     }
     prefixGroup.body = prefixAlts;
-    newContentsAlt.elements.push(prefixGroup);
+    newContentsAlt.body.push(prefixGroup);
     const suffixGroup = createGroup();
     // Only take one (unique) alt from each set of stripped alts
     suffixGroup.body = strippedAlts.filter((_, i) => i % numDiffPrefixes);
-    if (suffixGroup.body.every(alt => !alt.elements.length)) {
+    if (suffixGroup.body.every(alt => !alt.body.length)) {
       node.body = prefixGroup.body;
     } else {
-      newContentsAlt.elements.push(suffixGroup);
+      newContentsAlt.body.push(suffixGroup);
       node.body = [newContentsAlt];
     }
   },
@@ -98,7 +98,7 @@ function isPrefixNodeShared(
 ): boolean {
   for (let i = prefixI; i < alts.length; i += numDiffPrefixes) {
     const alt = alts[i];
-    const bNode = alt.elements[nodeI];
+    const bNode = alt.body[nodeI];
     if (!bNode || !isNodeEqual(bNode, node)) {
       return false;
     }

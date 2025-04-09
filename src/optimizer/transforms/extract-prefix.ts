@@ -18,9 +18,9 @@ const extractPrefix: Visitor = {
     let passedSharedPrefix = false;
     let i = 0;
     while (!passedSharedPrefix) {
-      prefixNodes.push(node.body[0].elements[i]);
+      prefixNodes.push(node.body[0].body[i]);
       for (const alt of node.body) {
-        const kid = alt.elements[i];
+        const kid = alt.body[i];
         if (!kid || !isAllowedSimpleType(kid.type) || !isNodeEqual(kid, prefixNodes[i])) {
           passedSharedPrefix = true;
           break;
@@ -34,14 +34,14 @@ const extractPrefix: Visitor = {
     }
 
     for (const alt of node.body) {
-      alt.elements = alt.elements.slice(prefixNodes.length);
+      alt.body = alt.body.slice(prefixNodes.length);
     }
     const newContentsAlt = createAlternative();
-    newContentsAlt.elements = [...prefixNodes];
+    newContentsAlt.body = [...prefixNodes];
     const suffixGroup = createGroup();
     suffixGroup.body = node.body;
-    if (!suffixGroup.body.every(alt => !alt.elements.length)) {
-      newContentsAlt.elements.push(suffixGroup);
+    if (!suffixGroup.body.every(alt => !alt.body.length)) {
+      newContentsAlt.body.push(suffixGroup);
     }
     node.body = [newContentsAlt];
   },

@@ -70,7 +70,7 @@ console.log(ast);
     body: [
       {
         type: 'Alternative',
-        elements: [
+        body: [
           {
             type: 'Quantifier',
             kind: 'greedy',

@@ -23,17 +23,18 @@ const universalCharacterSetKinds = new Set<NodeCharacterSetKind>([
   'word',
 ]);
 
-type Props = {[key: string]: any};
+type KeysOfUnion<T> = T extends T ? keyof T: never;
+type Props = {[key in KeysOfUnion<Node>]?: any};
 
-function hasOnlyChild(node: ParentNode, props?: Props): boolean {
-  if (!('elements' in node)) {
-    throw new Error('Expected node with elements');
+function hasOnlyChild(node: ParentNode & {body: Array<Node>}, props?: Props): boolean {
+  if (!Array.isArray(node.body)) {
+    throw new Error('Expected node with body array');
   }
-  if (node.elements.length !== 1) {
+  if (node.body.length !== 1) {
     return false;
   }
-  const kid = node.elements[0] as Props;
-  return !props || Object.keys(props).every(key => props[key] === kid[key]);
+  const kid = node.body[0] as Props;
+  return !props || Object.keys(props).every(key => props[key as keyof Props] === kid[key as keyof Props]);
 }
 
 function isAlternativeContainer(node: Node): node is AlternativeContainerNode {

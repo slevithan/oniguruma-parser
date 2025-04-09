@@ -59,8 +59,8 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
   },
 
   Alternative(node: Node, _: State, gen: Gen): string {
-    const {elements} = node as AlternativeNode;
-    return elements.map(gen).join('');
+    const {body} = node as AlternativeNode;
+    return body.map(gen).join('');
   },
 
   Assertion(node: Node): string {
@@ -122,8 +122,8 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     let escape = false;
     if (inCharClass) {
       const isDirectClassKid = parent.type === 'CharacterClass';
-      const isFirst = isDirectClassKid && parent.elements[0] === node;
-      const isLast = isDirectClassKid && parent.elements.at(-1) === node;
+      const isFirst = isDirectClassKid && parent.body[0] === node;
+      const isLast = isDirectClassKid && parent.body.at(-1) === node;
       // Avoid escaping in some optional special cases when escaping isn't needed due to position
       if (char === '^') {
         escape = isFirst && !parent.negate;
@@ -143,19 +143,19 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
   },
 
   CharacterClass(node: Node, state: State, gen: Gen): string {
-    const {kind, negate, elements} = node as CharacterClassNode;
+    const {body, kind, negate} = node as CharacterClassNode;
     function genClass() {
       if (
         state.parent.type === 'CharacterClass' &&
         state.parent.kind === 'intersection' &&
         kind === 'union' &&
-        !elements.length
+        !body.length
       ) {
         // Prevent empty intersection like `[&&]` from becoming the invalid `[[]&&[]]`
         return '';
       }
       return `[${negate ? '^' : ''}${
-        elements.map(gen).join(kind === 'intersection' ? '&&' : '')
+        body.map(gen).join(kind === 'intersection' ? '&&' : '')
       }]`;
     }
     if (!state.inCharClass) {
@@ -368,10 +368,7 @@ const CharCodeEscapeMap = new Map([
 
 function getFirstChild(node: Node) {
   if ('body' in node) {
-    return node.body[0];
-  }
-  if ('elements' in node) {
-    return node.elements[0] ?? null;
+    return node.body[0] ?? null;
   }
   if ('element' in node) {
     return node.element;
@@ -388,10 +385,7 @@ function getFirstChild(node: Node) {
 
 function getLastChild(node: Node) {
   if ('body' in node) {
-    return node.body.at(-1)!; // Always at least one
-  }
-  if ('elements' in node) {
-    return node.elements.at(-1) ?? null;
+    return node.body.at(-1) ?? null;
   }
   if ('element' in node) {
     return node.element;

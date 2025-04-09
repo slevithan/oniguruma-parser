@@ -229,7 +229,7 @@ function parse(pattern: string, options: ParseOptions = {}): OnigurumaAst {
       ast.pattern.body.push(node);
       top = node;
     } else {
-      top.elements.push(node as AlternativeElementNode);
+      top.body.push(node as AlternativeElementNode);
     }
   }
 
@@ -344,7 +344,7 @@ function parseBackreference({raw}: BackreferenceToken, context: Context): Backre
 function parseCharacterClassHyphen(_: CharacterClassHyphenToken, context: Context, state: State): CharacterNode | CharacterClassRangeNode {
   const {tokens, walk} = context;
   const parent = context.parent as CharacterClassNode;
-  const prevSiblingNode = parent.elements.at(-1);
+  const prevSiblingNode = parent.body.at(-1);
   const nextToken = tokens[context.nextIndex];
   if (
     !state.isCheckingRangeEnd &&
@@ -361,7 +361,7 @@ function parseCharacterClassHyphen(_: CharacterClassHyphenToken, context: Contex
       isCheckingRangeEnd: true,
     });
     if (prevSiblingNode.type === 'Character' && nextNode.type === 'Character') {
-      parent.elements.pop();
+      parent.body.pop();
       return createCharacterClassRange(prevSiblingNode, nextNode);
     }
     throw new Error('Invalid character class range');
@@ -381,16 +381,16 @@ function parseCharacterClassOpen({negate}: CharacterClassOpenToken, context: Con
       context.nextIndex++;
     } else {
       const cc = intersections.at(-1)!; // Always at least one
-      cc.elements.push(walk(cc, state) as CharacterClassElementNode);
+      cc.body.push(walk(cc, state) as CharacterClassElementNode);
     }
     nextToken = throwIfUnclosedCharacterClass(tokens[context.nextIndex], firstClassToken);
   }
   const node = createCharacterClass({negate});
   if (intersections.length === 1) {
-    node.elements = intersections[0].elements;
+    node.body = intersections[0].body;
   } else {
     node.kind = 'intersection';
-    node.elements = intersections.map(cc => cc.elements.length === 1 ? cc.elements[0] : cc);
+    node.body = intersections.map(cc => cc.body.length === 1 ? cc.body[0] : cc);
   }
   // Skip the closing square bracket
   context.nextIndex++;
@@ -453,7 +453,7 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
         isInLookbehind: state.isInLookbehind || isThisLookbehind,
         isInNegLookbehind: state.isInNegLookbehind || isThisNegLookbehind,
       }) as AlternativeElementNode;
-      alt.elements.push(child);
+      alt.body.push(child);
       // Centralized validation of lookbehind contents
       if ((isThisLookbehind || state.isInLookbehind) && !skipLookbehindValidation) {
         // JS supports all features within lookbehind, but Onig doesn't. Absence functions of form
@@ -484,7 +484,7 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
 
 function parseQuantifier({kind, min, max}: QuantifierToken, context: Context): QuantifierNode {
   const parent = context.parent as AlternativeNode;
-  const quantifiedNode = parent.elements.at(-1);
+  const quantifiedNode = parent.body.at(-1);
   // TODO: Reusing `quantifiableTypes` (`!quantifiableTypes.has(quantifiedNode.type)`) would be
   // better, but TS doesn't narrow via `has` with a `Set`
   if (
@@ -497,7 +497,7 @@ function parseQuantifier({kind, min, max}: QuantifierToken, context: Context): Q
     throw new Error(`Quantifier requires a repeatable token`);
   }
   const node = createQuantifier(kind, min, max, quantifiedNode);
-  parent.elements.pop();
+  parent.body.pop();
   return node;
 }
 
@@ -576,12 +576,12 @@ function createAbsenceFunction(kind: NodeAbsenceFunctionKind): AbsenceFunctionNo
 
 type AlternativeNode = {
   type: 'Alternative';
-  elements: Array<AlternativeElementNode>;
+  body: Array<AlternativeElementNode>;
 };
 function createAlternative(): AlternativeNode {
   return {
     type: 'Alternative',
-    elements: [],
+    body: [],
   };
 }
 
@@ -671,7 +671,7 @@ type CharacterClassNode = {
   type: 'CharacterClass';
   kind: NodeCharacterClassKind;
   negate: boolean;
-  elements: Array<CharacterClassElementNode>;
+  body: Array<CharacterClassElementNode>;
 };
 function createCharacterClass(options?: {
   kind?: NodeCharacterClassKind;
@@ -686,7 +686,7 @@ function createCharacterClass(options?: {
     type: 'CharacterClass',
     kind: opts.kind,
     negate: opts.negate,
-    elements: [],
+    body: [],
   };
 }
 

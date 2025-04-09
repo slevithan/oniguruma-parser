@@ -15,7 +15,7 @@ const extractSuffix: Visitor = {
     if (!isAlternativeContainer(node) || node.body.length < 2) {
       return;
     }
-    const firstAltEls = node.body[0].elements;
+    const firstAltEls = node.body[0].body;
     const suffixNodes = [];
     let passedSharedSuffix = false;
     let i = 0;
@@ -23,8 +23,8 @@ const extractSuffix: Visitor = {
       const inverseI = firstAltEls.length - 1 - i;
       suffixNodes.push(firstAltEls[inverseI]);
       for (const alt of node.body) {
-        const inverseIOfAlt = alt.elements.length - 1 - i;
-        const kid = alt.elements[inverseIOfAlt];
+        const inverseIOfAlt = alt.body.length - 1 - i;
+        const kid = alt.body[inverseIOfAlt];
         if (!kid || !isAllowedSimpleType(kid.type) || !isNodeEqual(kid, suffixNodes[i])) {
           passedSharedSuffix = true;
           break;
@@ -45,7 +45,7 @@ const extractSuffix: Visitor = {
         node.body.length < 4 &&
         // Alts reduced to 0 or 1 node after extracting the suffix can possibly be collapsed in
         // follow-on optimizations, providing a performance and/or minification benefit
-        node.body.every(alt => alt.elements.length > 2)
+        node.body.every(alt => alt.body.length > 2)
       )
     ) {
       return;
@@ -53,15 +53,15 @@ const extractSuffix: Visitor = {
     suffixNodes.reverse();
 
     for (const alt of node.body) {
-      alt.elements = alt.elements.slice(0, -suffixNodes.length);
+      alt.body = alt.body.slice(0, -suffixNodes.length);
     }
     const newContentsAlt = createAlternative();
     const prefixGroup = createGroup();
     prefixGroup.body = node.body;
-    if (!prefixGroup.body.every(alt => !alt.elements.length)) {
-      newContentsAlt.elements.push(prefixGroup);
+    if (!prefixGroup.body.every(alt => !alt.body.length)) {
+      newContentsAlt.body.push(prefixGroup);
     }
-    newContentsAlt.elements.push(...suffixNodes);
+    newContentsAlt.body.push(...suffixNodes);
     node.body = [newContentsAlt];
   },
 };

@@ -19,14 +19,14 @@ function getNarrowOptimizer(optimization: OptimizationName): (pattern: string) =
   };
 }
 
-function singleAltAst(elements: Array<AlternativeElementNode>): OnigurumaAst {
+function singleAltAst(body: Array<AlternativeElementNode>): OnigurumaAst {
   return {
     type: 'Regex',
     pattern: {
       type: 'Pattern',
       body: [
         { type: 'Alternative',
-          elements,
+          body,
         },
       ],
     },

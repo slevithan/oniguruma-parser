@@ -8,16 +8,16 @@ See also `unwrapNegationWrappers`.
 */
 const unnestUselessClasses: Visitor = {
   CharacterClass({node, parent, replaceWith, replaceWithMultiple}: Path) {
-    const {kind, negate, elements} = node as CharacterClassNode;
+    const {body, kind, negate} = node as CharacterClassNode;
     if (
       // Don't use this to unwrap outermost classes; see `unwrapUselessClasses` for that
       parent!.type !== 'CharacterClass' ||
       kind !== 'union' ||
-      !elements.length
+      !body.length
     ) {
       return;
     }
-    const firstEl = elements[0];
+    const firstEl = body[0];
     // Special case to unnest classes that are an only-kid of their parent, since it might flip
     // `negate` on the parent; ex:
     // `[[a]]` -> `[a]`; `[[^a]]` -> `[^a]`; `[^[a]]` -> `[^a]`; `[^[^a]]` -> `[a]`
@@ -26,7 +26,7 @@ const unnestUselessClasses: Visitor = {
       kind: 'union',
     })) {
       parent.negate = parent.negate !== negate;
-      replaceWithMultiple(elements, {traverse: true});
+      replaceWithMultiple(body, {traverse: true});
       return;
     }
     // Remainder of options apply only if the class is non-negated
@@ -35,7 +35,7 @@ const unnestUselessClasses: Visitor = {
     }
     // Unnest all kids into a union class
     if (parent.kind === 'union') {
-      replaceWithMultiple(elements, {traverse: true});
+      replaceWithMultiple(body, {traverse: true});
     // Can unnest any one kid into an intersection class
     // TODO: After supporting `format` for classes, can visually unnest any number of kids into
     // intersection by flipping this class's `format` from `'explicit'` to `'implicit'`, rather

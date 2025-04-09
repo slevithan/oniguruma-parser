@@ -7,13 +7,13 @@ See also `unwrapNegationWrappers`.
 */
 const unwrapUselessClasses: Visitor = {
   CharacterClass({node, parent, replaceWith}: Path) {
-    const {kind, negate, elements} = node as CharacterClassNode;
-    const kid = elements[0];
+    const {body, kind, negate} = node as CharacterClassNode;
+    const kid = body[0];
     if (
       parent!.type === 'CharacterClass' ||
       negate ||
       kind !== 'union' ||
-      elements.length !== 1 ||
+      body.length !== 1 ||
       (kid.type !== 'Character' && kid.type !== 'CharacterSet')
     ) {
       return;

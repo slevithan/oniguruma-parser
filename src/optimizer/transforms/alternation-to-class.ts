@@ -15,9 +15,9 @@ const alternationToClass: Visitor = {
     const newAlts = [];
     let ccNodes = [];
     for (const alt of node.body) {
-      const kid = alt.elements[0];
+      const kid = alt.body[0];
       if (
-        alt.elements.length === 1 &&
+        alt.body.length === 1 &&
         ( kid.type === 'Character' ||
           kid.type === 'CharacterClass' ||
           (kid.type === 'CharacterSet' && universalCharacterSetKinds.has(kid.kind))
@@ -44,11 +44,11 @@ function createAlternativeWithCombinedNodes(nodes: Array<CharacterNode | Charact
   let node = nodes[0];
   if (nodes.length > 1) {
     const cc = createCharacterClass();
-    cc.elements = nodes;
+    cc.body = nodes;
     node = cc;
   }
   if (node) {
-    alt.elements.push(node);
+    alt.body.push(node);
   }
   return alt;
 }

@@ -36,7 +36,7 @@ const removeEmptyGroups: Visitor = {
 };
 
 function hasOnlyEmptyAlts(node: AlternativeContainerNode): boolean {
-  return node.body.every(alt => !alt.elements.length);
+  return node.body.every(alt => !alt.body.length);
 }
 
 function isQualifiedAndEmpty(node: Node): boolean {

@@ -9,15 +9,11 @@ Allows independently controlling this behavior and avoiding logic duplication in
 */
 const unwrapNegationWrappers: Visitor = {
   CharacterClass({node, parent, replaceWith}: Path) {
-    const {kind, negate, elements} = node as CharacterClassNode;
-    const kid = elements[0];
-    if (
-      !negate ||
-      kind !== 'union' ||
-      elements.length !== 1
-    ) {
+    const {body, kind, negate} = node as CharacterClassNode;
+    if (!negate || kind !== 'union' || body.length !== 1) {
       return;
     }
+    const kid = body[0];
     // Don't need to check if `kind` is in `universalCharacterSetKinds` because all character
     // sets valid in classes are in that set
     if (kid.type === 'CharacterSet') {

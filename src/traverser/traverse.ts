@@ -4,9 +4,9 @@ import {throwIfNullable} from '../utils.js';
 type ContainerElementNode =
   // Used within the `body` container of any `AlternativeContainerNode`
   AlternativeNode |
-  // Any node type used within an `elements` container of an `AlternativeNode`
+  // Any node type used within the `body` container of an `AlternativeNode`
   AlternativeElementNode |
-  // Any node type used within an `elements` container of a `CharacterClassNode`
+  // Any node type used within the `body` container of a `CharacterClassNode`
   CharacterClassElementNode;
 
 type Path<T = Node> = {
@@ -155,7 +155,7 @@ function traverse<State = null>(
           break;
         case 'Alternative':
         case 'CharacterClass':
-          traverseArray(node.elements, node);
+          traverseArray(node.body, node);
           break;
         case 'Assertion':
         case 'Backreference':

@@ -28,7 +28,7 @@ const preventReDoS: Visitor = {
     if (!hasOnlyChild(firstAlt, {type: 'Quantifier'})) {
       return;
     }
-    const nestedQuantifier = firstAlt.elements[0] as QuantifierNode;
+    const nestedQuantifier = firstAlt.body[0] as QuantifierNode;
     if (
       // No benefit with possessive quantifiers
       nestedQuantifier.kind === 'possessive' ||
@@ -42,7 +42,7 @@ const preventReDoS: Visitor = {
       nestedQuantifier.max = 1;
     } else if (nestedQuantifier.min === 1) {
       // Ex: Remove `+` or `{1,2}`
-      firstAlt.elements[0] = nestedQuantifier.element;
+      firstAlt.body[0] = nestedQuantifier.element;
     }
   },
 };

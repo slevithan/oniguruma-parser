@@ -76,7 +76,7 @@ const useShorthands: Visitor = {
       unicodeN: false,
       unicodePc: false,
     };
-    for (const kid of node.elements) {
+    for (const kid of node.body) {
       if (kid.type === 'CharacterClassRange') {
         has.rangeDigit0To9 ||= isRange(kid, 48, 57); // '0' to '9'
         has.rangeAToFLower ||= isRange(kid, 97, 102); // 'a' to 'f'
@@ -89,10 +89,10 @@ const useShorthands: Visitor = {
       }
     }
     if (has.rangeDigit0To9 && has.rangeAToFUpper && has.rangeAToFLower) {
-      node.elements = node.elements.filter(kid => !(
+      node.body = node.body.filter(kid => !(
         isRange(kid, 48, 57) || isRange(kid, 97, 102) || isRange(kid, 65, 70)
       ));
-      node.elements.push(createCharacterSet('hex'));
+      node.body.push(createCharacterSet('hex'));
     }
     if (
       (has.unicodeL && has.unicodeM && has.unicodeN && has.unicodePc) &&
@@ -100,10 +100,10 @@ const useShorthands: Visitor = {
       !root.flags.wordIsAscii &&
       !root.flags.posixIsAscii
     ) {
-      node.elements = node.elements.filter(kid => !isUnicode(kid, ['L', 'M', 'N', 'Pc'], {
+      node.body = node.body.filter(kid => !isUnicode(kid, ['L', 'M', 'N', 'Pc'], {
         includeSubcategories: true,
       }));
-      node.elements.push(createCharacterSet('word'));
+      node.body.push(createCharacterSet('word'));
     }
   },
 };

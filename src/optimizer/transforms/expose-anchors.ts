@@ -21,7 +21,7 @@ const exposeAnchors: Visitor = {
       return;
     }
     const firstAlt = node.body[0];
-    const firstAltEls = firstAlt.elements;
+    const firstAltEls = firstAlt.body;
     // Despite only pulling one assertion at a time, multiple can be extracted through multiple
     // rounds of running this optimization
     const leading = firstAltEls[0];
@@ -31,7 +31,7 @@ const exposeAnchors: Visitor = {
     const clippedStart = hasLeadingAssertion ? 1 : 0;
     const clippedEnd = firstAltEls.length - (hasTrailingAssertion ? 1 : 0);
     if (hasLeadingAssertion || hasTrailingAssertion) {
-      firstAlt.elements = firstAltEls.slice(clippedStart, clippedEnd);
+      firstAlt.body = firstAltEls.slice(clippedStart, clippedEnd);
       const nodes: Array<Node> = [];
       if (hasLeadingAssertion) {
         // Could use `insertBefore` if the traverser supported it
