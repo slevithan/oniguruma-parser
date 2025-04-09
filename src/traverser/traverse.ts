@@ -41,7 +41,7 @@ type Path<T = Node> = {
 };
 
 // `NodeType() {…}` is shorthand for `NodeType: {enter() {…}}`.
-type Visitor<State = null> = {
+type Visitor<State extends object | null = null> = {
   [key in '*' | NodeType]?: VisitorNodeFn<State> | {
     enter?: VisitorNodeFn<State>;
     exit?: VisitorNodeFn<State>;
@@ -65,7 +65,7 @@ Visitor node functions are called in the following order:
 4. `exit` function of the given node's type (if any)
 5. `exit` function of the `'*'` node type (if any)
 */
-function traverse<State = null>(
+function traverse<State extends object | null = null>(
   root: OnigurumaAst,
   visitor: Visitor<State>,
   state: State | null = null

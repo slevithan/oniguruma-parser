@@ -11,13 +11,13 @@ import {traverse} from 'oniguruma-parser/traverser';
 ## Type definition
 
 ```ts
-function traverse<State = null>(
+function traverse<State extends object | null = null>(
   root: OnigurumaAst,
   visitor: Visitor<State>,
   state: State | null = null
 ): void;
 
-type Visitor<State = null> = {
+type Visitor<State extends object | null = null> = {
   [key in '*' | NodeType]?: VisitorNodeFn<State> | {
     enter?: VisitorNodeFn<State>;
     exit?: VisitorNodeFn<State>;
