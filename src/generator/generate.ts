@@ -1,4 +1,4 @@
-import type {AbsenceFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, NamedCalloutNode, Node, OnigurumaAst, ParentNode, PatternNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
+import type {AbsenceFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, NamedCalloutNode, Node, OnigurumaAst, ParentNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {FlagProperties} from '../tokenizer/tokenize.js';
 import {r, throwIfNullable} from '../utils.js';
 
@@ -15,7 +15,7 @@ type State = {
 };
 
 /**
-Generates a Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
+Generates an Oniguruma `pattern` and `flags` from an `OnigurumaAst`.
 */
 function generate(ast: OnigurumaAst): OnigurumaRegex {
   const parentStack: Array<ParentNode> = [];
@@ -40,12 +40,10 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
     };
     return result;
   };
-  const pattern = gen(ast.pattern);
-  lastNode = ast; // Reset
-  const flags = gen(ast.flags);
   return {
-    pattern,
-    flags,
+    pattern: ast.body.map(gen).join('|'),
+    // Could reset `lastNode` beforehand (`lastNode = ast;`), but it isn't needed by flags
+    flags: gen(ast.flags),
   };
 }
 
@@ -245,11 +243,6 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     return `(*${kind.toUpperCase()}${tag ? `[${tag}]` : ''}${args ? `{${args.join(',')}}` : ''})`;
   },
 
-  Pattern(node: Node, _: State, gen: Gen): string {
-    const {body} = node as PatternNode;
-    return body.map(gen).join('|');
-  },
-
   Quantifier(node: Node, {parent}: State, gen: Gen): string {
     // Rendering Onig quantifiers is wildly, unnecessarily complex compared to other regex flavors
     // because of the combination of a few features unique to Onig:
@@ -374,9 +367,6 @@ function getFirstChild(node: Node) {
   if ('min' in node && node.min.type) {
     return node.min;
   }
-  if ('pattern' in node) {
-    return node.pattern;
-  }
   return null;
 }
 
@@ -387,9 +377,6 @@ function getLastChild(node: Node) {
   // Check for `type` to determine if it's a child node; quantifiers have a numeric `max`
   if ('max' in node && node.max.type) {
     return node.max;
-  }
-  if ('pattern' in node) {
-    return node.pattern;
   }
   return null;
 }

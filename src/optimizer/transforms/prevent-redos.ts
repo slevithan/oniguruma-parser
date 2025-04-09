@@ -12,7 +12,7 @@ const preventReDoS: Visitor = {
     // quantifier from the first alternative of infinitely-quantified groups. Can't remove nested
     // quantifiers from other alternatives or when the first alternative contains more than one
     // node, because that might change the match
-    // TODO: It's safe to skip this transform if the quantified group is the last node in its
+    // TODO: It's safe to skip this transform if the quantified group is the last node in the
     // pattern, since there's no backtracking trigger if there's no following node
     const {body, max} = node;
     if (

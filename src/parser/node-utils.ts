@@ -43,7 +43,7 @@ function isAlternativeContainer(node: Node): node is AlternativeContainerNode {
     'CapturingGroup',
     'Group',
     'LookaroundAssertion',
-    'Pattern',
+    'Regex',
   ]);
   if (
     !alternativeContainerTypes.has(node.type) ||

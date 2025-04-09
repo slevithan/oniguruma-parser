@@ -63,28 +63,22 @@ import {toOnigurumaAst} from 'oniguruma-parser';
 const ast = toOnigurumaAst('.*');
 console.log(ast);
 /* →
-{
-  type: 'Regex',
-  pattern: {
-    type: 'Pattern',
-    body: [
-      {
-        type: 'Alternative',
-        body: [
-          {
-            type: 'Quantifier',
-            kind: 'greedy',
-            min: 0,
-            max: Infinity,
-            body: {
-              type: 'CharacterSet',
-              kind: 'dot',
-            },
+{ type: 'Regex',
+  body: [
+    { type: 'Alternative',
+      body: [
+        { type: 'Quantifier',
+          kind: 'greedy',
+          min: 0,
+          max: Infinity,
+          body: {
+            type: 'CharacterSet',
+            kind: 'dot',
           },
-        ],
-      },
-    ],
-  },
+        },
+      ],
+    },
+  ],
   flags: {
     type: 'Flags',
     ignoreCase: false,

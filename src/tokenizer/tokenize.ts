@@ -1097,14 +1097,12 @@ function getFlagProperties(flags: string): FlagProperties {
 // - Unenclosed `\xNN` above 0x7F is handled elsewhere as a UTF-8 encoded byte sequence
 // - Enclosed `\x{}` with value above 0x10FFFF is allowed here; handled in the parser
 function getValidatedHexCharCode(raw: string): number {
-  // Note: Onig (v6.9.8 tested) has a bug where bare `\u` and `\x` are identity escapes if they
-  // appear at the very end of the pattern, so e.g. `\u` matches `u`, but `\u0`, `\u.`, and `[\u]`
-  // are all errors, and `\x.` and `[\x]` aren't errors but instead the `\x` is equivalent to `\0`.
-  // Don't emulate these bugs (see <github.com/slevithan/oniguruma-to-es/issues/21>), and just
-  // treat these cases as errors. Also, Onig treats incomplete `\x{` (with the brace and not
-  // immediately followed by a hex digit) as an identity escape, so e.g. `\x{` matches `x{` and
-  // `^\x{,2}$` matches `xx`, but `\x{2,}` and `\x{0,2}` are errors. Don't implement this pointless
-  // ambiguity; just treat incomplete `\x{` as an error
+  // Note: Onig v6.9.10 and earlier have a bug where pattern-terminating `\u` and `\x` are treated
+  // as identity escapes; see <github.com/kkos/oniguruma/issues/343>. Don't emulate these bugs.
+  // Additionally, Onig treats bare `\x` as equivalent to `\0`, and treats incomplete `\x{` (with
+  // the brace and not immediately followed by a hex digit) as an identity escape, so e.g. `\x{`
+  // matches `x{` and `^\x{,2}$` matches `xx`, but `\x{2,}` and `\x{0,2}` are errors. Currently,
+  // this library treats these cases as errors
   if (/^(?:\\u(?!\p{AHex}{4})|\\x(?!\p{AHex}{1,2}|\{\p{AHex}{1,8}\}))/u.test(raw)) {
     throw new Error(`Incomplete or invalid escape "${raw}"`);
   }

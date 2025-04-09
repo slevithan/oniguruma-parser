@@ -1,6 +1,7 @@
 import type {CharacterClassNode} from '../../parser/parse.js';
 import type {Path, Visitor} from '../../traverser/traverse.js';
 import {hasOnlyChild} from '../../parser/node-utils.js';
+import {throwIfNullable} from '../../utils.js';
 
 /**
 Unnest character classes when possible.
@@ -9,9 +10,12 @@ See also `unwrapNegationWrappers`.
 const unnestUselessClasses: Visitor = {
   CharacterClass({node, parent, replaceWith, replaceWithMultiple}: Path) {
     const {body, kind, negate} = node as CharacterClassNode;
+    // @ts-expect-error TODO: Remove along with the `parent` type guard below it
+    parent.type;
+    parent = throwIfNullable(parent);
     if (
       // Don't use this to unwrap outermost classes; see `unwrapUselessClasses` for that
-      parent!.type !== 'CharacterClass' ||
+      parent.type !== 'CharacterClass' ||
       kind !== 'union' ||
       !body.length
     ) {

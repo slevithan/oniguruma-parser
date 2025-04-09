@@ -22,14 +22,11 @@ function getNarrowOptimizer(optimization: OptimizationName): (pattern: string) =
 function singleAltAst(body: Array<AlternativeElementNode>): OnigurumaAst {
   return {
     type: 'Regex',
-    pattern: {
-      type: 'Pattern',
-      body: [
-        { type: 'Alternative',
-          body,
-        },
-      ],
-    },
+    body: [
+      { type: 'Alternative',
+        body,
+      },
+    ],
     flags: {
       type: 'Flags',
       digitIsAscii: false,

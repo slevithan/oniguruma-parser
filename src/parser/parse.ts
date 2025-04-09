@@ -18,7 +18,6 @@ type Node =
   GroupNode |
   LookaroundAssertionNode |
   NamedCalloutNode |
-  PatternNode |
   QuantifierNode |
   RegexNode |
   SubroutineNode;
@@ -40,7 +39,7 @@ type AlternativeContainerNode =
   CapturingGroupNode |
   GroupNode |
   LookaroundAssertionNode |
-  PatternNode;
+  RegexNode;
 
 type AlternativeElementNode =
   AbsenceFunctionNode |
@@ -221,12 +220,12 @@ function parse(pattern: string, options: ParseOptions = {}): OnigurumaAst {
   };
 
   // ## AST construction from tokens
-  const ast = createRegex(createPattern(), createFlags(tokenized.flags));
-  let top = ast.pattern.body[0]; // First alt
+  const ast = createRegex(createFlags(tokenized.flags));
+  let top = ast.body[0]; // First alt
   while (context.nextIndex < tokenized.tokens.length) {
     const node = walk(top, {});
     if (node.type === 'Alternative') {
-      ast.pattern.body.push(node);
+      ast.body.push(node);
       top = node;
     } else {
       top.body.push(node as AlternativeElementNode);
@@ -851,17 +850,6 @@ function createNamedCallout(
   };
 }
 
-type PatternNode = {
-  type: 'Pattern';
-  body: Array<AlternativeNode>;
-};
-function createPattern(): PatternNode {
-  return {
-    type: 'Pattern',
-    body: [createAlternative()],
-  };
-}
-
 function createPosixClass(name: string, options?: {
   negate?: boolean;
 }): NamedCharacterSetNode & {kind: 'posix'} {
@@ -899,13 +887,13 @@ function createQuantifier(kind: NodeQuantifierKind, min: number, max: number, bo
 
 type RegexNode = {
   type: 'Regex';
-  pattern: PatternNode;
+  body: Array<AlternativeNode>;
   flags: FlagsNode;
 };
-function createRegex(pattern: PatternNode, flags: FlagsNode): RegexNode {
+function createRegex(flags: FlagsNode): RegexNode {
   return {
     type: 'Regex',
-    pattern,
+    body: [createAlternative()],
     flags,
   };
 }
@@ -1053,7 +1041,6 @@ export {
   type OnigurumaAst,
   type ParentNode,
   type ParseOptions,
-  type PatternNode,
   type QuantifiableNode,
   type QuantifierNode,
   type RegexNode,
@@ -1073,7 +1060,6 @@ export {
   createGroup,
   createLookaroundAssertion,
   createNamedCallout,
-  createPattern,
   createPosixClass,
   createQuantifier,
   createRegex,
