@@ -260,7 +260,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     // - A reversed range in a quantifier makes it possessive (ex: `{2,1}`).
     //   - `{,n}` is always greedy with an implicit zero min, and can't represent a possesive range
     //     from n to infinity.
-    const {min, max, kind, element} = node as QuantifierNode;
+    const {body, kind, max, min} = node as QuantifierNode;
     // These errors shouldn't happen unless the AST is modified in an invalid way after parsing
     if (min === Infinity) {
       throw new Error(`Invalid quantifier: infinite min`);
@@ -269,8 +269,8 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
       throw new Error(`Invalid quantifier: min "${min}" > max "${max}"`);
     }
     const kidIsGreedyQuantifier = (
-      element.type === 'Quantifier' &&
-      element.kind === 'greedy'
+      body.type === 'Quantifier' &&
+      body.kind === 'greedy'
     );
     const parentIsPossessivePlus = (
       parent.type === 'Quantifier' &&
@@ -297,7 +297,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
       } else if (
         min === 1 && max === Infinity &&
         ( // Can't chain a base of `+` to greedy `?`/`*`/`+` since that would make them possessive
-          !(kidIsGreedyQuantifier && isSymbolQuantifierCandidate(element)) ||
+          !(kidIsGreedyQuantifier && isSymbolQuantifierCandidate(body)) ||
           // ...but, we're forced to use `+` (and change the kid's rendering) if this is possessive
           // `++` since you can't use a possessive reversed range with `Infinity`
           kind === 'possessive'
@@ -335,7 +335,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
       // create a quantifier chain
       possessive: isIntervalQuantifier ? '' : '+',
     }[kind];
-    return `${gen(element)}${base}${suffix}`;
+    return `${gen(body)}${base}${suffix}`;
   },
 
   Subroutine(node: Node): string {
@@ -368,13 +368,10 @@ const CharCodeEscapeMap = new Map([
 
 function getFirstChild(node: Node) {
   if ('body' in node) {
-    return node.body[0] ?? null;
+    return Array.isArray(node.body) ? (node.body[0] ?? null) : node.body;
   }
-  if ('element' in node) {
-    return node.element;
-  }
-  // Check for `type` to determine if it's a child node; quantifiers have a numeric `min` property
-  if ('min' in node && 'type' in node.min) {
+  // Check for `type` to determine if it's a child node; quantifiers have a numeric `min`
+  if ('min' in node && node.min.type) {
     return node.min;
   }
   if ('pattern' in node) {
@@ -385,13 +382,10 @@ function getFirstChild(node: Node) {
 
 function getLastChild(node: Node) {
   if ('body' in node) {
-    return node.body.at(-1) ?? null;
+    return Array.isArray(node.body) ? (node.body.at(-1) ?? null) : node.body;
   }
-  if ('element' in node) {
-    return node.element;
-  }
-  // Check for `type` to determine if it's a child node; quantifiers have a numeric `max` property
-  if ('max' in node && 'type' in node.max) {
+  // Check for `type` to determine if it's a child node; quantifiers have a numeric `max`
+  if ('max' in node && node.max.type) {
     return node.max;
   }
   if ('pattern' in node) {

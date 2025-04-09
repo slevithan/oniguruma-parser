@@ -5,8 +5,8 @@ import {singleAltAst} from '../spec-utils.js';
 import {describe, expect, it} from 'vitest';
 
 describe('Parser: Quantifier', () => {
-  function star(element: QuantifiableNode): QuantifierNode {
-    return createQuantifier('greedy', 0, Infinity, element);
+  function star(body: QuantifiableNode): QuantifierNode {
+    return createQuantifier('greedy', 0, Infinity, body);
   }
 
   it('should parse quantifiers', () => {

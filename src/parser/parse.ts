@@ -882,9 +882,9 @@ type QuantifierNode = {
   kind: NodeQuantifierKind;
   min: number;
   max: number;
-  element: QuantifiableNode;
+  body: QuantifiableNode;
 };
-function createQuantifier(kind: NodeQuantifierKind, min: number, max: number, element: QuantifiableNode): QuantifierNode {
+function createQuantifier(kind: NodeQuantifierKind, min: number, max: number, body: QuantifiableNode): QuantifierNode {
   if (min > max) {
     throw new Error('Invalid reversed quantifier range');
   }
@@ -893,7 +893,7 @@ function createQuantifier(kind: NodeQuantifierKind, min: number, max: number, el
     kind,
     min,
     max,
-    element,
+    body,
   };
 }
 

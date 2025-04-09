@@ -76,7 +76,7 @@ console.log(ast);
             kind: 'greedy',
             min: 0,
             max: Infinity,
-            element: {
+            body: {
               type: 'CharacterSet',
               kind: 'dot',
             },

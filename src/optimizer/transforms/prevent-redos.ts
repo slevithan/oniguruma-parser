@@ -10,21 +10,21 @@ const preventReDoS: Visitor = {
     const {node} = path as Path<QuantifierNode>;
     // Prevent a common cause of catastrophic backtracking by removing an unneeded nested
     // quantifier from the first alternative of infinitely-quantified groups. Can't remove nested
-    // quantifiers from other alternatives or if the first alternative has more than one element,
-    // because that might change the match
+    // quantifiers from other alternatives or when the first alternative contains more than one
+    // node, because that might change the match
     // TODO: It's safe to skip this transform if the quantified group is the last node in its
     // pattern, since there's no backtracking trigger if there's no following node
-    const {max, element} = node;
+    const {body, max} = node;
     if (
       max !== Infinity ||
       // Can't operate on capturing groups because that could change the captured value
-      element.type !== 'Group' ||
+      body.type !== 'Group' ||
       // No benefit with atomic groups
-      element.atomic
+      body.atomic
     ) {
       return;
     }
-    const firstAlt = element.body[0];
+    const firstAlt = body.body[0];
     if (!hasOnlyChild(firstAlt, {type: 'Quantifier'})) {
       return;
     }
@@ -42,7 +42,7 @@ const preventReDoS: Visitor = {
       nestedQuantifier.max = 1;
     } else if (nestedQuantifier.min === 1) {
       // Ex: Remove `+` or `{1,2}`
-      firstAlt.body[0] = nestedQuantifier.element;
+      firstAlt.body[0] = nestedQuantifier.body;
     }
   },
 };

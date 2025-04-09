@@ -110,7 +110,7 @@ function traverse<State = null>(
         } else {
           // `key` will be one of:
           // - For `CharacterClassRangeNode`: 'min', 'max'
-          // - For `QuantifierNode`: 'element'
+          // - For `QuantifierNode`: 'body'
           // - For `RegexNode`: 'pattern', 'flags'
           // @ts-expect-error
           throwIfNullable(parent, `Can't replace root node`)[key as string] = newNode;
@@ -174,7 +174,7 @@ function traverse<State = null>(
           traverseArray(node.body, node);
           break;
         case 'Quantifier':
-          traverseNode(node.element, node, 'element');
+          traverseNode(node.body, node, 'body');
           break;
         case 'Regex':
           traverseNode(node.pattern, node, 'pattern');

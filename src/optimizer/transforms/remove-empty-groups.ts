@@ -25,9 +25,9 @@ const removeEmptyGroups: Visitor = {
 
   Quantifier(path: Path) {
     const {node, remove} = path as Path<QuantifierNode>;
-    let kid = node.element;
+    let kid = node.body;
     while (kid.type === 'Quantifier') {
-      kid = kid.element;
+      kid = kid.body;
     }
     if (isQualifiedAndEmpty(kid)) {
       remove();

@@ -44,10 +44,10 @@ const unwrapUselessGroups: Visitor = {
   // Unwrap quantified groups that contain a single quantifiable node
   Quantifier(path: Path) {
     const {node} = path as Path<QuantifierNode>;
-    if (node.element.type !== 'Group') {
+    if (node.body.type !== 'Group') {
       return;
     }
-    const quantifiedGroup = node.element;
+    const quantifiedGroup = node.body;
     if (quantifiedGroup.body.length > 1) {
       return;
     }
@@ -63,8 +63,8 @@ const unwrapUselessGroups: Visitor = {
     ) {
       return;
     }
-    // Make the only child of the group the new element of the quantifier
-    node.element = candidate;
+    // Make the only child of the group the new `body` of the quantifier
+    node.body = candidate;
   },
 };
 
