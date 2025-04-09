@@ -30,8 +30,7 @@ type ParentNode =
   AlternativeNode |
   CharacterClassNode |
   CharacterClassRangeNode |
-  QuantifierNode |
-  RegexNode;
+  QuantifierNode;
 
 // See also `isAlternativeContainer`
 type AlternativeContainerNode =
