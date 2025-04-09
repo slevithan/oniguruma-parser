@@ -222,11 +222,11 @@ function parse(pattern: string, options: ParseOptions = {}): OnigurumaAst {
 
   // ## AST construction from tokens
   const ast = createRegex(createPattern(), createFlags(tokenized.flags));
-  let top = ast.pattern.alternatives[0];
+  let top = ast.pattern.body[0]; // First alt
   while (context.nextIndex < tokenized.tokens.length) {
     const node = walk(top, {});
     if (node.type === 'Alternative') {
-      ast.pattern.alternatives.push(node);
+      ast.pattern.body.push(node);
       top = node;
     } else {
       top.elements.push(node as AlternativeElementNode);
@@ -442,11 +442,11 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
   let nextToken = throwIfUnclosedGroup(tokens[context.nextIndex]);
   while (nextToken.type !== 'GroupClose') {
     if (nextToken.type === 'Alternator') {
-      node.alternatives.push(createAlternative());
+      node.body.push(createAlternative());
       // Skip the alternator
       context.nextIndex++;
     } else {
-      const alt = node.alternatives.at(-1)!; // Always at least one
+      const alt = node.body.at(-1)!; // Always at least one
       const child = walk(alt, {
         ...state,
         isInAbsenceFunction: state.isInAbsenceFunction || isThisAbsenceFunction,
@@ -561,7 +561,7 @@ function parseSubroutine({raw}: SubroutineToken, context: Context): SubroutineNo
 type AbsenceFunctionNode = {
   type: 'AbsenceFunction';
   kind: NodeAbsenceFunctionKind;
-  alternatives: Array<AlternativeNode>;
+  body: Array<AlternativeNode>;
 };
 function createAbsenceFunction(kind: NodeAbsenceFunctionKind): AbsenceFunctionNode {
   if (kind !== 'repeater') {
@@ -570,7 +570,7 @@ function createAbsenceFunction(kind: NodeAbsenceFunctionKind): AbsenceFunctionNo
   return {
     type: 'AbsenceFunction',
     kind,
-    alternatives: [createAlternative()],
+    body: [createAlternative()],
   };
 }
 
@@ -625,7 +625,7 @@ type CapturingGroupNode = {
   number: number;
   name?: string;
   hasSubroutine?: boolean;
-  alternatives: Array<AlternativeNode>;
+  body: Array<AlternativeNode>;
 };
 function createCapturingGroup(number: number, name?: string): CapturingGroupNode {
   const hasName = name !== undefined;
@@ -636,7 +636,7 @@ function createCapturingGroup(number: number, name?: string): CapturingGroupNode
     type: 'CapturingGroup',
     number,
     ...(hasName && {name}),
-    alternatives: [createAlternative()],
+    body: [createAlternative()],
   };
 }
 
@@ -793,7 +793,7 @@ type GroupNode = {
   kind?: never;
   atomic?: boolean;
   flags?: FlagGroupModifiers;
-  alternatives: Array<AlternativeNode>;
+  body: Array<AlternativeNode>;
 };
 function createGroup(options?: {
   atomic?: boolean;
@@ -805,7 +805,7 @@ function createGroup(options?: {
     type: 'Group',
     ...(atomic && {atomic}),
     ...(flags && {flags}),
-    alternatives: [createAlternative()],
+    body: [createAlternative()],
   };
 }
 
@@ -813,7 +813,7 @@ type LookaroundAssertionNode = {
   type: 'LookaroundAssertion';
   kind: NodeLookaroundAssertionKind;
   negate: boolean;
-  alternatives: Array<AlternativeNode>;
+  body: Array<AlternativeNode>;
 };
 function createLookaroundAssertion(options?: {
   behind?: boolean;
@@ -828,7 +828,7 @@ function createLookaroundAssertion(options?: {
     type: 'LookaroundAssertion',
     kind: opts.behind ? 'lookbehind' : 'lookahead',
     negate: opts.negate,
-    alternatives: [createAlternative()],
+    body: [createAlternative()],
   };
 }
 
@@ -853,12 +853,12 @@ function createNamedCallout(
 
 type PatternNode = {
   type: 'Pattern';
-  alternatives: Array<AlternativeNode>;
+  body: Array<AlternativeNode>;
 };
 function createPattern(): PatternNode {
   return {
     type: 'Pattern',
-    alternatives: [createAlternative()],
+    body: [createAlternative()],
   };
 }
 

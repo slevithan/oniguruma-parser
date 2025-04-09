@@ -13,7 +13,7 @@ const preventReDoS: Visitor = {
     // quantifiers from other alternatives or if the first alternative has more than one element,
     // because that might change the match
     // TODO: It's safe to skip this transform if the quantified group is the last node in its
-    // pattern. If there's no following node, there's no backtracking trigger
+    // pattern, since there's no backtracking trigger if there's no following node
     const {max, element} = node;
     if (
       max !== Infinity ||
@@ -24,7 +24,7 @@ const preventReDoS: Visitor = {
     ) {
       return;
     }
-    const firstAlt = element.alternatives[0];
+    const firstAlt = element.body[0];
     if (!hasOnlyChild(firstAlt, {type: 'Quantifier'})) {
       return;
     }

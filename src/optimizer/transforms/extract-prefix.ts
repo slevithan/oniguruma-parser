@@ -11,15 +11,15 @@ Also works within groups.
 const extractPrefix: Visitor = {
   '*'(path: Path) {
     const {node} = path as Path<AlternativeContainerNode>;
-    if (!isAlternativeContainer(node) || node.alternatives.length < 2) {
+    if (!isAlternativeContainer(node) || node.body.length < 2) {
       return;
     }
     const prefixNodes = [];
     let passedSharedPrefix = false;
     let i = 0;
     while (!passedSharedPrefix) {
-      prefixNodes.push(node.alternatives[0].elements[i]);
-      for (const alt of node.alternatives) {
+      prefixNodes.push(node.body[0].elements[i]);
+      for (const alt of node.body) {
         const kid = alt.elements[i];
         if (!kid || !isAllowedSimpleType(kid.type) || !isNodeEqual(kid, prefixNodes[i])) {
           passedSharedPrefix = true;
@@ -33,17 +33,17 @@ const extractPrefix: Visitor = {
       return;
     }
 
-    for (const alt of node.alternatives) {
+    for (const alt of node.body) {
       alt.elements = alt.elements.slice(prefixNodes.length);
     }
-    const newContents = createAlternative();
-    newContents.elements = [...prefixNodes];
+    const newContentsAlt = createAlternative();
+    newContentsAlt.elements = [...prefixNodes];
     const suffixGroup = createGroup();
-    suffixGroup.alternatives = node.alternatives;
-    if (!suffixGroup.alternatives.every(alt => !alt.elements.length)) {
-      newContents.elements.push(suffixGroup);
+    suffixGroup.body = node.body;
+    if (!suffixGroup.body.every(alt => !alt.elements.length)) {
+      newContentsAlt.elements.push(suffixGroup);
     }
-    node.alternatives = [newContents];
+    node.body = [newContentsAlt];
   },
 };
 

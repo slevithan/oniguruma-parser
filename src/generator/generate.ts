@@ -51,11 +51,11 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
 
 const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: Gen) => string} = {
   AbsenceFunction(node: Node, _: State, gen: Gen): string {
-    const {kind, alternatives} = node as AbsenceFunctionNode;
+    const {body, kind} = node as AbsenceFunctionNode;
     if (kind !== 'repeater') {
       throw new Error(`Unexpected absence function kind "${kind}"`);
     }
-    return `(?~${alternatives.map(gen).join('|')})`;
+    return `(?~${body.map(gen).join('|')})`;
   },
 
   Alternative(node: Node, _: State, gen: Gen): string {
@@ -92,9 +92,9 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
   },
 
   CapturingGroup(node: Node, _: State, gen: Gen): string {
-    const {name, alternatives} = node as CapturingGroupNode;
+    const {body, name} = node as CapturingGroupNode;
     const enclosedName = name ? `?${name.includes('>') ? `'${name}'` : `<${name}>`}` : '';
-    return `(${enclosedName}${alternatives.map(gen).join('|')})`;
+    return `(${enclosedName}${body.map(gen).join('|')})`;
   },
 
   Character(node: Node, {inCharClass, lastNode, parent}: State): string {
@@ -224,15 +224,15 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
   },
 
   Group(node: Node, _: State, gen: Gen): string {
-    const {atomic, flags, alternatives} = node as GroupNode;
-    const contents = alternatives.map(gen).join('|');
+    const {atomic, body, flags} = node as GroupNode;
+    const contents = body.map(gen).join('|');
     return `(?${getGroupPrefix(atomic, flags)}${contents})`;
   },
 
   LookaroundAssertion(node: Node, _: State, gen: Gen): string {
-    const {kind, negate, alternatives} = node as LookaroundAssertionNode;
+    const {body, kind, negate} = node as LookaroundAssertionNode;
     const prefix = `${kind === 'lookahead' ? '' : '<'}${negate ? '!' : '='}`;
-    return `(?${prefix}${alternatives.map(gen).join('|')})`;
+    return `(?${prefix}${body.map(gen).join('|')})`;
   },
 
   NamedCallout(node: Node): string {
@@ -246,8 +246,8 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
   },
 
   Pattern(node: Node, _: State, gen: Gen): string {
-    const {alternatives} = node as PatternNode;
-    return alternatives.map(gen).join('|');
+    const {body} = node as PatternNode;
+    return body.map(gen).join('|');
   },
 
   Quantifier(node: Node, {parent}: State, gen: Gen): string {
@@ -367,8 +367,8 @@ const CharCodeEscapeMap = new Map([
 ]);
 
 function getFirstChild(node: Node) {
-  if ('alternatives' in node) {
-    return node.alternatives[0];
+  if ('body' in node) {
+    return node.body[0];
   }
   if ('elements' in node) {
     return node.elements[0] ?? null;
@@ -376,6 +376,7 @@ function getFirstChild(node: Node) {
   if ('element' in node) {
     return node.element;
   }
+  // Check for `type` to determine if it's a child node; quantifiers have a numeric `min` property
   if ('min' in node && 'type' in node.min) {
     return node.min;
   }
@@ -386,8 +387,8 @@ function getFirstChild(node: Node) {
 }
 
 function getLastChild(node: Node) {
-  if ('alternatives' in node) {
-    return node.alternatives.at(-1)!; // Always at least one
+  if ('body' in node) {
+    return node.body.at(-1)!; // Always at least one
   }
   if ('elements' in node) {
     return node.elements.at(-1) ?? null;
@@ -395,6 +396,7 @@ function getLastChild(node: Node) {
   if ('element' in node) {
     return node.element;
   }
+  // Check for `type` to determine if it's a child node; quantifiers have a numeric `max` property
   if ('max' in node && 'type' in node.max) {
     return node.max;
   }

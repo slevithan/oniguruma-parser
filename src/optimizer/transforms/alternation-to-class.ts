@@ -14,7 +14,7 @@ const alternationToClass: Visitor = {
     }
     const newAlts = [];
     let ccNodes = [];
-    for (const alt of node.alternatives) {
+    for (const alt of node.body) {
       const kid = alt.elements[0];
       if (
         alt.elements.length === 1 &&
@@ -35,7 +35,7 @@ const alternationToClass: Visitor = {
     if (ccNodes.length) {
       newAlts.push(createAlternativeWithCombinedNodes(ccNodes));
     }
-    node.alternatives = newAlts;
+    node.body = newAlts;
   },
 };
 

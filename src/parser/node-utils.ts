@@ -1,4 +1,4 @@
-import type {AlternativeContainerNode, Node, NodeCharacterSetKind, NodeType} from './parse.js';
+import type {AlternativeContainerNode, Node, NodeCharacterSetKind, NodeType, ParentNode} from './parse.js';
 
 const quantifiableTypes = new Set<NodeType>([
   'AbsenceFunction',
@@ -25,9 +25,7 @@ const universalCharacterSetKinds = new Set<NodeCharacterSetKind>([
 
 type Props = {[key: string]: any};
 
-function hasOnlyChild(node: Node, props?: Props): boolean {
-  // TODO: Add support for nodes with `alternatives`; look for `elements` within the first alt
-  // after checking that there's only one alt
+function hasOnlyChild(node: ParentNode, props?: Props): boolean {
   if (!('elements' in node)) {
     throw new Error('Expected node with elements');
   }

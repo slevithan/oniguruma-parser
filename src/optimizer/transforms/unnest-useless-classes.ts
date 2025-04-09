@@ -40,7 +40,7 @@ const unnestUselessClasses: Visitor = {
     // TODO: After supporting `format` for classes, can visually unnest any number of kids into
     // intersection by flipping this class's `format` from `'explicit'` to `'implicit'`, rather
     // than replacing it. See <github.com/slevithan/oniguruma-parser/issues/1>
-    } else if (hasOnlyChild(node)) {
+    } else if (hasOnlyChild(node as CharacterClassNode)) {
       replaceWith(firstEl, {traverse: true});
     }
   },

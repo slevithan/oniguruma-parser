@@ -35,8 +35,8 @@ describe('Traverser: path', () => {
     it('should replace a node with multiple nodes', () => {
       const visitor: Visitor = {
         Group({node, replaceWithMultiple}) {
-          const {alternatives} = node as GroupNode;
-          replaceWithMultiple(alternatives[0].elements, {traverse: true});
+          const {body} = node as GroupNode;
+          replaceWithMultiple(body[0].elements, {traverse: true});
         },
       };
       expect(traverse(toOnigurumaAst('(?:a(?:b))'), visitor)).toEqual(singleAltAst([

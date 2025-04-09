@@ -15,12 +15,12 @@ const exposeAnchors: Visitor = {
     const {node, parent, replaceWithMultiple} = path as Path<CapturingGroupNode>;
     if (
       parent!.type === 'Quantifier' ||
-      node.alternatives.length > 1 ||
+      node.body.length > 1 || // Multiple alts
       node.hasSubroutine
     ) {
       return;
     }
-    const firstAlt = node.alternatives[0];
+    const firstAlt = node.body[0];
     const firstAltEls = firstAlt.elements;
     // Despite only pulling one assertion at a time, multiple can be extracted through multiple
     // rounds of running this optimization

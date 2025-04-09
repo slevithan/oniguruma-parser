@@ -12,17 +12,17 @@ Also works within groups.
 const extractSuffix: Visitor = {
   '*'(path: Path) {
     const {node} = path as Path<AlternativeContainerNode>;
-    if (!isAlternativeContainer(node) || node.alternatives.length < 2) {
+    if (!isAlternativeContainer(node) || node.body.length < 2) {
       return;
     }
-    const firstAltEls = node.alternatives[0].elements;
+    const firstAltEls = node.body[0].elements;
     const suffixNodes = [];
     let passedSharedSuffix = false;
     let i = 0;
     while (!passedSharedSuffix) {
       const inverseI = firstAltEls.length - 1 - i;
       suffixNodes.push(firstAltEls[inverseI]);
-      for (const alt of node.alternatives) {
+      for (const alt of node.body) {
         const inverseIOfAlt = alt.elements.length - 1 - i;
         const kid = alt.elements[inverseIOfAlt];
         if (!kid || !isAllowedSimpleType(kid.type) || !isNodeEqual(kid, suffixNodes[i])) {
@@ -42,27 +42,27 @@ const extractSuffix: Visitor = {
         // benefit and is more likely to trigger follow-on optimizations
         suffixNodes[0].type !== 'Assertion' &&
         // Four chars are added by the `(?:)` wrapper, so avoid applying if could be net negative
-        node.alternatives.length < 4 &&
+        node.body.length < 4 &&
         // Alts reduced to 0 or 1 node after extracting the suffix can possibly be collapsed in
         // follow-on optimizations, providing a performance and/or minification benefit
-        node.alternatives.every(alt => alt.elements.length > 2)
+        node.body.every(alt => alt.elements.length > 2)
       )
     ) {
       return;
     }
     suffixNodes.reverse();
 
-    for (const alt of node.alternatives) {
+    for (const alt of node.body) {
       alt.elements = alt.elements.slice(0, -suffixNodes.length);
     }
-    const newContents = createAlternative();
+    const newContentsAlt = createAlternative();
     const prefixGroup = createGroup();
-    prefixGroup.alternatives = node.alternatives;
-    if (!prefixGroup.alternatives.every(alt => !alt.elements.length)) {
-      newContents.elements.push(prefixGroup);
+    prefixGroup.body = node.body;
+    if (!prefixGroup.body.every(alt => !alt.elements.length)) {
+      newContentsAlt.elements.push(prefixGroup);
     }
-    newContents.elements.push(...suffixNodes);
-    node.alternatives = [newContents];
+    newContentsAlt.elements.push(...suffixNodes);
+    node.body = [newContentsAlt];
   },
 };
 

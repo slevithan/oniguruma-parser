@@ -2,7 +2,7 @@ import type {AlternativeElementNode, AlternativeNode, CharacterClassElementNode,
 import {throwIfNullable} from '../utils.js';
 
 type ContainerElementNode =
-  // Node type used within an `alternatives` container of any `AlternativeContainerNode`
+  // Used within the `body` container of any `AlternativeContainerNode`
   AlternativeNode |
   // Any node type used within an `elements` container of an `AlternativeNode`
   AlternativeElementNode |
@@ -151,7 +151,7 @@ function traverse<State = null>(
         case 'CapturingGroup':
         case 'Group':
         case 'Pattern':
-          traverseArray(node.alternatives, node);
+          traverseArray(node.body, node);
           break;
         case 'Alternative':
         case 'CharacterClass':
@@ -171,7 +171,7 @@ function traverse<State = null>(
           traverseNode(node.max, node, 'max');
           break;
         case 'LookaroundAssertion':
-          traverseArray(node.alternatives, node);
+          traverseArray(node.body, node);
           break;
         case 'Quantifier':
           traverseNode(node.element, node, 'element');

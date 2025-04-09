@@ -67,7 +67,7 @@ console.log(ast);
   type: 'Regex',
   pattern: {
     type: 'Pattern',
-    alternatives: [
+    body: [
       {
         type: 'Alternative',
         elements: [

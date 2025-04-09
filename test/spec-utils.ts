@@ -24,7 +24,7 @@ function singleAltAst(elements: Array<AlternativeElementNode>): OnigurumaAst {
     type: 'Regex',
     pattern: {
       type: 'Pattern',
-      alternatives: [
+      body: [
         { type: 'Alternative',
           elements,
         },
