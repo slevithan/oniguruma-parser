@@ -811,6 +811,9 @@ function createGroup(options?: {
 }): GroupNode {
   const atomic = options?.atomic;
   const flags = options?.flags;
+  if (atomic && flags) {
+    throw new Error('Atomic group cannot have flags');
+  }
   return {
     type: 'Group',
     ...(atomic && {atomic}),
