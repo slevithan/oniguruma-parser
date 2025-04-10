@@ -91,7 +91,6 @@ type NodeCharacterClassKind =
   'union' |
   'intersection';
 
-// See also `universalCharacterSetKinds`
 type NodeCharacterSetKind = TokenCharacterSetKind;
 
 type NodeDirectiveKind = TokenDirectiveKind;

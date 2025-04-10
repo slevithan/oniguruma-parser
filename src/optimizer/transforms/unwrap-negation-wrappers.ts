@@ -3,7 +3,7 @@ import {createCharacterSet} from '../../parser/parse.js';
 
 /**
 Unwrap negated classes used to negate an individual character set.
-Allows independently controlling this behavior and avoiding logic duplication in
+Allows independently controlling this behavior, and avoids logic duplication in
 `unwrapUselessClasses` and `unnestUselessClasses`.
 */
 const unwrapNegationWrappers: Visitor = {
@@ -13,11 +13,10 @@ const unwrapNegationWrappers: Visitor = {
       return;
     }
     const kid = body[0];
-    // Don't need to check if `kind` is in `universalCharacterSetKinds` because all character
-    // sets valid in classes are in that set
     if (kid.type === 'CharacterSet') {
       kid.negate = !kid.negate;
-      // Might unnest into a class or unwrap into a non-class
+      // Might unnest into a class or unwrap into a non-class. All character set kinds valid in a
+      // class are also valid outside of a class, though the inverse isn't true
       replaceWith(kid);
     } else if (
       parent.type !== 'CharacterClass' &&

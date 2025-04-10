@@ -26,7 +26,7 @@ describe('Optimizer: unwrapNegationWrappers', () => {
     }
   });
 
-  it('should unwrap inner negation wrappers', () => {
+  it('should unnest and unwrap inner negation wrappers', () => {
     const cases = [
       [r`[[^\d]]`, r`[\D]`],
       [r`[[^\D]]`, r`[\d]`],
@@ -48,13 +48,28 @@ describe('Optimizer: unwrapNegationWrappers', () => {
     }
   });
 
+  // `\n` gets special handling because its inverse `\N` can only be used outside of a class
   it(r`should not unnest negated \n`, () => {
     const cases = [
-      r`[[^\n]]`, // Since the class is an only-kid, will be unnested by `unnestUselessClasses`, and can then be unwrapped to `\N`
-      r`[a[^\n]]`, // Negated wrapper is required
+      // Since the class is an only-kid, it can be unwrapped to `\N` but only after it's unnested by `unnestUselessClasses`
+      r`[[^\n]]`,
+      // Negation wrapper is required
+      r`[a[^\n]]`,
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
+    }
+  });
+
+  it('should unwrap quantified negation wrappers', () => {
+    const cases = [
+      [r`[^\d]+`, r`\D+`],
+      [r`[^\d]+?`, r`\D+?`],
+      [r`[^\d]++`, r`\D++`],
+      [r`[a[^\d]]+`, r`[a\D]+`],
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
     }
   });
 
@@ -65,7 +80,8 @@ describe('Optimizer: unwrapNegationWrappers', () => {
     for (const [input, expected] of allowCases) {
       expect(thisOptimization(input)).toBe(expected);
     }
-    // Avoid introducing a trigger for an Oniguruma bug; see <github.com/rosshamish/kuskus/issues/209>
+    // Avoid introducing a trigger for a `vscode-oniguruma` bug (v2.0.1 tested); see
+    // <github.com/kkos/oniguruma/issues/347>
     const blockCases = [
       r`[^\n]+`,
       r`[^\n]++`,

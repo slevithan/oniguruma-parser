@@ -1,6 +1,6 @@
-import type {AlternativeNode, CharacterClassNode, CharacterNode, CharacterSetNode} from '../../parser/parse.js';
+import type {AlternativeNode, CharacterClassNode, CharacterNode, CharacterSetNode, NodeCharacterSetKind} from '../../parser/parse.js';
 import type {Visitor} from '../../traverser/traverse.js';
-import {isAlternativeContainer, universalCharacterSetKinds} from '../../parser/node-utils.js';
+import {isAlternativeContainer} from '../../parser/node-utils.js';
 import {createAlternative, createCharacterClass} from '../../parser/parse.js';
 
 /**
@@ -46,6 +46,17 @@ function createAlternativeWithCombinedNodes(nodes: Array<CharacterNode | Charact
   }
   return alt;
 }
+
+// Character set kinds that can appear inside and outside of character classes, and can be inverted
+// by setting `negate`. Some but not all of those excluded use `variableLength: true`
+const universalCharacterSetKinds = new Set<NodeCharacterSetKind>([
+  'digit',
+  'hex',
+  'posix',
+  'property',
+  'space',
+  'word',
+]);
 
 export {
   alternationToClass,
