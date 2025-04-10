@@ -1,7 +1,7 @@
-import type {AlternativeContainerNode, Node, NodeCharacterSetKind, ParentNode, QuantifiableNode} from './parse.js';
+import type {AlternativeContainerNode, Node, ParentNode, QuantifiableNode} from './parse.js';
 
 type KeysOfUnion<T> = T extends T ? keyof T: never;
-type Props = {[key in KeysOfUnion<Node>]?: any};
+type Props = {[key in KeysOfUnion<Node>]?: any} & {type?: Node['type']};
 
 function hasOnlyChild(node: ParentNode & {body: Array<Node>}, props?: Props): boolean {
   if (!Array.isArray(node.body)) {

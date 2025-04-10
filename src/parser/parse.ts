@@ -1,7 +1,7 @@
 import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenNamedCalloutKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {tokenize} from '../tokenizer/tokenize.js';
 import {cpOf, getOrInsert, PosixClassNames, r, throwIfNullish} from '../utils.js';
-import {isQuantifiable} from './node-utils.js';
+import {hasOnlyChild, isAlternativeContainer, isQuantifiable} from './node-utils.js';
 
 // Watch out for the DOM `Node` interface!
 type Node =
@@ -1093,6 +1093,9 @@ export {
   createRegex,
   createSubroutine,
   createUnicodeProperty,
+  hasOnlyChild,
+  isAlternativeContainer,
+  isQuantifiable,
   parse,
   slug,
 };
