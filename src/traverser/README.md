@@ -74,7 +74,7 @@ traverse(ast, {
 
 ## Node types
 
-- `'*'`: Any node type
+- `*`: Specific to the traverser; used to visit any node type
 - `AbsenceFunction`
 - `Alternative`
 - `Assertion`
@@ -92,6 +92,8 @@ traverse(ast, {
 - `Quantifier`
 - `Regex`: The root node
 - `Subroutine`
+
+Many node types are subdivided by other properties; especially `kind`. Types for each node type are defined in the [parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md).
 
 ## Path
 
