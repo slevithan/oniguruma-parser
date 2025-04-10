@@ -40,12 +40,7 @@ const alternationToClass: Visitor = {
 
 function createAlternativeWithCombinedNodes(nodes: Array<CharacterNode | CharacterClassNode | CharacterSetNode>): AlternativeNode {
   const alt = createAlternative();
-  let node = nodes[0];
-  if (nodes.length > 1) {
-    const cc = createCharacterClass();
-    cc.body = nodes;
-    node = cc;
-  }
+  const node = nodes.length > 1 ? createCharacterClass({body: nodes}) : nodes[0];
   if (node) {
     alt.body.push(node);
   }

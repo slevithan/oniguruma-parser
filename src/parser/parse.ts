@@ -571,10 +571,13 @@ type AlternativeNode = {
 function createAlternative(options?: {
   body?: Array<AlternativeElementNode>;
 }): AlternativeNode {
-  const body = options?.body ?? [];
+  const opts = {
+    body: [],
+    ...options,
+  };
   return {
     type: 'Alternative',
-    body,
+    body: opts.body,
   };
 }
 
@@ -669,17 +672,19 @@ type CharacterClassNode = {
 function createCharacterClass(options?: {
   kind?: NodeCharacterClassKind;
   negate?: boolean;
+  body?: Array<CharacterClassElementNode>;
 }): CharacterClassNode {
   const opts = {
     kind: 'union' as NodeCharacterClassKind,
     negate: false,
+    body: [],
     ...options,
   };
   return {
     type: 'CharacterClass',
     kind: opts.kind,
     negate: opts.negate,
-    body: [],
+    body: opts.body,
   };
 }
 

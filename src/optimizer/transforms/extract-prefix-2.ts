@@ -68,15 +68,11 @@ const extractPrefix2: Visitor = {
     }
     const prefixAlts = [];
     for (let i = 0; i < numDiffPrefixes; i++) {
-      prefixAlts.push(createAlternative({
-        body: prefixNodesByI[i],
-      }));
+      prefixAlts.push(createAlternative({body: prefixNodesByI[i]}));
     }
     const prefixGroup = createGroup();
     prefixGroup.body = prefixAlts;
-    const newContentsAlt = createAlternative({
-      body: [prefixGroup],
-    });
+    const newContentsAlt = createAlternative({body: [prefixGroup]});
     const suffixGroup = createGroup();
     // Only take one (unique) alt from each set of stripped alts
     suffixGroup.body = strippedAlts.filter((_, i) => i % numDiffPrefixes);
