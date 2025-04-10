@@ -1,4 +1,4 @@
-import type {AbsenceFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, NamedCalloutNode, Node, OnigurumaAst, ParentNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
+import type {GroupNode, Node, OnigurumaAst, ParentNode, QuantifierNode, RegexNode} from '../parser/parse.js';
 import type {FlagProperties} from '../tokenizer/tokenize.js';
 import {r, throwIfNullish} from '../utils.js';
 
@@ -334,12 +334,18 @@ const generator: Generator = {
   },
 };
 
+// ---------------
+// --- Helpers ---
+// ---------------
+
 const BaseEscapeChars = new Set([
   '$', '(', ')', '*', '+', '.', '?', '[', '\\', '^', '{', '|',
 ]);
+
 const CharClassEscapeChars = new Set([
   '&', '-', '[', '\\', ']', '^',
 ]);
+
 const CharCodeEscapeMap = new Map([
   [ 7, r`\a`], // bell
   [ 9, r`\t`], // horizontal tab
