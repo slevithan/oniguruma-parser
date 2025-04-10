@@ -1,6 +1,6 @@
 import type {AbsenceFunctionNode, AlternativeNode, AssertionNode, BackreferenceNode, CapturingGroupNode, CharacterClassNode, CharacterClassRangeNode, CharacterNode, CharacterSetNode, DirectiveNode, FlagsNode, GroupNode, LookaroundAssertionNode, NamedCalloutNode, Node, OnigurumaAst, ParentNode, QuantifierNode, RegexNode, SubroutineNode} from '../parser/parse.js';
 import type {FlagProperties} from '../tokenizer/tokenize.js';
-import {r, throwIfNullable} from '../utils.js';
+import {r, throwIfNullish} from '../utils.js';
 
 type Gen = (node: NonRootNode) => string;
 type NonRootNode = Exclude<Node, RegexNode>;
@@ -32,7 +32,7 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
       state.parent = state.lastNode as ParentNode;
       parentStack.push(state.parent);
     }
-    const fn = throwIfNullable(generator[node.type], `Unexpected node type "${node.type}"`);
+    const fn = throwIfNullish(generator[node.type], `Unexpected node type "${node.type}"`);
     const result = fn(node, state, gen);
     if (getLastChild(state.parent) === node) {
       parentStack.pop();
@@ -69,7 +69,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     if (kind === 'word_boundary') {
       return negate ? r`\B` : r`\b`;
     }
-    return throwIfNullable({
+    return throwIfNullish({
       line_end: '$',
       line_start: '^',
       search_start: r`\G`,
@@ -196,7 +196,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     if (kind === 'word') {
       return negate ? r`\W` : r`\w`;
     }
-    return throwIfNullable({
+    return throwIfNullish({
       any: r`\O`,
       dot: '.',
       grapheme: r`\X`,

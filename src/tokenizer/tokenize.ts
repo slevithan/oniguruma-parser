@@ -1,4 +1,4 @@
-import {CalloutNames, cpOf, PosixClassNames, r, throwIfNullable} from '../utils.js';
+import {CalloutNames, cpOf, PosixClassNames, r, throwIfNullish} from '../utils.js';
 
 type Token =
   AlternatorToken |
@@ -708,7 +708,7 @@ function createDirectiveToken(kind: TokenDirectiveKind, raw: string, options: {f
   return {
     type: 'Directive',
     kind,
-    flags: throwIfNullable(options.flags),
+    flags: throwIfNullish(options.flags),
     raw,
   };
 }

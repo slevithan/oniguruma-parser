@@ -45,7 +45,7 @@ function getOrInsert<Key, Value>(map: Map<Key, Value>, key: Key, defaultValue: V
 
 const r = String.raw;
 
-function throwIfNullable<Value>(value: Value, msg?: string): NonNullable<Value> {
+function throwIfNullish<Value>(value: Value, msg?: string): NonNullable<Value> {
   if (value == null) {
     throw new Error(msg ?? 'Value expected');
   }
@@ -58,5 +58,5 @@ export {
   getOrInsert,
   PosixClassNames,
   r,
-  throwIfNullable,
+  throwIfNullish,
 };

@@ -1,5 +1,5 @@
 import type {AlternativeElementNode, AlternativeNode, CharacterClassElementNode, Node, OnigurumaAst, ParentNode, RegexNode} from '../parser/parse.js';
-import {throwIfNullable} from '../utils.js';
+import {throwIfNullish} from '../utils.js';
 
 type ContainerElementNode =
   // Used within the `body` container of any `AlternativeContainerNode`
@@ -118,7 +118,7 @@ function traverse<State extends object | null = null>(
           // - For `QuantifierNode`: 'body'
           // - For `RegexNode`: 'flags'
           // @ts-expect-error
-          throwIfNullable(parent, `Can't replace root node`)[key as string] = newNode;
+          throwIfNullish(parent, `Can't replace root node`)[key as string] = newNode;
         }
         if (traverseNew) {
           traverseNode(newNode, parent, key, container);

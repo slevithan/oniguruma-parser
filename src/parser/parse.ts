@@ -1,6 +1,6 @@
 import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenNamedCalloutKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {tokenize} from '../tokenizer/tokenize.js';
-import {cpOf, getOrInsert, PosixClassNames, r, throwIfNullable} from '../utils.js';
+import {cpOf, getOrInsert, PosixClassNames, r, throwIfNullish} from '../utils.js';
 
 // Watch out for the DOM `Node` interface!
 type Node =
@@ -260,7 +260,7 @@ function parse(pattern: string, options: ParseOptions = {}): OnigurumaAst {
 
 function parseAssertion({kind}: AssertionToken): AssertionNode {
   return createAssertion(
-    throwIfNullable({
+    throwIfNullish({
       '^': 'line_start',
       '$': 'line_end',
       '\\A': 'string_start',
@@ -770,7 +770,7 @@ function createDirective(kind: NodeDirectiveKind, options: {flags?: FlagGroupMod
     return {
       type: 'Directive',
       kind,
-      flags: throwIfNullable(options.flags),
+      flags: throwIfNullish(options.flags),
     };
   }
   throw new Error(`Unexpected directive kind "${kind}"`);
@@ -997,7 +997,7 @@ function slug(name: string): string {
 }
 
 function throwIfUnclosedCharacterClass<T>(token: T, firstClassToken?: Token): NonNullable<T> {
-  return throwIfNullable(
+  return throwIfNullish(
     token,
     // Easier to understand the error if it says "empty" when the unclosed class starts with
     // literal `]`; ex: `[]` or `[]a`
@@ -1007,7 +1007,7 @@ function throwIfUnclosedCharacterClass<T>(token: T, firstClassToken?: Token): No
 }
 
 function throwIfUnclosedGroup<T>(token: T): NonNullable<T> {
-  return throwIfNullable(token, 'Unclosed group');
+  return throwIfNullish(token, 'Unclosed group');
 }
 
 export {
