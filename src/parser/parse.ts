@@ -573,13 +573,9 @@ type AlternativeNode = {
 function createAlternative(options?: {
   body?: Array<AlternativeElementNode>;
 }): AlternativeNode {
-  const opts = {
-    body: [],
-    ...options,
-  };
   return {
     type: 'Alternative',
-    body: opts.body,
+    body: getBodyForElementContainer(options?.body) as Array<AlternativeElementNode>,
   };
 }
 
@@ -688,14 +684,13 @@ function createCharacterClass(options?: {
   const opts = {
     kind: 'union' as NodeCharacterClassKind,
     negate: false,
-    body: [],
     ...options,
   };
   return {
     type: 'CharacterClass',
     kind: opts.kind,
     negate: opts.negate,
-    body: opts.body,
+    body: getBodyForElementContainer(options?.body) as Array<CharacterClassElementNode>,
   };
 }
 
@@ -986,9 +981,18 @@ function getBodyForAlternativeContainer(body: unknown): Array<AlternativeNode> {
   if (body === undefined) {
     body = [createAlternative()];
   } else if (!Array.isArray(body) || !body.length || !body.every(node => (node as Node).type === 'Alternative')) {
-    throw new Error('Invalid body; expected undefined or array of Alternative nodes');
+    throw new Error('Invalid body; expected array of one or more Alternative nodes');
   }
   return body as Array<AlternativeNode>;
+}
+
+function getBodyForElementContainer(body: unknown): Array<Node> {
+  if (body === undefined) {
+    body = [];
+  } else if (!Array.isArray(body) || !body.every(node => !!(node as Node).type)) {
+    throw new Error('Invalid body; expected array of nodes');
+  }
+  return body as Array<Node>;
 }
 
 function isLookahead(node: Node): node is (LookaroundAssertionNode & {kind: 'lookahead'}) {
