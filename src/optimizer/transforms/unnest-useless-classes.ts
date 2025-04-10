@@ -1,18 +1,14 @@
 import type {CharacterClassNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 import {hasOnlyChild} from '../../parser/node-utils.js';
-import {throwIfNullable} from '../../utils.js';
 
 /**
 Unnest character classes when possible.
 See also `unwrapNegationWrappers`.
 */
 const unnestUselessClasses: Visitor = {
-  CharacterClass({node, parent, replaceWith, replaceWithMultiple}: Path) {
-    const {body, kind, negate} = node as CharacterClassNode;
-    // @ts-expect-error TODO: Remove along with the `parent` type guard below it
-    parent.type;
-    parent = throwIfNullable(parent);
+  CharacterClass({node, parent, replaceWith, replaceWithMultiple}) {
+    const {body, kind, negate} = node;
     if (
       // Don't use this to unwrap outermost classes; see `unwrapUselessClasses` for that
       parent.type !== 'CharacterClass' ||
@@ -41,10 +37,10 @@ const unnestUselessClasses: Visitor = {
     if (parent.kind === 'union') {
       replaceWithMultiple(body, {traverse: true});
     // Can unnest any one kid into an intersection class
-    // TODO: After supporting `format` for classes, can visually unnest any number of kids into
-    // intersection by flipping this class's `format` from `'explicit'` to `'implicit'`, rather
-    // than replacing it. See <github.com/slevithan/oniguruma-parser/issues/1>
-    } else if (hasOnlyChild(node as CharacterClassNode)) {
+    // TODO: After supporting `format` for classes (see <github.com/slevithan/oniguruma-parser/issues/1>),
+    // can visually unnest any number of kids into intersection by flipping this class's `format`
+    // from `'explicit'` to `'implicit'`, rather than replacing it
+    } else if (hasOnlyChild(node)) {
       replaceWith(firstEl, {traverse: true});
     }
   },

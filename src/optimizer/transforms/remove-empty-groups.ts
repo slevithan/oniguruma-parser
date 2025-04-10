@@ -1,30 +1,29 @@
-import type {AlternativeContainerNode, Node, QuantifierNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {AlternativeContainerNode, Node} from '../../parser/parse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 
 /**
 Remove empty noncapturing, atomic, and flag groups, even if quantified.
 */
 const removeEmptyGroups: Visitor = {
-  AbsenceFunction({node, remove}: Path) {
+  AbsenceFunction({node, remove}) {
     if (isQualifiedAndEmpty(node)) {
       remove();
     }
   },
 
-  Group({node, remove}: Path) {
+  Group({node, remove}) {
     if (isQualifiedAndEmpty(node)) {
       remove();
     }
   },
 
-  LookaroundAssertion({node, remove}: Path) {
+  LookaroundAssertion({node, remove}) {
     if (isQualifiedAndEmpty(node)) {
       remove();
     }
   },
 
-  Quantifier(path: Path) {
-    const {node, remove} = path as Path<QuantifierNode>;
+  Quantifier({node, remove}) {
     let kid = node.body;
     while (kid.type === 'Quantifier') {
       kid = kid.body;

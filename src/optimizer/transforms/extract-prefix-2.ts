@@ -1,5 +1,5 @@
-import type {AlternativeContainerNode, AlternativeElementNode, AlternativeNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {AlternativeElementNode, AlternativeNode} from '../../parser/parse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 import {isAlternativeContainer} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
 import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
@@ -10,8 +10,7 @@ Ex: `^a|!a|^bb|!bb|^c|!c` -> `(?:^|!)(?:a|bb|c)`.
 Also works within groups.
 */
 const extractPrefix2: Visitor = {
-  '*'(path: Path) {
-    const {node} = path as Path<AlternativeContainerNode>;
+  '*'({node}) {
     if (!isAlternativeContainer(node)) {
       return;
     }

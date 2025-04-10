@@ -1,5 +1,4 @@
-import type {AlternativeContainerNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 import {isAlternativeContainer} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
 import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
@@ -10,8 +9,7 @@ Ex: `aa$|bba$|ca$` -> `(?:a|bb|c)a$`.
 Also works within groups.
 */
 const extractSuffix: Visitor = {
-  '*'(path: Path) {
-    const {node} = path as Path<AlternativeContainerNode>;
+  '*'({node}) {
     if (!isAlternativeContainer(node) || node.body.length < 2) {
       return;
     }

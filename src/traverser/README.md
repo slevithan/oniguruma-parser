@@ -15,16 +15,21 @@ function traverse<State extends object | null = null>(
   root: OnigurumaAst,
   visitor: Visitor<State>,
   state: State | null = null
-): void;
+): OnigurumaAst;
 
 type Visitor<State extends object | null = null> = {
-  [key in '*' | NodeType]?: VisitorNodeFn<State> | {
-    enter?: VisitorNodeFn<State>;
-    exit?: VisitorNodeFn<State>;
+  [N in Node as N['type']]?: VisitorNodeFn<Path<N>, State> | {
+    enter?: VisitorNodeFn<Path<N>, State>;
+    exit?: VisitorNodeFn<Path<N>, State>;
+  };
+} & {
+  '*'?: VisitorNodeFn<Path<Node>, State> | {
+    enter?: VisitorNodeFn<Path<Node>, State>;
+    exit?: VisitorNodeFn<Path<Node>, State>;
   };
 };
 
-type VisitorNodeFn<State> = (path: Path, state: State) => void;
+type VisitorNodeFn<P, State> = (path: P, state: State) => void;
 ```
 
 - `NodeType() {…}` is shorthand for `NodeType: {enter() {…}}`.

@@ -1,13 +1,11 @@
-import type {NamedCalloutNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 import {createLookaroundAssertion} from '../../parser/parse.js';
 
 /**
 Cleanup callout arguments, removing redundant commas, leading zeros, and empty braces.
 */
 const simplifyCallouts: Visitor = {
-  NamedCallout(path: Path) {
-    const {node, replaceWith} = path as Path<NamedCalloutNode>;
+  NamedCallout({node, replaceWith}) {
     const {arguments: args, kind} = node;
 
     // Special case: `(*FAIL)` -> `(?!)`

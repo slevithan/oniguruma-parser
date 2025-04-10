@@ -1,12 +1,10 @@
-import type {CharacterSetNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 
 /**
 Use Unicode property aliases.
 */
 const useUnicodeAliases: Visitor = {
-  CharacterSet(path: Path) {
-    const {node} = path as Path<CharacterSetNode>;
+  CharacterSet({node}) {
     if (node.kind !== 'property') {
       return;
     }
@@ -63,6 +61,7 @@ const OnigUnicodeAliasMap = /* @__PURE__ */ new Map([
     ['Line_Separator', 'Zl'],
     ['Paragraph_Separator', 'Zp'],
     ['Space_Separator', 'Zs'],
+
   // ## Binary property aliases
   ['ASCII_Hex_Digit', 'AHex'],
   ['Bidi_Control', 'Bidi_C'],
@@ -115,6 +114,7 @@ const OnigUnicodeAliasMap = /* @__PURE__ */ new Map([
   ['White_Space', 'WSpace'],
   ['XID_Continue', 'XIDC'],
   ['XID_Start', 'XIDS'],
+
   // ## Script aliases
   // TODO: Add script aliases
 ]);

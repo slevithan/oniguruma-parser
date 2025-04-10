@@ -1,4 +1,3 @@
-import type {CharacterNode, CharacterSetNode, GroupNode} from '../../dist/parser/parse.js';
 import type {Visitor} from '../../dist/traverser/traverse.js';
 import {toOnigurumaAst} from '../../dist/index.js';
 import {createCharacter, createCharacterSet} from '../../dist/parser/parse.js';
@@ -12,13 +11,13 @@ describe('Traverser: path', () => {
     it('should replace a node with a new node', () => {
       const visitor: Visitor = {
         Character({node, replaceWith}) {
-          const {value} = node as CharacterNode;
+          const {value} = node;
           if (value === cpOf('a')) {
             replaceWith(createCharacterSet('dot'));
           }
         },
         CharacterSet({node, replaceWith}) {
-          const {kind} = node as CharacterSetNode;
+          const {kind} = node;
           if (kind === 'dot') {
             replaceWith(createCharacter(cpOf('a')));
           }
@@ -35,7 +34,7 @@ describe('Traverser: path', () => {
     it('should replace a node with multiple nodes', () => {
       const visitor: Visitor = {
         Group({node, replaceWithMultiple}) {
-          const {body} = node as GroupNode;
+          const {body} = node;
           replaceWithMultiple(body[0].body, {traverse: true});
         },
       };

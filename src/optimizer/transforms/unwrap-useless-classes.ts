@@ -1,16 +1,15 @@
-import type {CharacterClassNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 
 /**
 Unwrap outermost non-negated character classes containing a single character or character set.
 See also `unwrapNegationWrappers`.
 */
 const unwrapUselessClasses: Visitor = {
-  CharacterClass({node, parent, replaceWith}: Path) {
-    const {body, kind, negate} = node as CharacterClassNode;
+  CharacterClass({node, parent, replaceWith}) {
+    const {body, kind, negate} = node;
     const kid = body[0];
     if (
-      parent!.type === 'CharacterClass' ||
+      parent.type === 'CharacterClass' ||
       negate ||
       kind !== 'union' ||
       body.length !== 1 ||

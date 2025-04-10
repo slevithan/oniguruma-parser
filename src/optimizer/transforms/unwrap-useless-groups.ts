@@ -1,5 +1,5 @@
-import type {AlternativeContainerNode, AlternativeElementNode, GroupNode, NodeType, QuantifiableNode, QuantifierNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {AlternativeContainerNode, AlternativeElementNode, GroupNode, NodeType, QuantifiableNode} from '../../parser/parse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 import {isAlternativeContainer, quantifiableTypes} from '../../parser/node-utils.js';
 
 /**
@@ -8,22 +8,21 @@ Unwrap nonbeneficial noncapturing and atomic groups.
 const unwrapUselessGroups: Visitor = {
   // Unwrap kid from the outside in, since the traverser doesn't support stepping multiple levels
   // up the tree
-  '*'({node}: Path) {
+  '*'({node}) {
     if (!isAlternativeContainer(node)) {
       return;
     }
-    if (hasNoncapturingMultiAltOnlyChild(node)) {
+    if (hasMultiAltNoncapturingGroupOnlyChild(node)) {
       // Isn't needed in some cases like if `node` is itself a basic noncapturing group (since
       // there's already handling in `Group`), but it doesn't hurt to handle it here instead
       node.body = (node.body[0].body[0] as GroupNode).body;
     }
   },
 
-  Group(path: Path) {
-    const {node, parent, replaceWithMultiple} = path as Path<GroupNode>;
+  Group({node, parent, replaceWithMultiple}) {
     const {atomic, body, flags} = node;
     const firstAltEls = body[0].body;
-    if (body.length > 1 || parent!.type === 'Quantifier') {
+    if (body.length > 1 || parent.type === 'Quantifier') {
       return;
     }
     let unwrap = false;
@@ -31,9 +30,9 @@ const unwrapUselessGroups: Visitor = {
       if (firstAltEls.every(({type}: AlternativeElementNode) => atomicTypes.has(type))) {
         unwrap = true;
       }
-    } else if (flags) {
-      // Rely on `removeUselessFlags`, then the group can be unwrapped in a subsequent pass
-    } else {
+    // For flag groups, rely on `removeUselessFlags`, after which the group can be unwrapped in a
+    // subsequent pass
+    } else if (!flags) {
       unwrap = true;
     }
     if (unwrap) {
@@ -42,8 +41,7 @@ const unwrapUselessGroups: Visitor = {
   },
 
   // Unwrap quantified groups that contain a single quantifiable node
-  Quantifier(path: Path) {
-    const {node} = path as Path<QuantifierNode>;
+  Quantifier({node}) {
     if (node.body.type !== 'Group') {
       return;
     }
@@ -55,16 +53,17 @@ const unwrapUselessGroups: Visitor = {
     if (groupKids.length !== 1) {
       return;
     }
-    const candidate = groupKids[0] as QuantifiableNode;
+    const candidate = groupKids[0];
     if (
       !quantifiableTypes.has(candidate.type) ||
+      // Some atomic types have already been ruled out as not quantifiable
       (quantifiedGroup.atomic && !atomicTypes.has(candidate.type)) ||
       quantifiedGroup.flags
     ) {
       return;
     }
     // Make the only child of the group the new `body` of the quantifier
-    node.body = candidate;
+    node.body = candidate as QuantifiableNode;
   },
 };
 
@@ -75,9 +74,10 @@ const atomicTypes = new Set<NodeType>([
   'CharacterClass',
   'CharacterSet',
   'Directive',
+  'NamedCallout',
 ]);
 
-function hasNoncapturingMultiAltOnlyChild({body}: AlternativeContainerNode): boolean {
+function hasMultiAltNoncapturingGroupOnlyChild({body}: AlternativeContainerNode): boolean {
   const firstAltEls = body[0].body;
   return (
     body.length === 1 &&

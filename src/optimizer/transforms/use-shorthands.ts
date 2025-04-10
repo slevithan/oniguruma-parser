@@ -1,5 +1,5 @@
-import type {CharacterClassNode, CharacterSetNode, Node} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {CharacterSetNode, Node} from '../../parser/parse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 import {createCharacterSet} from '../../parser/parse.js';
 
 /**
@@ -12,9 +12,9 @@ Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
 See also `useUnicodeProps`.
 */
 const useShorthands: Visitor = {
-  CharacterSet({node, parent, root, replaceWith}: Path) {
-    const {kind, negate, value} = node as CharacterSetNode;
-    let newNode;
+  CharacterSet({node, parent, root, replaceWith}) {
+    const {kind, negate, value} = node;
+    let newNode: CharacterSetNode | null = null;
     if (
       ( kind === 'property' &&
         (value === 'Decimal_Number' || value === 'Nd') &&
@@ -49,21 +49,19 @@ const useShorthands: Visitor = {
     ) {
       newNode = createCharacterSet('space', {negate});
     } else if (
-      parent!.type !== 'CharacterClass' &&
+      parent.type !== 'CharacterClass' &&
       kind === 'property' &&
       !negate &&
       value === 'Any'
     ) {
       newNode = createCharacterSet('any');
     }
-
     if (newNode) {
       replaceWith(newNode);
     }
   },
 
-  CharacterClass(path: Path) {
-    const {node, root} = path as Path<CharacterClassNode>;
+  CharacterClass({node, root}) {
     if (node.kind !== 'union') {
       return;
     }

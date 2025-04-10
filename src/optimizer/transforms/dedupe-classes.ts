@@ -1,12 +1,11 @@
-import type {CharacterClassElementNode, CharacterClassNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {CharacterClassElementNode} from '../../parser/parse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 
 /**
 Remove duplicate characters, sets, and ranges from character classes.
 */
 const dedupeClasses: Visitor = {
-  CharacterClass(path: Path) {
-    const {node} = path as Path<CharacterClassNode>;
+  CharacterClass({node}) {
     const {body, kind} = node;
     if (kind !== 'union') {
       return;

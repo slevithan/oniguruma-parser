@@ -1,5 +1,5 @@
-import type {CapturingGroupNode, Node} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {Node} from '../../parser/parse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 
 /**
 Pull leading and trailing assertions out of capturing groups when possible; helps group unwrapping.
@@ -11,10 +11,9 @@ const exposeAnchors: Visitor = {
   // from flags that modify word/grapheme boundary assertions that would need to be handled here).
   // Pulling anchors out can subsequently enable unwrapping multi-alternative noncapturing groups
   // within the capturing group, and has the side benefit that exposed anchors improve readability
-  CapturingGroup(path: Path) {
-    const {node, parent, replaceWithMultiple} = path as Path<CapturingGroupNode>;
+  CapturingGroup({node, parent, replaceWithMultiple}) {
     if (
-      parent!.type === 'Quantifier' ||
+      parent.type === 'Quantifier' ||
       node.body.length > 1 || // Multiple alts
       node.hasSubroutine
     ) {

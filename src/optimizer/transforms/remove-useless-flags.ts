@@ -1,20 +1,18 @@
-import type {DirectiveNode, FlagsNode, GroupNode} from '../../parser/parse.js';
+import type {DirectiveNode, GroupNode} from '../../parser/parse.js';
 import type {FlagGroupModifiers} from '../../tokenizer/tokenize.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 
 /**
 Remove flags (from top-level and modifiers) that have no effect.
 TODO: Support removing additional flags besides `x`.
 */
 const removeUselessFlags: Visitor = {
-  Flags(path: Path) {
-    const {node} = path as Path<FlagsNode>;
+  Flags({node}) {
     // Effects of flag x are already applied during parsing
     node.extended = false;
   },
 
-  Directive(path: Path) {
-    const {node, remove} = path as Path<DirectiveNode>;
+  Directive({node, remove}) {
     if (node.kind !== 'flags') {
       return;
     }
@@ -24,8 +22,7 @@ const removeUselessFlags: Visitor = {
     }
   },
 
-  Group(path: Path) {
-    const {node} = path as Path<GroupNode>;
+  Group({node}) {
     if (!node.flags) {
       return;
     }

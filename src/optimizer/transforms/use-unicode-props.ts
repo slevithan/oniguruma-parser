@@ -1,5 +1,5 @@
 import type {CharacterSetNode} from '../../parser/parse.js';
-import type {Path, Visitor} from '../../traverser/traverse.js';
+import type {Visitor} from '../../traverser/traverse.js';
 import {createUnicodeProperty} from '../../parser/parse.js';
 import {isRange} from './use-shorthands.js';
 
@@ -10,9 +10,9 @@ Use Unicode properties when possible.
 See also `useShorthands`.
 */
 const useUnicodeProps: Visitor = {
-  CharacterSet({node, root, replaceWith}: Path) {
-    const {kind, negate, value} = node as CharacterSetNode;
-    let newNode;
+  CharacterSet({node, root, replaceWith}) {
+    const {kind, negate, value} = node;
+    let newNode: CharacterSetNode | null = null;
     if (
       kind === 'posix' &&
       value === 'cntrl' &&
@@ -21,13 +21,12 @@ const useUnicodeProps: Visitor = {
     ) {
       newNode = createUnicodeProperty('Cc', {negate});
     }
-
     if (newNode) {
       replaceWith(newNode);
     }
   },
 
-  CharacterClassRange({node, replaceWith}: Path) {
+  CharacterClassRange({node, replaceWith}) {
     if (isRange(node, 0, 0x10FFFF)) {
       replaceWith(createUnicodeProperty('Any'));
     }
