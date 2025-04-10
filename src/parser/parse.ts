@@ -553,14 +553,17 @@ type AbsenceFunctionNode = {
   kind: NodeAbsenceFunctionKind;
   body: Array<AlternativeNode>;
 };
-function createAbsenceFunction(kind: NodeAbsenceFunctionKind): AbsenceFunctionNode {
+function createAbsenceFunction(kind: NodeAbsenceFunctionKind, options?: {
+  body?: Array<AlternativeNode>;
+}): AbsenceFunctionNode {
   if (kind !== 'repeater') {
     throw new Error(`Unexpected absence function kind "${kind}"`);
   }
+  const body = getBodyForAlternativeContainer(options?.body);
   return {
     type: 'AbsenceFunction',
     kind,
-    body: [createAlternative()],
+    body,
   };
 }
 
@@ -962,6 +965,15 @@ function createByGroupKind({flags, kind, name, negate, number}: GroupOpenToken):
     default:
       throw new Error(`Unexpected group kind "${kind}"`);
   }
+}
+
+function getBodyForAlternativeContainer(body: unknown): Array<AlternativeNode> {
+  if (body === undefined) {
+    body = [createAlternative()];
+  } else if (!Array.isArray(body) || !body.length || !body.every(node => (node as Node).type === 'Alternative')) {
+    throw new Error('Invalid body; expected undefined or array of Alternative nodes');
+  }
+  return body as Array<AlternativeNode>;
 }
 
 function isLookahead(node: Node): node is (LookaroundAssertionNode & {kind: 'lookahead'}) {
