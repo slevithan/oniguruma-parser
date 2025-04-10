@@ -1,6 +1,13 @@
 # Traverser module: `oniguruma-parser/traverser`
 
-Provides a traversal and transformation API (using the vistor pattern) for Oniguruma regex ASTs.
+Provides a traversal and transformation API (using the vistor pattern) for `OnigurumaAst` objects created by this library.
+
+## Contents
+
+- [Import](#import)
+- [Details](#details)
+- [Node types](#node-types)
+- [Path](#path)
 
 ## Import
 
@@ -8,39 +15,23 @@ Provides a traversal and transformation API (using the vistor pattern) for Onigu
 import {traverse} from 'oniguruma-parser/traverser';
 ```
 
-## Type definition
+## Details
 
-```ts
-function traverse<State extends object | null = null>(
-  root: OnigurumaAst,
-  visitor: Visitor<State>,
-  state: State | null = null
-): OnigurumaAst;
+The `traverse` function takes three arguments:
 
-type Visitor<State extends object | null = null> = {
-  [N in Node as N['type']]?: VisitorNodeFn<Path<N>, State> | {
-    enter?: VisitorNodeFn<Path<N>, State>;
-    exit?: VisitorNodeFn<Path<N>, State>;
-  };
-} & {
-  '*'?: VisitorNodeFn<Path<Node>, State> | {
-    enter?: VisitorNodeFn<Path<Node>, State>;
-    exit?: VisitorNodeFn<Path<Node>, State>;
-  };
-};
+1. `root`: Usually an `OnigurumaAst`, but can also be a midpoint in an AST.
+2. `visitor`: An object with node types as keys, and functions as values. These visitor node type functions can transform the AST in-place.
+3. `state`: *Optional.* Any non-primitive value, or `null`. It's passed to all of the visitor's node type functions as their second argument.
 
-type VisitorNodeFn<P, State> = (path: P, state: State) => void;
-```
+The `root` argument is returned. It might have been modified by the visitor's node type functions.
 
-- `VisitorNodeFn() {…}` is shorthand for `VisitorNodeFn: {enter() {…}}`.
-- Provided `state` is passed through to all visitor node functions.
-- Type `Path` contains a variety of properties (`node`, `parent`, etc.) and methods (`remove`, `replaceWith`, etc.).
+> **Note:** The `traverse` method's actual types are quite complex, so refer to the source code if needed.
 
-## Examples
+The visitor's keys can be any node type (ex: `CapturingGroup`) or `'*'`. Their values can be either functions that accept arguments `path` and `state`, or objects with `enter` and/or `exit` methods (that offer more control over when the functions run during traversal).
 
-> **Note:** For additional examples, check out the [optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md)'s list of [optimization transforms](https://github.com/slevithan/oniguruma-parser/tree/main/src/optimizer/transforms).
+The `path` argument contains a variety of properties (`node`, `parent`, etc.) and methods (`remove`, `replaceWith`, etc.).
 
-### Add a `parent` property to every node
+For example, to add a `parent` property to every node:
 
 ```js
 import {toOnigurumaAst} from 'oniguruma-parser';
@@ -54,7 +45,7 @@ traverse(ast, {
 });
 ```
 
-### Swap all `a` and `.` nodes
+Or, to swap all `a` and `.` nodes:
 
 ```js
 import {toOnigurumaAst} from 'oniguruma-parser';
@@ -76,6 +67,52 @@ traverse(ast, {
   },
 });
 ```
+
+> **Note:** `NodeType() {…}` is shorthand for `NodeType: {enter() {…}}`.
+
+> **Note:** For additional examples, check out the [optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md)'s list of [optimization transforms](https://github.com/slevithan/oniguruma-parser/tree/main/src/optimizer/transforms).
+
+## Node types
+
+- `'*'`: Any node type
+- `AbsenceFunction`
+- `Alternative`
+- `Assertion`
+- `Backreference`
+- `CapturingGroup`
+- `Character`
+- `CharacterClass`
+- `CharacterClassRange`
+- `CharacterSet`
+- `Directive`
+- `Flags`
+- `Group`
+- `LookaroundAssertion`
+- `NamedCallout`
+- `Quantifier`
+- `Regex`: The root node
+- `Subroutine`
+
+## Path
+
+> **Note:** Refer to [`traverse.ts`](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/traverse.ts) for more details.
+
+### Properties
+
+- `node`
+- `parent`
+- `key`
+- `container`
+- `root`
+
+### Methods
+
+- `remove`
+- `removeAllNextSiblings`
+- `removeAllPrevSiblings`
+- `replaceWith`
+- `replaceWithMultiple`
+- `skip`
 
 ## About
 
