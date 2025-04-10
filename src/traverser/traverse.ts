@@ -1,4 +1,4 @@
-import type {AlternativeElementNode, AlternativeNode, CharacterClassElementNode, Node, OnigurumaAst, ParentNode, RegexNode} from '../parser/parse.js';
+import type {AlternativeElementNode, AlternativeNode, CharacterClassElementNode, Node, ParentNode, RegexNode} from '../parser/parse.js';
 import {throwIfNullish} from '../utils.js';
 
 type ContainerElementNode =
@@ -9,7 +9,7 @@ type ContainerElementNode =
   // Any node type used within the `body` container of a `CharacterClassNode`
   CharacterClassElementNode;
 
-type Path<N> = {
+type Path<N = Node, Root = RegexNode> = {
   // The current node being traversed
   node: N;
   // Parent node of the current node
@@ -20,8 +20,9 @@ type Path<N> = {
   // Container array holding the current node in the parent node; `null` if the parent isn't a type
   // that contains a list of nodes
   container: N extends RegexNode ? null : Array<ContainerElementNode> | null;
-  // Root node of the AST
-  root: RegexNode;
+  // Starting node of the AST being traversed; usually a `RegexNode` but can be any node type if
+  // traversing from a midpoint
+  root: Root;
   // Removes the current node; its kids won't be traversed
   remove: () => void;
   // Removes all siblings to the right of the current node, without traversing them; returns the
@@ -41,15 +42,15 @@ type Path<N> = {
 };
 
 // `VisitorNodeFn() {…}` is shorthand for `VisitorNodeFn: {enter() {…}}`.
-type Visitor<State extends object | null = null> = {
-  [N in Node as N['type']]?: VisitorNodeFn<Path<N>, State> | {
-    enter?: VisitorNodeFn<Path<N>, State>;
-    exit?: VisitorNodeFn<Path<N>, State>;
+type Visitor<State extends object | null = null, Root extends Node = RegexNode> = {
+  [N in Node as N['type']]?: VisitorNodeFn<Path<N, Root>, State> | {
+    enter?: VisitorNodeFn<Path<N, Root>, State>;
+    exit?: VisitorNodeFn<Path<N, Root>, State>;
   };
 } & {
-  '*'?: VisitorNodeFn<Path<Node>, State> | {
-    enter?: VisitorNodeFn<Path<Node>, State>;
-    exit?: VisitorNodeFn<Path<Node>, State>;
+  '*'?: VisitorNodeFn<Path<Node, Root>, State> | {
+    enter?: VisitorNodeFn<Path<Node, Root>, State>;
+    exit?: VisitorNodeFn<Path<Node, Root>, State>;
   };
 };
 
@@ -70,31 +71,31 @@ Visitor node functions are called in the following order:
 4. `exit` function of the given node's type (if any)
 5. `exit` function of the `'*'` node type (if any)
 */
-function traverse<State extends object | null = null>(
-  root: OnigurumaAst,
-  visitor: Visitor<State>,
+function traverse<State extends object | null = null, Root extends Node = RegexNode>(
+  root: Root,
+  visitor: Visitor<State, Root>,
   state: State | null = null
-): OnigurumaAst {
-  function traverseArray(array: NonNullable<Path<Node>['container']>, parent: Path<Node>['parent']) {
+): Root {
+  function traverseArray(array: NonNullable<Path['container']>, parent: Path['parent']) {
     for (let i = 0; i < array.length; i++) {
       const keyShift = traverseNode(array[i], parent, i, array);
       i = Math.max(-1, i + keyShift);
     }
   }
   function traverseNode(
-    node: Path<Node>['node'],
-    parent: Path<Node>['parent'] = null,
-    key: Path<Node>['key'] = null,
-    container: Path<Node>['container'] = null
+    node: Path['node'],
+    parent: Path['parent'] = null,
+    key: Path['key'] = null,
+    container: Path['container'] = null
   ): number {
     let keyShift = 0;
     let skipTraversingKidsOfPath = false;
-    const path: Path<typeof node> = {
+    const path: Path = {
       node,
       parent,
       key,
       container,
-      root,
+      root: root as RegexNode,
       remove() {
         arrayContainer(container).splice(Math.max(0, numericKey(key) + keyShift), 1);
         keyShift--;
@@ -147,9 +148,11 @@ function traverse<State extends object | null = null>(
     const thisTypeVisitor = visitor[type];
     const enterAllFn = typeof anyTypeVisitor === 'function' ? anyTypeVisitor : anyTypeVisitor?.enter;
     const enterThisFn = typeof thisTypeVisitor === 'function' ? thisTypeVisitor : thisTypeVisitor?.enter;
-    enterAllFn?.(path, state!);
+    // Type args are too complex to avoid TS errors here, but `VisitorNodeFn`s get correct types
     // @ts-expect-error
-    enterThisFn?.(path, state!);
+    enterAllFn?.(path, state);
+    // @ts-expect-error
+    enterThisFn?.(path, state);
 
     if (!skipTraversingKidsOfPath) {
       switch (type) {
@@ -191,8 +194,9 @@ function traverse<State extends object | null = null>(
     }
 
     // @ts-expect-error
-    (thisTypeVisitor as Exclude<typeof thisTypeVisitor, Function>)?.exit?.(path, state!);
-    (anyTypeVisitor as Exclude<typeof anyTypeVisitor, Function>)?.exit?.(path, state!);
+    (thisTypeVisitor as Exclude<typeof thisTypeVisitor, Function>)?.exit?.(path, state);
+    // @ts-expect-error
+    (anyTypeVisitor as Exclude<typeof anyTypeVisitor, Function>)?.exit?.(path, state);
     return keyShift;
   }
   traverseNode(root);
