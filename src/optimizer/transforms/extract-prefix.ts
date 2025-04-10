@@ -36,8 +36,7 @@ const extractPrefix: Visitor = {
       alt.body = alt.body.slice(prefixNodes.length);
     }
     const newContentsAlt = createAlternative({body: prefixNodes});
-    const suffixGroup = createGroup();
-    suffixGroup.body = node.body;
+    const suffixGroup = createGroup({body: node.body});
     if (!suffixGroup.body.every(alt => !alt.body.length)) {
       newContentsAlt.body.push(suffixGroup);
     }

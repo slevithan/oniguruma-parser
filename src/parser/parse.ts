@@ -559,11 +559,10 @@ function createAbsenceFunction(kind: NodeAbsenceFunctionKind, options?: {
   if (kind !== 'repeater') {
     throw new Error(`Unexpected absence function kind "${kind}"`);
   }
-  const body = getBodyForAlternativeContainer(options?.body);
   return {
     type: 'AbsenceFunction',
     kind,
-    body,
+    body: getBodyForAlternativeContainer(options?.body),
   };
 }
 
@@ -799,6 +798,7 @@ type GroupNode = {
 function createGroup(options?: {
   atomic?: boolean;
   flags?: FlagGroupModifiers;
+  body?: Array<AlternativeNode>;
 }): GroupNode {
   const atomic = options?.atomic;
   const flags = options?.flags;
@@ -806,7 +806,7 @@ function createGroup(options?: {
     type: 'Group',
     ...(atomic && {atomic}),
     ...(flags && {flags}),
-    body: [createAlternative()],
+    body: getBodyForAlternativeContainer(options?.body),
   };
 }
 
