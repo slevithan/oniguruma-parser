@@ -1,6 +1,7 @@
 import type {CharacterSetNode, Node} from '../../parser/parse.js';
 import type {Visitor} from '../../traverser/traverse.js';
 import {createCharacterSet} from '../../parser/parse.js';
+import {cpOf} from '../../utils.js';
 
 /**
 Use shorthands (`\d`, `\h`, `\s`, etc.) when possible.
@@ -76,9 +77,9 @@ const useShorthands: Visitor = {
     };
     for (const kid of node.body) {
       if (kid.type === 'CharacterClassRange') {
-        has.rangeDigit0To9 ||= isRange(kid, 48, 57); // '0' to '9'
-        has.rangeAToFLower ||= isRange(kid, 97, 102); // 'a' to 'f'
-        has.rangeAToFUpper ||= isRange(kid, 65, 70); // 'A' to 'F'
+        has.rangeDigit0To9 ||= isRange(kid, cp.n0, cp.n9);
+        has.rangeAToFLower ||= isRange(kid, cp.a, cp.f);
+        has.rangeAToFUpper ||= isRange(kid, cp.A, cp.F);
       } else if (kid.type === 'CharacterSet') {
         has.unicodeL ||= isUnicode(kid, 'L');
         has.unicodeM ||= isUnicode(kid, 'M');
@@ -86,9 +87,11 @@ const useShorthands: Visitor = {
         has.unicodePc ||= isUnicode(kid, 'Pc', {includeSupercategories: true});
       }
     }
+    // TODO: Only need one of A-F or a-f if flag i is active in local context; relies on
+    // <github.com/slevithan/oniguruma-parser/issues/14>
     if (has.rangeDigit0To9 && has.rangeAToFUpper && has.rangeAToFLower) {
       node.body = node.body.filter(kid => !(
-        isRange(kid, 48, 57) || isRange(kid, 97, 102) || isRange(kid, 65, 70)
+        isRange(kid, cp.n0, cp.n9) || isRange(kid, cp.a, cp.f) || isRange(kid, cp.A, cp.F)
       ));
       node.body.push(createCharacterSet('hex'));
     }
@@ -104,6 +107,15 @@ const useShorthands: Visitor = {
       node.body.push(createCharacterSet('word'));
     }
   },
+};
+
+const cp = {
+  n0: cpOf('0'),
+  n9: cpOf('9'),
+  A: cpOf('A'),
+  F: cpOf('F'),
+  a: cpOf('a'),
+  f: cpOf('f'),
 };
 
 function isRange(node: Node, min: number, max: number): boolean {
