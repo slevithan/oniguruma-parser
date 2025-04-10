@@ -45,9 +45,9 @@ const extractPrefix2: Visitor = {
     const strippedAlts = [];
     let counter = 0;
     for (let i = 0; i < numAlts; i++) {
-      const alt = createAlternative();
-      alt.body = node.body[i].body.slice(prefixNodesByI[counter].length);
-      strippedAlts.push(alt);
+      strippedAlts.push(createAlternative({
+        body: node.body[i].body.slice(prefixNodesByI[counter].length),
+      }));
       counter = counter < (numDiffPrefixes - 1) ? counter + 1 : 0;
     }
     // Check that each set of alts now use the same value after having had their prefixes removed
@@ -66,16 +66,17 @@ const extractPrefix2: Visitor = {
         }
       }
     }
-    const newContentsAlt = createAlternative();
-    const prefixGroup = createGroup();
     const prefixAlts = [];
     for (let i = 0; i < numDiffPrefixes; i++) {
-      const alt = createAlternative();
-      alt.body = prefixNodesByI[i];
-      prefixAlts.push(alt);
+      prefixAlts.push(createAlternative({
+        body: prefixNodesByI[i],
+      }));
     }
+    const prefixGroup = createGroup();
     prefixGroup.body = prefixAlts;
-    newContentsAlt.body.push(prefixGroup);
+    const newContentsAlt = createAlternative({
+      body: [prefixGroup],
+    });
     const suffixGroup = createGroup();
     // Only take one (unique) alt from each set of stripped alts
     suffixGroup.body = strippedAlts.filter((_, i) => i % numDiffPrefixes);

@@ -568,10 +568,13 @@ type AlternativeNode = {
   type: 'Alternative';
   body: Array<AlternativeElementNode>;
 };
-function createAlternative(): AlternativeNode {
+function createAlternative(options?: {
+  body?: Array<AlternativeElementNode>;
+}): AlternativeNode {
+  const body = options?.body ?? [];
   return {
     type: 'Alternative',
-    body: [],
+    body,
   };
 }
 
