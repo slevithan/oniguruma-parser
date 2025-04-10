@@ -22,7 +22,6 @@ type Node =
   RegexNode |
   SubroutineNode;
 
-type NodeType = Node['type'];
 type OnigurumaAst = RegexNode;
 
 type ParentNode =
@@ -1036,7 +1035,6 @@ export {
   type NodeDirectiveKind,
   type NodeLookaroundAssertionKind,
   type NodeQuantifierKind,
-  type NodeType,
   type OnigurumaAst,
   type ParentNode,
   type ParseOptions,

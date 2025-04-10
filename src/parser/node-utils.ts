@@ -1,6 +1,6 @@
-import type {AlternativeContainerNode, Node, NodeCharacterSetKind, NodeType, ParentNode} from './parse.js';
+import type {AlternativeContainerNode, Node, NodeCharacterSetKind, ParentNode} from './parse.js';
 
-const quantifiableTypes = new Set<NodeType>([
+const quantifiableTypes = new Set<Node['type']>([
   'AbsenceFunction',
   'Backreference',
   'CapturingGroup',
@@ -38,7 +38,7 @@ function hasOnlyChild(node: ParentNode & {body: Array<Node>}, props?: Props): bo
 }
 
 function isAlternativeContainer(node: Node): node is AlternativeContainerNode {
-  const alternativeContainerTypes = new Set<NodeType>([
+  const alternativeContainerTypes = new Set<Node['type']>([
     'AbsenceFunction',
     'CapturingGroup',
     'Group',

@@ -40,7 +40,7 @@ type Path<N> = {
   skip: () => void;
 };
 
-// `NodeType() {…}` is shorthand for `NodeType: {enter() {…}}`.
+// `VisitorNodeFn() {…}` is shorthand for `VisitorNodeFn: {enter() {…}}`.
 type Visitor<State extends object | null = null> = {
   [N in Node as N['type']]?: VisitorNodeFn<Path<N>, State> | {
     enter?: VisitorNodeFn<Path<N>, State>;

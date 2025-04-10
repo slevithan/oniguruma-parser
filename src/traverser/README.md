@@ -32,7 +32,7 @@ type Visitor<State extends object | null = null> = {
 type VisitorNodeFn<P, State> = (path: P, state: State) => void;
 ```
 
-- `NodeType() {…}` is shorthand for `NodeType: {enter() {…}}`.
+- `VisitorNodeFn() {…}` is shorthand for `VisitorNodeFn: {enter() {…}}`.
 - Provided `state` is passed through to all visitor node functions.
 - Type `Path` contains a variety of properties (`node`, `parent`, etc.) and methods (`remove`, `replaceWith`, etc.).
 

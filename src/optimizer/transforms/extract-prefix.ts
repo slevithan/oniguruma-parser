@@ -1,4 +1,4 @@
-import type {AssertionNode, CharacterNode, CharacterSetNode, Node, NodeType} from '../../parser/parse.js';
+import type {AssertionNode, CharacterNode, CharacterSetNode, Node} from '../../parser/parse.js';
 import type {Visitor} from '../../traverser/traverse.js';
 import {isAlternativeContainer} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
@@ -46,7 +46,7 @@ const extractPrefix: Visitor = {
   },
 };
 
-function isAllowedSimpleType(type: NodeType) {
+function isAllowedSimpleType(type: Node['type']) {
   return (
     type === 'Assertion' ||
     type === 'Character' ||

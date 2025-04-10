@@ -1,4 +1,4 @@
-import type {AlternativeContainerNode, AlternativeElementNode, GroupNode, NodeType, QuantifiableNode} from '../../parser/parse.js';
+import type {AlternativeContainerNode, AlternativeElementNode, GroupNode, Node, QuantifiableNode} from '../../parser/parse.js';
 import type {Visitor} from '../../traverser/traverse.js';
 import {isAlternativeContainer, quantifiableTypes} from '../../parser/node-utils.js';
 
@@ -67,7 +67,7 @@ const unwrapUselessGroups: Visitor = {
   },
 };
 
-const atomicTypes = new Set<NodeType>([
+const atomicTypes = new Set<Node['type']>([
   'Assertion',
   'Backreference',
   'Character',
