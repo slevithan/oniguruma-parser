@@ -1,16 +1,4 @@
-import type {AlternativeContainerNode, Node, NodeCharacterSetKind, ParentNode} from './parse.js';
-
-const quantifiableTypes = new Set<Node['type']>([
-  'AbsenceFunction',
-  'Backreference',
-  'CapturingGroup',
-  'Character',
-  'CharacterClass',
-  'CharacterSet',
-  'Group',
-  'Quantifier',
-  'Subroutine',
-]);
+import type {AlternativeContainerNode, Node, NodeCharacterSetKind, ParentNode, QuantifiableNode} from './parse.js';
 
 // Character set kinds that can appear inside and outside of character classes, and can be inverted
 // by setting `negate`. Some but not all of those excluded use `variableLength: true`
@@ -38,13 +26,6 @@ function hasOnlyChild(node: ParentNode & {body: Array<Node>}, props?: Props): bo
 }
 
 function isAlternativeContainer(node: Node): node is AlternativeContainerNode {
-  const alternativeContainerTypes = new Set<Node['type']>([
-    'AbsenceFunction',
-    'CapturingGroup',
-    'Group',
-    'LookaroundAssertion',
-    'Regex',
-  ]);
   if (
     !alternativeContainerTypes.has(node.type) ||
     (node.type === 'AbsenceFunction' && node.kind !== 'repeater')
@@ -53,10 +34,32 @@ function isAlternativeContainer(node: Node): node is AlternativeContainerNode {
   }
   return true;
 }
+const alternativeContainerTypes = new Set<Node['type']>([
+  'AbsenceFunction',
+  'CapturingGroup',
+  'Group',
+  'LookaroundAssertion',
+  'Regex',
+]);
+
+function isQuantifiable(node: Node): node is QuantifiableNode {
+  return quantifiableTypes.has(node.type);
+}
+const quantifiableTypes = new Set<Node['type']>([
+  'AbsenceFunction',
+  'Backreference',
+  'CapturingGroup',
+  'Character',
+  'CharacterClass',
+  'CharacterSet',
+  'Group',
+  'Quantifier',
+  'Subroutine',
+]);
 
 export {
   hasOnlyChild,
   isAlternativeContainer,
-  quantifiableTypes,
+  isQuantifiable,
   universalCharacterSetKinds,
 };

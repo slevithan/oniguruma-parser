@@ -1,6 +1,6 @@
 import type {AlternativeContainerNode, AlternativeElementNode, GroupNode, Node, QuantifiableNode} from '../../parser/parse.js';
 import type {Visitor} from '../../traverser/traverse.js';
-import {isAlternativeContainer, quantifiableTypes} from '../../parser/node-utils.js';
+import {isAlternativeContainer, isQuantifiable} from '../../parser/node-utils.js';
 
 /**
 Unwrap nonbeneficial noncapturing and atomic groups.
@@ -55,7 +55,7 @@ const unwrapUselessGroups: Visitor = {
     }
     const candidate = groupKids[0];
     if (
-      !quantifiableTypes.has(candidate.type) ||
+      !isQuantifiable(candidate) ||
       // Some atomic types have already been ruled out as not quantifiable
       (quantifiedGroup.atomic && !atomicTypes.has(candidate.type)) ||
       quantifiedGroup.flags
@@ -63,7 +63,7 @@ const unwrapUselessGroups: Visitor = {
       return;
     }
     // Make the only child of the group the new `body` of the quantifier
-    node.body = candidate as QuantifiableNode;
+    node.body = candidate;
   },
 };
 

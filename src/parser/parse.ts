@@ -1,6 +1,7 @@
 import type {AssertionToken, BackreferenceToken, CharacterClassHyphenToken, CharacterClassOpenToken, CharacterSetToken, FlagGroupModifiers, FlagProperties, GroupOpenToken, QuantifierToken, SubroutineToken, Token, TokenCharacterSetKind, TokenDirectiveKind, TokenNamedCalloutKind, TokenQuantifierKind} from '../tokenizer/tokenize.js';
 import {tokenize} from '../tokenizer/tokenize.js';
 import {cpOf, getOrInsert, PosixClassNames, r, throwIfNullish} from '../utils.js';
+import {isQuantifiable} from './node-utils.js';
 
 // Watch out for the DOM `Node` interface!
 type Node =
@@ -60,7 +61,7 @@ type CharacterClassElementNode =
   CharacterClassRangeNode |
   CharacterSetNode;
 
-// See also `quantifiableTypes`
+// See also `isQuantifiable`
 type QuantifiableNode =
   AbsenceFunctionNode |
   BackreferenceNode |
@@ -482,16 +483,8 @@ function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): 
 function parseQuantifier({kind, min, max}: QuantifierToken, context: Context): QuantifierNode {
   const parent = context.parent as AlternativeNode;
   const quantifiedNode = parent.body.at(-1);
-  // TODO: Reusing `quantifiableTypes` (`!quantifiableTypes.has(quantifiedNode.type)`) would be
-  // better, but TS doesn't narrow via `has` with a `Set`
-  if (
-    !quantifiedNode ||
-    quantifiedNode.type === 'Assertion' ||
-    quantifiedNode.type === 'Directive' ||
-    quantifiedNode.type === 'LookaroundAssertion' ||
-    quantifiedNode.type === 'NamedCallout'
-  ) {
-    throw new Error(`Quantifier requires a repeatable token`);
+  if (!quantifiedNode || !isQuantifiable(quantifiedNode)) {
+    throw new Error('Quantifier requires a repeatable token');
   }
   const node = createQuantifier(kind, min, max, quantifiedNode);
   parent.body.pop();
