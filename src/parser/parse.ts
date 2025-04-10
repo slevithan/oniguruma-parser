@@ -420,7 +420,7 @@ function parseCharacterSet({kind, negate, value}: CharacterSetToken, context: Co
 
 function parseGroupOpen(token: GroupOpenToken, context: Context, state: State): AbsenceFunctionNode | CapturingGroupNode | GroupNode | LookaroundAssertionNode {
   const {tokens, capturingGroups, namedGroupsByName, skipLookbehindValidation, walk} = context;
-  let node = createByGroupKind(token);
+  const node = createByGroupKind(token);
   const isThisAbsenceFunction = node.type === 'AbsenceFunction';
   const isThisLookbehind = isLookbehind(node);
   const isThisNegLookbehind = isThisLookbehind && node.negate;
@@ -625,16 +625,25 @@ type CapturingGroupNode = {
   hasSubroutine?: boolean;
   body: Array<AlternativeNode>;
 };
-function createCapturingGroup(number: number, name?: string): CapturingGroupNode {
-  const hasName = name !== undefined;
-  if (hasName && !isValidGroupName(name)) {
-    throw new Error(`Group name "${name}" invalid in Oniguruma`);
+function createCapturingGroup(number: number, options?: {
+  name?: string;
+  hasSubroutine?: boolean;
+  body?: Array<AlternativeNode>;
+}): CapturingGroupNode {
+  const opts = {
+    name: undefined,
+    hasSubroutine: false,
+    ...options,
+  };
+  if (opts.name !== undefined && !isValidGroupName(opts.name)) {
+    throw new Error(`Group name "${opts.name}" invalid in Oniguruma`);
   }
   return {
     type: 'CapturingGroup',
     number,
-    ...(hasName && {name}),
-    body: [createAlternative()],
+    ...(opts.name && {name: opts.name}),
+    ...(opts.hasSubroutine && {hasSubroutine: opts.hasSubroutine}),
+    body: getBodyForAlternativeContainer(options?.body),
   };
 }
 
@@ -956,7 +965,7 @@ function createByGroupKind({flags, kind, name, negate, number}: GroupOpenToken):
     case 'atomic':
       return createGroup({atomic: true});
     case 'capturing':
-      return createCapturingGroup(number!, name);
+      return createCapturingGroup(number!, {name});
     case 'group':
       return createGroup({flags});
     case 'lookahead':
