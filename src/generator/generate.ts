@@ -2,16 +2,9 @@ import type {AbsenceFunctionNode, AlternativeNode, AssertionNode, BackreferenceN
 import type {FlagProperties} from '../tokenizer/tokenize.js';
 import {r, throwIfNullish} from '../utils.js';
 
-type Gen = (node: NonRootNode) => string;
-type NonRootNode = Exclude<Node, RegexNode>;
 type OnigurumaRegex = {
   pattern: string;
   flags: string;
-};
-type State = {
-  inCharClass: boolean;
-  lastNode: Node;
-  parent: ParentNode;
 };
 
 /**
@@ -33,6 +26,7 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
       parentStack.push(state.parent);
     }
     const fn = throwIfNullish(generator[node.type], `Unexpected node type "${node.type}"`);
+    // @ts-expect-error
     const result = fn(node, state, gen);
     if (getLastChild(state.parent) === node) {
       parentStack.pop();
@@ -42,27 +36,39 @@ function generate(ast: OnigurumaAst): OnigurumaRegex {
   };
   return {
     pattern: ast.body.map(gen).join('|'),
-    // Could reset `lastNode` beforehand (`lastNode = ast;`), but it isn't needed by flags
+    // Could reset `lastNode` at this point via `lastNode = ast`, but it isn't needed by flags
     flags: gen(ast.flags),
   };
 }
 
-const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: Gen) => string} = {
-  AbsenceFunction(node: Node, _: State, gen: Gen): string {
-    const {body, kind} = node as AbsenceFunctionNode;
+type State = {
+  inCharClass: boolean;
+  lastNode: Node;
+  parent: ParentNode;
+};
+
+type NonRootNode = Exclude<Node, RegexNode>;
+
+type Gen = (node: NonRootNode) => string;
+
+type Generator = {
+  [N in NonRootNode as N['type']]:
+  (node: N, state: State, gen: Gen) => string
+};
+
+const generator: Generator = {
+  AbsenceFunction({body, kind}, _, gen) {
     if (kind !== 'repeater') {
       throw new Error(`Unexpected absence function kind "${kind}"`);
     }
     return `(?~${body.map(gen).join('|')})`;
   },
 
-  Alternative(node: Node, _: State, gen: Gen): string {
-    const {body} = node as AlternativeNode;
+  Alternative({body}, _, gen) {
     return body.map(gen).join('');
   },
 
-  Assertion(node: Node): string {
-    const {kind, negate} = node as AssertionNode;
+  Assertion({kind, negate}) {
     if (kind === 'grapheme_boundary') {
       return negate ? r`\Y` : r`\y`;
     }
@@ -79,8 +85,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     }[kind], `Unexpected assertion kind "${kind}"`);
   },
 
-  Backreference(node: Node): string {
-    const {ref} = node as BackreferenceNode;
+  Backreference({ref}) {
     if (typeof ref === 'number') {
       // TODO: Won't be safe to indiscriminately unenclose when forward backrefs are supported
       return '\\' + ref;
@@ -89,14 +94,13 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     return `\\k<${ref}>`;
   },
 
-  CapturingGroup(node: Node, _: State, gen: Gen): string {
-    const {body, name} = node as CapturingGroupNode;
+  CapturingGroup({body, name}, _, gen) {
     const enclosedName = name ? `?${name.includes('>') ? `'${name}'` : `<${name}>`}` : '';
     return `(${enclosedName}${body.map(gen).join('|')})`;
   },
 
-  Character(node: Node, {inCharClass, lastNode, parent}: State): string {
-    const {value} = node as CharacterNode;
+  Character(node, {inCharClass, lastNode, parent}) {
+    const {value} = node;
     const escDigit = lastNode.type === 'Backreference';
     if (CharCodeEscapeMap.has(value)) {
       return CharCodeEscapeMap.get(value)!;
@@ -140,8 +144,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     return `${escape ? '\\' : ''}${char}`;
   },
 
-  CharacterClass(node: Node, state: State, gen: Gen): string {
-    const {body, kind, negate} = node as CharacterClassNode;
+  CharacterClass({body, kind, negate}, state, gen) {
     function genClass() {
       if (
         state.parent.type === 'CharacterClass' &&
@@ -166,45 +169,40 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     return genClass();
   },
 
-  CharacterClassRange(node: Node, _: State, gen: Gen): string {
-    const {min, max} = node as CharacterClassRangeNode;
+  CharacterClassRange({min, max}, _, gen) {
     return `${gen(min)}-${gen(max)}`;
   },
 
-  CharacterSet(node: Node, state: State): string {
-    const {kind, negate, value} = node as CharacterSetNode;
-    if (kind === 'digit') {
-      return negate ? r`\D` : r`\d`;
+  CharacterSet({kind, negate, value}, {inCharClass}) {
+    switch (kind) {
+      case 'any':
+        return r`\O`;
+      case 'digit':
+        return negate ? r`\D` : r`\d`;
+      case 'dot':
+        return '.';
+      case 'grapheme':
+        return r`\X`;
+      case 'hex':
+        return negate ? r`\H` : r`\h`;
+      case 'newline':
+        return negate ? r`\N` : r`\R`;
+      case 'posix':
+        return inCharClass ?
+          `[:${negate ? '^' : ''}${value}:]` :
+          `${negate ? r`\P` : r`\p`}{${value}}`;
+      case 'property':
+        return `${negate ? r`\P` : r`\p`}{${value}}`;
+      case 'space':
+        return negate ? r`\S` : r`\s`;
+      case 'word':
+        return negate ? r`\W` : r`\w`;
+      default:
+        throw new Error(`Unexpected character set kind "${kind}"`);
     }
-    if (kind === 'hex') {
-      return negate ? r`\H` : r`\h`;
-    }
-    if (kind === 'newline') {
-      return negate ? r`\N` : r`\R`;
-    }
-    if (kind === 'posix') {
-      return state.inCharClass ?
-        `[:${negate ? '^' : ''}${value}:]` :
-        `${negate ? r`\P` : r`\p`}{${value}}`;
-    }
-    if (kind === 'property') {
-      return `${negate ? r`\P` : r`\p`}{${value}}`;
-    }
-    if (kind === 'space') {
-      return negate ? r`\S` : r`\s`;
-    }
-    if (kind === 'word') {
-      return negate ? r`\W` : r`\w`;
-    }
-    return throwIfNullish({
-      any: r`\O`,
-      dot: '.',
-      grapheme: r`\X`,
-    }[kind], `Unexpected character set kind "${kind}"`);
   },
 
-  Directive(node: Node): string {
-    const {kind, flags} = node as DirectiveNode;
+  Directive({kind, flags}) {
     if (kind === 'flags') {
       const {enable = {}, disable = {}} = flags;
       const enableStr = getFlagsStr(enable);
@@ -217,33 +215,30 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     throw new Error(`Unexpected directive kind "${kind}"`);
   },
 
-  Flags(node: Node): string {
-    return getFlagsStr(node as FlagsNode);
+  Flags(node) {
+    return getFlagsStr(node);
   },
 
-  Group(node: Node, _: State, gen: Gen): string {
-    const {atomic, body, flags} = node as GroupNode;
+  Group({atomic, body, flags}, _, gen) {
     const contents = body.map(gen).join('|');
     return `(?${getGroupPrefix(atomic, flags)}${contents})`;
   },
 
-  LookaroundAssertion(node: Node, _: State, gen: Gen): string {
-    const {body, kind, negate} = node as LookaroundAssertionNode;
+  LookaroundAssertion({body, kind, negate}, _, gen) {
     const prefix = `${kind === 'lookahead' ? '' : '<'}${negate ? '!' : '='}`;
     return `(?${prefix}${body.map(gen).join('|')})`;
   },
 
-  NamedCallout(node: Node): string {
-    const {kind, tag, arguments: args} = node as NamedCalloutNode;
+  NamedCallout({kind, tag, arguments: args}) {
     if (kind === 'custom') {
       // TODO: If supporting custom callout names in the future (with an added `name` property for
-      // `NamedCalloutNode`s), will need to use `name` instead of `kind` if `kind` is `'custom'`
+      // `NamedCalloutNode`), will need to use `name` instead of `kind` if `kind` is `'custom'`
       throw new Error(`Unexpected named callout kind "${kind}"`);
     }
     return `(*${kind.toUpperCase()}${tag ? `[${tag}]` : ''}${args ? `{${args.join(',')}}` : ''})`;
   },
 
-  Quantifier(node: Node, {parent}: State, gen: Gen): string {
+  Quantifier(node, {parent}, gen) {
     // Rendering Onig quantifiers is wildly, unnecessarily complex compared to other regex flavors
     // because of the combination of a few features unique to Onig:
     // - You can create quantifier chains (i.e., quantify a quantifier).
@@ -253,7 +248,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     // - A reversed range in a quantifier makes it possessive (ex: `{2,1}`).
     //   - `{,n}` is always greedy with an implicit zero min, and can't represent a possesive range
     //     from n to infinity.
-    const {body, kind, max, min} = node as QuantifierNode;
+    const {body, kind, max, min} = node;
     // These errors shouldn't happen unless the AST is modified in an invalid way after parsing
     if (min === Infinity) {
       throw new Error(`Invalid quantifier: infinite min`);
@@ -278,7 +273,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     // is also safe since it can use the alternative `{1,0}` representation (which is possessive)
     const forcedInterval = kind === 'greedy' && parentIsPossessivePlus;
     let base;
-    if (isSymbolQuantifierCandidate(node as QuantifierNode) && !forcedInterval) {
+    if (isSymbolQuantifierCandidate(node) && !forcedInterval) {
       if (
         !min && max === 1 &&
         // Can't chain a base of `?` to any greedy quantifier since that would make it lazy
@@ -331,8 +326,7 @@ const generator: {[key in NonRootNode['type']]: (node: Node, state: State, gen: 
     return `${gen(body)}${base}${suffix}`;
   },
 
-  Subroutine(node: Node): string {
-    const {ref} = node as SubroutineNode;
+  Subroutine({ref}) {
     if (typeof ref === 'string' && ref.includes('>')) {
       return r`\g'${ref}'`;
     }
