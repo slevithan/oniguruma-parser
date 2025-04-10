@@ -819,6 +819,7 @@ type LookaroundAssertionNode = {
 function createLookaroundAssertion(options?: {
   behind?: boolean;
   negate?: boolean;
+  body?: Array<AlternativeNode>;
 }): LookaroundAssertionNode {
   const opts = {
     behind: false,
@@ -829,7 +830,7 @@ function createLookaroundAssertion(options?: {
     type: 'LookaroundAssertion',
     kind: opts.behind ? 'lookbehind' : 'lookahead',
     negate: opts.negate,
-    body: [createAlternative()],
+    body: getBodyForAlternativeContainer(options?.body),
   };
 }
 
@@ -892,10 +893,12 @@ type RegexNode = {
   body: Array<AlternativeNode>;
   flags: FlagsNode;
 };
-function createRegex(flags: FlagsNode): RegexNode {
+function createRegex(flags: FlagsNode, options?: {
+  body?: Array<AlternativeNode>;
+}): RegexNode {
   return {
     type: 'Regex',
-    body: [createAlternative()],
+    body: getBodyForAlternativeContainer(options?.body),
     flags,
   };
 }
