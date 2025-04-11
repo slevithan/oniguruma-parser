@@ -1,10 +1,10 @@
 import type {Visitor} from '../traverser/traverse.js';
 import {alternationToClass} from './transforms/alternation-to-class.js';
-import {dedupeClasses} from './transforms/dedupe-classes.js';
 import {exposeAnchors} from './transforms/expose-anchors.js';
 import {extractPrefix} from './transforms/extract-prefix.js';
 import {extractPrefix2} from './transforms/extract-prefix-2.js';
 import {extractSuffix} from './transforms/extract-suffix.js';
+import {mergeRanges} from './transforms/merge-ranges.js';
 import {preventReDoS} from './transforms/prevent-redos.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
 import {removeUselessFlags} from './transforms/remove-useless-flags.js';
@@ -19,11 +19,11 @@ import {useUnicodeProps} from './transforms/use-unicode-props.js';
 
 type OptimizationName =
   'alternationToClass' |
-  'dedupeClasses' |
   'exposeAnchors' |
   'extractPrefix' |
   'extractPrefix2' |
   'extractSuffix' |
+  'mergeRanges' |
   'preventReDoS' |
   'removeEmptyGroups' |
   'removeUselessFlags' |
@@ -38,7 +38,6 @@ type OptimizationName =
 
 const optimizations = new Map<OptimizationName, Visitor>([
   ['alternationToClass', alternationToClass],
-  ['dedupeClasses', dedupeClasses],
   ['exposeAnchors', exposeAnchors],
   ['extractPrefix', extractPrefix],
   ['extractPrefix2', extractPrefix2],
@@ -54,6 +53,8 @@ const optimizations = new Map<OptimizationName, Visitor>([
   ['useShorthands', useShorthands],
   ['useUnicodeAliases', useUnicodeAliases],
   ['useUnicodeProps', useUnicodeProps],
+  // Run last to let shorthands, etc. be found from ranges first
+  ['mergeRanges', mergeRanges],
 ]);
 
 export {

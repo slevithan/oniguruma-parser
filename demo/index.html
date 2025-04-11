@@ -124,7 +124,7 @@
       if (ast?.type !== 'Regex') {
         throw new Error('Unexpected AST format');
       }
-      console.log(JSON.stringify(ast, function (key, value) {
+      console.log(JSON.stringify(ast, (key, value) => {
         if (key === 'max' && value === Infinity) {
           return '[Infinity]';
         }

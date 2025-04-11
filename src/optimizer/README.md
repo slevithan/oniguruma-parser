@@ -169,9 +169,12 @@ All of the following optimizations are on by default. Optimizations with names c
     <th rowspan="4" valign="top" align="left">
       Character classes
     </th>
-    <td><code>dedupeClasses</code></td>
-    <td>Remove duplicate characters, sets, and ranges from character classes</td>
-    <td><code>[a\x61]</code> → <code>[a]</code></td>
+    <td><code>mergeRanges</code></td>
+    <td>Merge, dedupe, and sort ranges and characters in character classes</td>
+    <td>
+      <code>[a\x61]</code> → <code>[a]</code>,<br>
+      <code>[abcb-f]</code> → <code>[a-f]</code>
+    </td>
   </tr>
   <tr>
     <td><code>unnestUselessClasses</code></td>
