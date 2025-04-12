@@ -103,7 +103,7 @@ const tokenRe = new RegExp(r`
     )?
     | \*[^\)]*\)?
   )?
-  | ${quantifierRe.source}
+  | (?:${quantifierRe.source})+
   | ${charClassOpenPattern}
   | .
 `.replace(/\s+/g, ''), 'gsu');
@@ -208,12 +208,12 @@ function tokenize(pattern: string, options: TokenizeOptions = {}): {
 }
 
 function getTokenWithDetails(context: Context, pattern: string, m: string, lastIndex: number): {
-  token?: never;
-  tokens: Array<Token | IntermediateToken>;
-  lastIndex?: number;
-} | {
   token: Token | IntermediateToken;
   tokens?: never;
+  lastIndex?: number;
+} | {
+  token?: never;
+  tokens: Array<Token | IntermediateToken>;
   lastIndex?: number;
 } | {
   token?: never;
@@ -420,7 +420,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
 
   if (quantifierRe.test(m)) {
     return {
-      token: tokenizeQuantifier(m),
+      tokens: splitQuantifierMatch(m),
     };
   }
 
@@ -986,7 +986,7 @@ function tokenizeNamedCallout(raw: string): NamedCalloutToken {
       throw new Error(`Unexpected named callout kind "${kind}"`);
   }
   // TODO: If supporting custom callout names in the future (with an added `name` property for
-  // `NamedCalloutToken`s), will need to set `name` to `null` unless `kind` is `'custom'`
+  // `NamedCalloutToken`), will need to set `name` to `null` if `kind` isn't `'custom'`
   return createNamedCalloutToken(kind, tag ?? null, args?.split(',') ?? null, raw);
 }
 
@@ -1147,6 +1147,36 @@ function splitEscapedNumberToken(token: EscapedNumberToken, numCaptures: number)
       value = cpOf(m);
     }
     tokens.push(createCharacterToken(value, (i === 0 ? '\\' : '') + m));
+  }
+  return tokens;
+}
+
+function splitQuantifierMatch(str: string): Array<QuantifierToken> {
+  const tokens: Array<QuantifierToken> = [];
+  // `str` is one or more quantifiers in a chain. It can't be split by a regex because of one edge
+  // case where we have to compare numeric values: although `{1,2}?` is a single, lazy quantifier,
+  // a reversed (possessive) interval quantifier like `{2,1}` can't be both possessive and lazy, so
+  // any following `?`, `??`, or `?+` is a second, chained quantifier (i.e., `{2,1}?` is equivalent
+  // to `{2,1}{0,1}` or `{2,0}`)
+  const withG = new RegExp(quantifierRe, 'gy');
+  let match: RegExpExecArray | null;
+  while ((match = withG.exec(str))) {
+    const m = match[0];
+    if (m[0] === '{') {
+      // Doesn't need to handle fixed `{n}`, infinite max `{n,}`, or implicit zero min `{,n}`
+      // since, according to Onig syntax rules, those can't be possessive
+      const parts = /^\{(?<min>\d+),(?<max>\d+)\}\??$/.exec(m);
+      if (parts) {
+        const {min, max} = parts.groups as {min: string, max: string};
+        if (+min > +max && m.endsWith('?')) {
+          // Leave the trailing `?` for the next match
+          withG.lastIndex--;
+          tokens.push(tokenizeQuantifier(m.slice(0, -1)));
+          continue;
+        }
+      }
+    }
+    tokens.push(tokenizeQuantifier(m));
   }
   return tokens;
 }
