@@ -15,7 +15,7 @@ const exposeAnchors: Visitor = {
     if (
       parent.type === 'Quantifier' ||
       node.body.length > 1 || // Multiple alts
-      node.hasSubroutine
+      node.isSubroutined
     ) {
       return;
     }

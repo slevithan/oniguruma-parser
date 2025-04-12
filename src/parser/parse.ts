@@ -243,14 +243,14 @@ function parse(pattern: string, options: ParseOptions = {}): OnigurumaAst {
         throw new Error(`Subroutine uses a group number that's not defined`);
       }
       if (ref) {
-        capturingGroups[ref - 1].hasSubroutine = true;
+        capturingGroups[ref - 1].isSubroutined = true;
       }
     } else if (!namedGroupsByName.has(ref)) {
       throw new Error(r`Subroutine uses a group name that's not defined "\g<${ref}>"`);
     } else if (namedGroupsByName.get(ref)!.length > 1) {
       throw new Error(r`Subroutine uses a duplicate group name "\g<${ref}>"`);
     } else {
-      namedGroupsByName.get(ref)![0].hasSubroutine = true;
+      namedGroupsByName.get(ref)![0].isSubroutined = true;
     }
   }
 
@@ -617,17 +617,18 @@ type CapturingGroupNode = {
   kind?: never;
   number: number;
   name?: string;
-  hasSubroutine?: boolean;
+  // One or more subroutines in the regex reference this group
+  isSubroutined?: boolean;
   body: Array<AlternativeNode>;
 };
 function createCapturingGroup(number: number, options?: {
   name?: string;
-  hasSubroutine?: boolean;
+  isSubroutined?: boolean;
   body?: Array<AlternativeNode>;
 }): CapturingGroupNode {
   const opts = {
     name: undefined,
-    hasSubroutine: false,
+    isSubroutined: false,
     ...options,
   };
   if (opts.name !== undefined && !isValidGroupName(opts.name)) {
@@ -637,7 +638,7 @@ function createCapturingGroup(number: number, options?: {
     type: 'CapturingGroup',
     number,
     ...(opts.name && {name: opts.name}),
-    ...(opts.hasSubroutine && {hasSubroutine: opts.hasSubroutine}),
+    ...(opts.isSubroutined && {isSubroutined: opts.isSubroutined}),
     body: getBodyForAlternativeContainer(options?.body),
   };
 }
