@@ -137,14 +137,14 @@ Known differences will be resolved in future versions.
 The following rarely-used features throw errors since they aren't yet supported:
 
 - Rarely-used character specifiers: Non-A-Za-z with `\cx` `\C-x`, meta `\M-x` `\M-\C-x`, octal code points `\o{…}`, and octal encoded bytes ≥ `\200`.
-- Code point sequences: `\x{H H …}`, `\o{O O …}`.
+- Code point sequences: `\x{H H …}` `\o{O O …}`.
 - Absence expressions `(?~|…|…)`, stoppers `(?~|…)`, and clearers `(?~|)`.
 - Conditionals: `(?(…)…)`, etc.
 - Non-built-in callouts: `(?{…})`, etc.
 - Numbered *forward* backreferences (incl. relative `\k<+N>`) and backreferences with recursion level (`\k<N+N>`, etc.).
-- Flags `y{g}` `y{w}`, flags `D` `P` `S` `W` within pattern modifiers, whole-pattern modifiers `C` `I` `L`.
+- Flags `y{g}` `y{w}`, flags `D` `P` `S` `W` within pattern modifiers, and whole-pattern modifiers `C` `I` `L`.
 
-Despite these gaps, **more than 99.99% of real-world Oniguruma regexes are supported**, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all). Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub.
+Despite these gaps, more than 99.99% of real-world Oniguruma regexes are supported, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all). Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub.
 
 <details>
   <summary>More details about numbered forward backreferences</summary>
