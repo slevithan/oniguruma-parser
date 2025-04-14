@@ -34,16 +34,22 @@ const extractSuffix: Visitor = {
     if (
       !suffixNodes.length ||
       // Avoid applying in cases when it would lengthen the pattern without any benefit; ex:
-      // `true|false` -> `(?:tru|fals)e`
-      ( suffixNodes.length === 1 &&
-        // Extract a single-node suffix if it's an assertion, since that provides a readability
-        // benefit and is more likely to trigger follow-on optimizations
+      // `true|false` -> `(?:tru|fals)e`, or `if|elseif` -> `(?:|else)if`
+      ( suffixNodes.length < 3 &&
+        // Always extract the suffix if it ends with an assertion, since that provides a
+        // readability benefit and is more likely to trigger follow-on optimizations
         suffixNodes[0].type !== 'Assertion' &&
-        // Four chars are added by the `(?:)` wrapper, so avoid applying if could be net negative
-        node.body.length < 4 &&
-        // Alts reduced to 0 or 1 node after extracting the suffix can possibly be collapsed in
-        // follow-on optimizations, providing a performance and/or minification benefit
-        node.body.every(alt => alt.body.length > 2)
+        // Four chars are added by the `(?:)` wrapper and one instance of the suffix is added back
+        // at the end, so avoid if the result could be longer
+        (suffixNodes.length * (node.body.length - 1)) < 4 &&
+        // Adjacent alts reduced to 0 or 1 node after extracting the suffix can possibly be
+        // collapsed in follow-on optimizations, providing a performance and/or minification
+        // benefit
+        !node.body.some((alt, i, arr) => {
+          const lastAlt = arr[i - 1];
+          const removed = suffixNodes.length;
+          return alt.body.length - removed < 2 && lastAlt && lastAlt.body.length - removed < 2;
+        })
       )
     ) {
       return;
