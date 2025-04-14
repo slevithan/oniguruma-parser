@@ -130,9 +130,9 @@ See more details and examples in the [optimizer module's readme](https://github.
 
 ## Known differences
 
-Known differences will be resolved in future versions.
+Known differences will be resolved in future versions. If you want to help, see the [contributing guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md).
 
-### Unsupported features that throw an error
+### Unsupported features
 
 The following rarely-used features throw errors since they aren't yet supported:
 
