@@ -31,7 +31,7 @@ const mergeRanges: Visitor = {
     node.body = withoutDupeSets;
 
     // ## Now merge characters and ranges
-    const keep: Array<CharacterClassElementNode> = [];
+    const keep: Array<Exclude<CharacterClassElementNode, HandledNode>> = [];
     const candidates: Array<HandledNode> = [];
     for (const el of node.body) {
       if (el.type === 'Character' || el.type === 'CharacterClassRange') {
@@ -72,11 +72,23 @@ const mergeRanges: Visitor = {
         merged.push(el);
       }
     }
-    // Replace any ranges with less than three chars with `Character` nodes
+    // Replace any ranges with fewer than four (sometimes three) chars with character nodes
     const final = merged.flatMap(el => {
       if (el.type === 'CharacterClassRange') {
         const diff = el.max.value - el.min.value;
-        return diff > 1 ? el : (diff ? [el.min, el.max] : el.min);
+        // More aggressively use ranges for U+40000+, since they're rendered in long form like
+        // `\x{40000}` rather than as single-length characters
+        if (el.min.value > 0x3FFFF && diff > 1) {
+          return el;
+        } else if (!diff) {
+          return el.min;
+        } else if (diff === 1) {
+          return [el.min, el.max];
+        } else if (diff === 2) {
+          // Ex: `a-c` -> `abc`
+          return [el.min, createCharacter(el.min.value + 1), el.max];
+        }
+        // `diff > 2`
       }
       return el;
     });

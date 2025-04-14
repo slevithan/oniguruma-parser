@@ -101,10 +101,10 @@ const generator: Generator = {
 
   Character(node, {inCharClass, lastNode, parent}) {
     const {value} = node;
-    const escDigit = lastNode.type === 'Backreference';
     if (CharCodeEscapeMap.has(value)) {
       return CharCodeEscapeMap.get(value)!;
     }
+    const escDigit = lastNode.type === 'Backreference';
     if (
       // Control chars, etc.; condition modeled on the Chrome developer console's display for strings
       value < 32 || (value > 126 && value < 160) ||

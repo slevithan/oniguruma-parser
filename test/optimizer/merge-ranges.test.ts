@@ -9,9 +9,10 @@ describe('Optimizer: mergeRanges', () => {
     const cases = [
       ['[a]'],
       ['[ab]'],
-      ['[abc]', '[a-c]'],
-      ['[abczd]', '[a-dz]'],
+      ['[abc]'],
+      ['[abcd]', '[a-d]'],
       ['[dcab]', '[a-d]'],
+      ['[abczd]', '[a-dz]'],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected ?? input);
@@ -24,7 +25,7 @@ describe('Optimizer: mergeRanges', () => {
       ['[a-cb-f]', '[a-f]'],
       ['[a-cc-f]', '[a-f]'],
       ['[a-cd-f]', '[a-f]'],
-      ['[a-ce-g]'],
+      ['[a-df-i]'],
       ['[abcde-gb-ec-x]', '[a-x]'],
     ];
     for (const [input, expected] of cases) {
@@ -32,11 +33,13 @@ describe('Optimizer: mergeRanges', () => {
     }
   });
 
-  it('should collapse ranges of one or two characters', () => {
+  it('should collapse ranges of three or fewer characters', () => {
     const cases = [
       ['[a-a]', '[a]'],
       ['[a-b]', '[ab]'],
-      ['[a-c]', '[a-c]'],
+      ['[a-c]', '[abc]'],
+      ['[a-d]', '[a-d]'],
+      // More aggressively use ranges for U+40000+
       [r`[\x{100000}\x{100001}\x{100002}]`, r`[\x{100000}-\x{100002}]`],
     ];
     for (const [input, expected] of cases) {
@@ -47,7 +50,7 @@ describe('Optimizer: mergeRanges', () => {
   it('should sort characters and ranges in classes', () => {
     const cases = [
       [r`[xa!\x00]`, r`[\x00!ax]`],
-      ['[h-ja-f]', '[a-fh-j]'],
+      ['[h-ka-f]', '[a-fh-k]'],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
