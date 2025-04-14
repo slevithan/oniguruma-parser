@@ -1,22 +1,16 @@
-import type {TokenNamedCalloutKind} from './tokenizer/tokenize.js';
-
-const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>>([
-  'COUNT',
-  'CMP',
-  'ERROR',
-  'FAIL',
-  'MAX',
-  'MISMATCH',
-  'SKIP',
-  'TOTAL_COUNT',
-]);
-
 function cpOf(char: string): number {
   // Count code point length
   if ([...char].length !== 1) {
     throw new Error(`Expected "${char}" to be a single code point`);
   }
   return char.codePointAt(0)!;
+}
+
+function getOrInsert<Key, Value>(map: Map<Key, Value>, key: Key, defaultValue: Value): Value {
+  if (!map.has(key)) {
+    map.set(key, defaultValue);
+  }
+  return map.get(key)!;
 }
 
 const PosixClassNames = new Set([
@@ -36,13 +30,6 @@ const PosixClassNames = new Set([
   'xdigit',
 ]);
 
-function getOrInsert<Key, Value>(map: Map<Key, Value>, key: Key, defaultValue: Value): Value {
-  if (!map.has(key)) {
-    map.set(key, defaultValue);
-  }
-  return map.get(key)!;
-}
-
 const r = String.raw;
 
 function throwIfNullish<Value>(value: Value, msg?: string): NonNullable<Value> {
@@ -53,7 +40,6 @@ function throwIfNullish<Value>(value: Value, msg?: string): NonNullable<Value> {
 }
 
 export {
-  CalloutNames,
   cpOf,
   getOrInsert,
   PosixClassNames,

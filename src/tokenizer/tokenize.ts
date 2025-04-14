@@ -1,4 +1,4 @@
-import {CalloutNames, cpOf, PosixClassNames, r, throwIfNullish} from '../utils.js';
+import {cpOf, PosixClassNames, r, throwIfNullish} from '../utils.js';
 
 type Token =
   AlternatorToken |
@@ -846,6 +846,17 @@ type FlagGroupSwitches = {
   dotAll?: true;
   extended?: true;
 };
+
+const CalloutNames = new Set<Uppercase<Exclude<TokenNamedCalloutKind, 'custom'>>>([
+  'COUNT',
+  'CMP',
+  'ERROR',
+  'FAIL',
+  'MAX',
+  'MISMATCH',
+  'SKIP',
+  'TOTAL_COUNT',
+]);
 
 const EscapeCharCodes = new Map([
   ['a',  7], // alert/bell (Not available in JS)
