@@ -37,21 +37,39 @@ describe('Optimizer: alternationToClass', () => {
     }
   });
 
-  it('should not apply to non-combinable values', () => {
+  it('should not apply if less than two alternatives', () => {
     const cases = [
-      'a|',
-      'a|bc',
-      r`a|\R`,
-      r`a|\X`,
-      'a|(b)',
-      'a|^',
+      '',
+      'a',
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
     }
   });
 
-  it('should not apply to non-classable character sets', () => {
+  it('should not apply to mixed-length values', () => {
+    const cases = [
+      'a|',
+      'a|^',
+      'a|bc',
+      r`a|\R`,
+      r`a|\X`,
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
+
+  it('should not apply to non-combinable values', () => {
+    const cases = [
+      'a|(b)',
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
+
+  it('should not apply to character set kinds that cannot be used in a class', () => {
     const cases = [
       'a|.',
       r`a|\O`,

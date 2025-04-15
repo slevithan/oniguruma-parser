@@ -8,7 +8,7 @@ Use character classes for adjacent alternatives with single-length values.
 */
 const alternationToClass: Visitor = {
   '*'({node}) {
-    if (!isAlternativeContainer(node)) {
+    if (!isAlternativeContainer(node) || node.body.length < 2) {
       return;
     }
     const newAlts = [];
