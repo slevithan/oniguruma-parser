@@ -115,7 +115,7 @@ All of the following optimizations are on by default. Optimizations with names c
   <tr>
     <td><code>optionalize</code> 🚀</td>
     <td>Combine adjacent alternatives with only an added last node as the difference</td>
-    <td><code>aa|a</code> → <code>aa?</code></td>
+    <td><code>==|=</code> → <code>==?</code></td>
   </tr>
 
   <tr>

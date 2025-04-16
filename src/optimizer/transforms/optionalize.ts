@@ -22,7 +22,7 @@ const optionalize: Visitor = {
       const lengthDiff = Math.abs(altKids.length - prevAltKids.length);
       if (!lengthDiff) {
         if (isNodeArrayEqual(altKids, prevAltKids)) {
-          // If identical to the prev alt, remove this alt by not adding it to `newAlts`
+          // Don't keep this alt
           continue;
         }
       } else if (lengthDiff === 1) {
@@ -37,16 +37,18 @@ const optionalize: Visitor = {
             if (prevAltLastKid && isDirectlyQuantifiable(prevAltLastKid)) {
               prevAltKids.pop();
               prevAltKids.push(createQuantifier('greedy', 0, 1, prevAltLastKid));
-              // Remove this alt by not adding it to `newAlts`
+              // Don't keep this alt
               continue;
             }
-          } else {
+          // Don't apply if the last alt was empty and there are more than two alts, since that
+          // would lengthen e.g. `(?:|a|b)` to `(?:a??|b)`, without enabling group unwrapping
+          } else if (prevAltKids.length > 0 || body.length === 2) {
             // Since this alt has an extra node compared to prev, add the last node of this alt to
             // the prev, but within a lazy `??`
             const altLastKid = altKids.at(-1);
             if (altLastKid && isDirectlyQuantifiable(altLastKid)) {
               prevAltKids.push(createQuantifier('lazy', 0, 1, altLastKid));
-              // Remove this alt by not adding it to `newAlts`
+              // Don't keep this alt
               continue;
             }
           }

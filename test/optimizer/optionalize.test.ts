@@ -9,7 +9,6 @@ describe('Optimizer: optionalize', () => {
       ['a|', 'a?'],
       ['a||x', 'a?|x'],
       ['|a', 'a??'],
-      ['|a|x', 'a??|x'],
       ['aa|a', 'aa?'],
       ['aa|a|x', 'aa?|x'],
       ['a|aa', 'aa??'],
@@ -17,6 +16,17 @@ describe('Optimizer: optionalize', () => {
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
+  it('should not apply if the left alt for the comparison is empty and there are more than two alternatives', () => {
+    expect(thisOptimization('|a|x')).toBe('|a|x');
+    const cases = [
+      '|a|x',
+      'aa||a|x',
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
     }
   });
 
