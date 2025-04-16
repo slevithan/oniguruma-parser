@@ -90,7 +90,7 @@ All of the following optimizations are on by default. Optimizations with names c
   </tr>
 
   <tr>
-    <th rowspan="4" valign="top" align="left">
+    <th rowspan="5" valign="top" align="left">
       Alternation
     </th>
     <td><code>alternationToClass</code> 🚀</td>
@@ -111,6 +111,11 @@ All of the following optimizations are on by default. Optimizations with names c
     <td><code>extractSuffix</code></td>
     <td>Extract nodes at the end of every alternative into a suffix</td>
     <td><code>aa$|bba$|ca$</code> → <code>(?:a|bb|c)a$</code></td>
+  </tr>
+  <tr>
+    <td><code>optionalize</code> 🚀</td>
+    <td>Combine adjacent alternatives with only an added last node as the difference</td>
+    <td><code>aa|a</code> → <code>aa?</code></td>
   </tr>
 
   <tr>

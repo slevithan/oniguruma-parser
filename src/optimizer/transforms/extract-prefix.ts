@@ -20,7 +20,7 @@ const extractPrefix: Visitor = {
       prefixNodes.push(node.body[0].body[i]);
       for (const alt of node.body) {
         const kid = alt.body[i];
-        if (!kid || !isAllowedSimpleType(kid.type) || !isNodeEqual(kid, prefixNodes[i])) {
+        if (!kid || !isAllowedSimpleNode(kid) || !isNodeEqual(kid, prefixNodes[i])) {
           passedSharedPrefix = true;
           break;
         }
@@ -44,18 +44,19 @@ const extractPrefix: Visitor = {
   },
 };
 
-function isAllowedSimpleType(type: Node['type']) {
+function isAllowedSimpleNode(node: Node) {
   return (
-    type === 'Assertion' ||
-    type === 'Character' ||
-    type === 'CharacterSet'
+    node.type === 'Assertion' ||
+    node.type === 'Character' ||
+    node.type === 'CharacterSet'
   );
 }
 
-// TODO: Add support for more node types and move to `src/parser/`
+// TODO: Add support for more node types and move to `src/parser/node-utils.ts`
 function isNodeEqual(a: Node, b: Node): boolean {
   if (a.type !== b.type) {
-    // TS doesn't understand that `a` and `b` always have the same type, so we'll need to cast
+    // TS doesn't understand that this makes `a` and `b` always have the same type, so we'll still
+    // need to cast, later
     return false;
   }
   if (a.type === 'Assertion' || a.type === 'CharacterSet') {
@@ -67,12 +68,12 @@ function isNodeEqual(a: Node, b: Node): boolean {
   if (a.type === 'Character') {
     return a.value === (b as CharacterNode).value;
   }
-  // Only supports types from `isAllowedSimpleType`
+  // Only supports types from `isAllowedSimpleNode`
   throw new Error(`Unexpected node type "${a.type}"`);
 }
 
 export {
   extractPrefix,
-  isAllowedSimpleType,
+  isAllowedSimpleNode,
   isNodeEqual,
 };

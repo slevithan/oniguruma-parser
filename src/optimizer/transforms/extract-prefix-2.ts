@@ -2,7 +2,7 @@ import type {AlternativeElementNode, AlternativeNode} from '../../parser/parse.j
 import type {Visitor} from '../../traverser/traverse.js';
 import {isAlternativeContainer} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
-import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
+import {isAllowedSimpleNode, isNodeEqual} from './extract-prefix.js';
 
 /**
 Extract alternating prefixes if patterns are repeated for each prefix.
@@ -29,7 +29,7 @@ const extractPrefix2: Visitor = {
           const nextNode = prefixAltElsByI[prefixI][nodeI];
           if (
             !nextNode ||
-            !isAllowedSimpleType(nextNode.type) ||
+            !isAllowedSimpleNode(nextNode) ||
             !isPrefixNodeShared(nextNode, node.body, prefixI, nodeI, numDiffPrefixes)
           ) {
             prefixIsFinishedByI[prefixI] = true;
@@ -59,7 +59,7 @@ const extractPrefix2: Visitor = {
           return;
         }
         if (!els.every((el, k) => (
-          isAllowedSimpleType(el.type) &&
+          isAllowedSimpleNode(el) &&
           isNodeEqual(el, altComparisonSet[0].body[k])
         ))) {
           return;

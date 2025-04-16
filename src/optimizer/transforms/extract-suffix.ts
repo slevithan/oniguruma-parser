@@ -1,7 +1,7 @@
 import type {Visitor} from '../../traverser/traverse.js';
 import {isAlternativeContainer} from '../../parser/node-utils.js';
 import {createAlternative, createGroup} from '../../parser/parse.js';
-import {isAllowedSimpleType, isNodeEqual} from './extract-prefix.js';
+import {isAllowedSimpleNode, isNodeEqual} from './extract-prefix.js';
 
 /**
 Extract nodes at the end of every alternative into a suffix.
@@ -23,7 +23,7 @@ const extractSuffix: Visitor = {
       for (const alt of node.body) {
         const inverseIOfAlt = alt.body.length - 1 - i;
         const kid = alt.body[inverseIOfAlt];
-        if (!kid || !isAllowedSimpleType(kid.type) || !isNodeEqual(kid, suffixNodes[i])) {
+        if (!kid || !isAllowedSimpleNode(kid) || !isNodeEqual(kid, suffixNodes[i])) {
           passedSharedSuffix = true;
           break;
         }

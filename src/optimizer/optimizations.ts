@@ -5,6 +5,7 @@ import {extractPrefix} from './transforms/extract-prefix.js';
 import {extractPrefix2} from './transforms/extract-prefix-2.js';
 import {extractSuffix} from './transforms/extract-suffix.js';
 import {mergeRanges} from './transforms/merge-ranges.js';
+import {optionalize} from './transforms/optionalize.js';
 import {preventReDoS} from './transforms/prevent-redos.js';
 import {removeEmptyGroups} from './transforms/remove-empty-groups.js';
 import {removeUselessFlags} from './transforms/remove-useless-flags.js';
@@ -24,6 +25,7 @@ type OptimizationName =
   'extractPrefix2' |
   'extractSuffix' |
   'mergeRanges' |
+  'optionalize' |
   'preventReDoS' |
   'removeEmptyGroups' |
   'removeUselessFlags' |
@@ -42,6 +44,7 @@ const optimizations = new Map<OptimizationName, Visitor>([
   ['extractPrefix', extractPrefix],
   ['extractPrefix2', extractPrefix2],
   ['extractSuffix', extractSuffix],
+  ['optionalize', optionalize],
   ['preventReDoS', preventReDoS],
   ['removeEmptyGroups', removeEmptyGroups],
   ['removeUselessFlags', removeUselessFlags],
