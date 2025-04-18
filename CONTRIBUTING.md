@@ -2,9 +2,9 @@
 
 Thanks for lending a hand 👋
 
-If you have questions before starting development, feel free to open an issue.
+To understand how the code is structured, start with `./src/index.ts`, which exports `toOnigurumaAst`. If you have questions before starting development, feel free to open an issue.
 
-To get a feel for how the code is structured, you might want to start with `./src/index.ts`, which includes `toOnigurumaAst`. You also might want to look over the existing readmes:
+## Readmes
 
 - [Main](https://github.com/slevithan/oniguruma-parser/blob/main/README.md).
 - [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md).
@@ -15,13 +15,13 @@ To get a feel for how the code is structured, you might want to start with `./sr
 
 ## Setup
 
-- `oniguruma-parser` uses [pnpm](https://pnpm.io/) to manage dependencies. Install it with `npm install --global pnpm`.
+- [pnpm](https://pnpm.io/) is used to manage dependencies. Install it with `npm install --global pnpm`.
 - Install dependencies with `pnpm install`.
 - Build the package with `pnpm build`.
 
 ## Testing
 
-- `oniguruma-parser` uses [Vitest](https://vitest.dev/) to test the codebase. Run `pnpm test` to start the test runner.
+- [Vitest](https://vitest.dev/) is used to test the codebase. Run `pnpm test` to start the test runner.
 - Tests live in `./test`.
 - Please include tests alongside changes and new features.
 
