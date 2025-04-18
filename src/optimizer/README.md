@@ -300,14 +300,14 @@ The following additional optimizations are always enabled. They're not expected 
 Although the optimizer's primary purpose is minification, some optimizations can improve search-time performance by:
 
 - Reducing backtracking.
-  - Ex: Reducing use of alternation, or adjusting quantifiers.
+  - Ex: Reducing use of alternation or adjusting quantifiers in ways that don't change what the regex matches.
   - Although Oniguruma includes numerous sophisticated internal optimizations and, in theory, this library's optimizations could be included directly in the engine, in practice, this library is able to find additional opportunities through a combination of cleverness and not having the same extremely tight constraints on compilation time.
 - Triggering internal optimizations built into regex engines.
   - Ex: More clearly exposing that a particular token must match for any match to occur.
 
-These effects can be significant. Additionally, though less significant, minification can reduce compilation time for some extremely long regexes.
+These effects can be significant. Additionally, though less significant, minification can reduce compilation time for extremely long regexes.
 
-Sometimes, performance improvements result from a combination of transformations. For example, consider the following optimization chain:
+Performance improvements can sometimes result from a combination of transformations. For example, consider the following optimization chain:
 
 1. `^1$|^2$` — Initial
 2. `^(?:1|2)$` — `extractPrefix`, `extractSuffix`
