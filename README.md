@@ -16,7 +16,7 @@ This library has been battle-tested by [`oniguruma-to-es`](https://github.com/sl
 - [Install and use](#️-install-and-use)
 - [Convert a pattern to an AST](#-convert-a-pattern-to-an-ast)
 - [Traverse and transform an AST](#-traverse-and-transform-an-ast)
-- [Convert an AST to a pattern](#-convert-a-pattern-to-an-ast)
+- [Convert an AST to a pattern](#️-convert-an-ast-to-a-pattern)
 - [Optimize regexes](#-optimize-regexes)
 - [Known differences](#-known-differences)
 - [Oniguruma version](#-oniguruma-version)
