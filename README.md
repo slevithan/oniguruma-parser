@@ -11,17 +11,17 @@ A TypeScript library for parsing, validating, traversing, transforming, and opti
 
 This library has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which are used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
 
-## Contents
+## 📜 Contents
 
-- [Install and use](#install-and-use)
-- [Convert a pattern to an AST](#convert-a-pattern-to-an-ast)
-- [Traverse and transform an AST](#traverse-and-transform-an-ast)
-- [Convert an AST to a pattern](#convert-an-ast-to-a-pattern)
-- [Optimize regexes](#optimize-regexes)
-- [Known differences](#known-differences)
-- [Oniguruma version](#oniguruma-version)
+- [Install and use](#️-install-and-use)
+- [Convert a pattern to an AST](#-convert-a-pattern-to-an-ast)
+- [Traverse and transform an AST](#-traverse-and-transform-an-ast)
+- [Convert an AST to a pattern](#-convert-a-pattern-to-an-ast)
+- [Optimize regexes](#-optimize-regexes)
+- [Known differences](#-known-differences)
+- [Oniguruma version](#-oniguruma-version)
 
-## Install and use
+## 🕹️ Install and use
 
 ```sh
 npm install oniguruma-parser
@@ -38,7 +38,7 @@ The following modules are available in addition to the root `'oniguruma-parser'`
 - [Generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
 - [Optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md): Minify and improve the performance of Oniguruma regexes.
 
-## Convert a pattern to an AST
+## 🌿 Convert a pattern to an AST
 
 To parse an Oniguruma regex pattern (with optional flags and compile-time options) and return an AST, call `toOnigurumaAst`, which uses the following type definition:
 
@@ -97,15 +97,15 @@ An error is thrown if the provided pattern or flags aren't valid in Oniguruma.
 
 > **Note:** `toOnigurumaAst` is a wrapper around the [parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md)'s `parse` function that makes it easier to use by automatically providing the appropriate `unicodePropertyMap`.
 
-## Traverse and transform an AST
+## 🌀 Traverse and transform an AST
 
 See details and examples in the [traverser module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md).
 
-## Convert an AST to a pattern
+## ↩️ Convert an AST to a pattern
 
 See details and examples in the [generator module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md).
 
-## Optimize regexes
+## 💯 Optimize regexes
 
 This library includes one of the few implementations (for any regex flavor) of a "regex optimizer" that can minify and improve the performance and readability of regexes prior to use.
 
@@ -128,9 +128,9 @@ See more details and examples in the [optimizer module's readme](https://github.
 > [!TIP]
 > 👉 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
 
-## Known differences
+## 🆚 Known differences
 
-Known differences will be resolved in future versions. If you want to help, see the [contributing guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md).
+Known differences will be resolved in future versions.
 
 ### Unsupported features
 
@@ -228,7 +228,7 @@ Behavior details in Oniguruma:
   - If the range is within a negated, non-nested character class (ex: `[^\0-\xFF]`), `\xF5` to `\xFF` are treated as `\x{10FFFF}`. *This is a bug.*
 </details>
 
-## Oniguruma version
+## 🔢 Oniguruma version
 
 All versions of `oniguruma-parser` to date have followed the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0.
 
@@ -238,7 +238,11 @@ At least since Oniguruma 6.0.0 (released 2016-05-09), regex syntax changes in [n
 >
 > It's possible that future versions of `oniguruma-parser` will add an option that allows specifying an Oniguruma version to emulate when parsing. However, the differences so far between regex syntax in Oniguruma 6.9.8 and later versions have been so minor that this is a non-issue.
 
-## About
+## 🤝 Contributing
+
+Contributions are welcome. See the [guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md) to help you get started.
+
+## 🏷️ About
 
 Created by [Steven Levithan](https://github.com/slevithan) and [contributors](https://github.com/slevithan/oniguruma-parser/graphs/contributors).
 
