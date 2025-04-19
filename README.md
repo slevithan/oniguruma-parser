@@ -126,7 +126,7 @@ Optimized regexes always match exactly the same strings.
 See more details and examples in the [optimizer module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md).
 
 > [!TIP]
-> 👉 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
+> 🧪 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
 
 ## 🆚 Known differences
 

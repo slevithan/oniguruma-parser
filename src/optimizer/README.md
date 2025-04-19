@@ -18,7 +18,7 @@ Becomes:
 ```
 
 > [!TIP]
-> 👉 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
+> 🧪 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
 
 The optimizer has been battle-tested by [tm-grammars](https://github.com/shikijs/textmate-grammars-themes), which is used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
 
