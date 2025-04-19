@@ -3,7 +3,7 @@
 Used by the [parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md) to convert Oniguruma pattern and flag strings into a list of tokens, as the first step in builing an AST.
 
 > [!NOTE]
-> This module is not exported by `oniguruma-parser`, since tokenization is considered an implementation detail of the parser.
+> This module is not exported by oniguruma-parser, since tokenization is considered an implementation detail of the parser.
 
 ## About
 

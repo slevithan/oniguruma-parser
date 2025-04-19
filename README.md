@@ -1,4 +1,4 @@
-# `oniguruma-parser`
+# oniguruma-parser
 
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
@@ -9,7 +9,7 @@ A TypeScript library for parsing, validating, traversing, transforming, and opti
 > [!NOTE]
 > Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, etc.), and many other tools.
 
-This library has been battle-tested by [`oniguruma-to-es`](https://github.com/slevithan/oniguruma-to-es) and [`tm-grammars`](https://github.com/shikijs/textmate-grammars-themes), which are used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
+This library has been battle-tested by [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es) and [tm-grammars](https://github.com/shikijs/textmate-grammars-themes), which are used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
 
 ## 📜 Contents
 
@@ -174,7 +174,7 @@ The following don't yet throw errors, but should:
 
 Although any number of digits are supported for enclosed `\k<…>`/`\k'…'` backreferences (assuming the backreference refers to a valid capturing group), unenclosed backreferences currently support only up to three digits (`\999`). In other words, `\1000` is handled as `\100` followed by `0` even if 1,000+ captures appear to the left.
 
-> **Note:** An apparent bug in `vscode-oniguruma` (v2.0.1 tested) prevents any regex with more than 999 captures from working. They fail to match anything, with no error.
+> **Note:** An apparent bug in vscode-oniguruma (v2.0.1 tested) prevents any regex with more than 999 captures from working. They fail to match anything, with no error.
 
 #### Erroring on patterns that trigger Oniguruma bugs
 
@@ -232,13 +232,13 @@ Behavior details in Oniguruma:
 
 ## 🔢 Oniguruma version
 
-All versions of `oniguruma-parser` to date have followed the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0.
+All versions of this library to date have followed the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0.
 
 At least since Oniguruma 6.0.0 (released 2016-05-09), regex syntax changes in [new versions](https://github.com/kkos/oniguruma/blob/master/HISTORY) of the library have been backward compatible. Some versions added new syntax that was previously an error (such as new Unicode property names), and in a few cases, edge case parsing bugs were fixed.
 
-> Oniguruma 6.9.8 (released 2022-04-29) is an important baseline for JavaScript projects, since that's the version used by [`vscode-oniguruma`](https://github.com/microsoft/vscode-oniguruma) 1.7.0 to the latest 2.0.1. It's therefore used in recent versions of various projects, including VS Code and Shiki.
+> Oniguruma 6.9.8 (released 2022-04-29) is an important baseline for JavaScript projects, since that's the version used by [vscode-oniguruma](https://github.com/microsoft/vscode-oniguruma) 1.7.0 to the latest 2.0.1. It's therefore used in recent versions of various projects, including VS Code and Shiki.
 >
-> It's possible that future versions of `oniguruma-parser` will add an option that allows specifying an Oniguruma version to emulate when parsing. However, the differences so far between regex syntax in Oniguruma 6.9.8 and later versions have been so minor that this is a non-issue.
+> It's possible that future versions of this library will add an option that allows specifying an Oniguruma version to emulate when parsing. However, the differences so far between regex syntax in Oniguruma 6.9.8 and later versions have been so minor that this is a non-issue.
 
 ## 🤝 Contributing
 
