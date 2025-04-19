@@ -1,4 +1,4 @@
-# Tokenizer module
+# Tokenizer module ⛓️
 
 Used by the [parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md) to convert Oniguruma pattern and flag strings into a list of tokens, as the first step in builing an AST.
 

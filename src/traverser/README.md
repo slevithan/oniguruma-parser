@@ -1,4 +1,4 @@
-# Traverser module: `oniguruma-parser/traverser`
+# Traverser module 🌀<br>`oniguruma-parser/traverser`
 
 Provides a traversal and transformation API (using the vistor pattern) for `OnigurumaAst` objects created by this library.
 

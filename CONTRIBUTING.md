@@ -1,4 +1,4 @@
-# Contributing guide
+# Contributing guide 🧩
 
 Thanks for lending a hand 👋
 

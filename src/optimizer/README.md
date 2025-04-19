@@ -1,4 +1,4 @@
-# Optimizer module: `oniguruma-parser/optimizer`
+# Optimizer module 🪄<br>`oniguruma-parser/optimizer`
 
 The optimizer transforms [Oniguruma](https://github.com/kkos/oniguruma) patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match exactly the same strings, with the same subpattern matches.
 

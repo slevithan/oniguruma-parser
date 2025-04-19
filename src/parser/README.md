@@ -1,4 +1,4 @@
-# Parser module: `oniguruma-parser/parser`
+# Parser module 🌿<br>`oniguruma-parser/parser`
 
 Includes the `parse` function which accepts an Oniguruma pattern, flags, and compile-time options (along with options specific to this library), and returns an AST. Compared to the `toOnigurumaAst` wrapper from the [root module](https://github.com/slevithan/oniguruma-parser), `parse` includes additional options for specialized use, but `toOnigurumaAst` is often easier to use since it automatically provides the appropriate Unicode property data.
 

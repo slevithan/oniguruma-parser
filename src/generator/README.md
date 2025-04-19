@@ -1,4 +1,4 @@
-# Generator module: `oniguruma-parser/generator`
+# Generator module ↩️<br>`oniguruma-parser/generator`
 
 Generates Oniguruma pattern and flags strings from an `OnigurumaAst`.
 

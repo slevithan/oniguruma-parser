@@ -1,4 +1,4 @@
-# oniguruma-parser
+# oniguruma-parser 🌿
 
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
@@ -105,7 +105,7 @@ See details and examples in the [traverser module's readme](https://github.com/s
 
 See details and examples in the [generator module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md).
 
-## 💯 Optimize regexes
+## 🪄 Optimize regexes
 
 This library includes one of the few implementations (for any regex flavor) of a "regex optimizer" that can minify and improve the performance and readability of regexes prior to use.
 
@@ -240,7 +240,7 @@ At least since Oniguruma 6.0.0 (released 2016-05-09), regex syntax changes in [n
 >
 > It's possible that future versions of this library will add an option that allows specifying an Oniguruma version to emulate when parsing. However, the differences so far between regex syntax in Oniguruma 6.9.8 and later versions have been so minor that this is a non-issue.
 
-## 🤝 Contributing
+## 🧩 Contributing
 
 Contributions are welcome. See the [guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md) to help you get started.
 
