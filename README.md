@@ -156,7 +156,8 @@ This library currently treats it as an error if a numbered backreference comes b
 - For unenclosed backreferences, this only affects `\1`–`\9` since it's not a backreference in the first place if using `\10` or higher and not as many capturing groups are defined to the left (it's an octal or identity escape).
 </details>
 
-### Unsupported validation errors
+<details>
+  <summary>Unsupported validation errors</summary>
 
 The following don't yet throw errors, but should:
 
@@ -165,6 +166,7 @@ The following don't yet throw errors, but should:
   - Note that an error is already correctly thrown for any backreference name that includes `-` or `+` (which is separate from how these symbols are used in relative *numbered* backreferences).
 - Subroutines used in ways that resemble infinite recursion ([#5](https://github.com/slevithan/oniguruma-parser/issues/5)).
   - Such subroutines error at compile time in Oniguruma.
+</details>
 
 ### Behavior differences
 
