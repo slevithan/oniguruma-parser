@@ -7,9 +7,9 @@
 A TypeScript library for parsing, validating, traversing, transforming, and optimizing [Oniguruma](https://github.com/kkos/oniguruma) regular expressions.
 
 > [!NOTE]
-> Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, etc.), and many other tools.
+> Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, [Shiki](https://shiki.style/), etc.), and many other tools.
 
-This library has been battle-tested by [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es) and [tm-grammars](https://github.com/shikijs/textmate-grammars-themes), which are used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
+This library has been battle-tested by [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es) and [tm-grammars](https://github.com/shikijs/textmate-grammars-themes), which are used by Shiki to process tens of thousands of real-world Oniguruma regexes.
 
 ## 📜 Contents
 

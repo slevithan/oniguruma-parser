@@ -3,7 +3,7 @@
 The optimizer transforms [Oniguruma](https://github.com/kkos/oniguruma) patterns into optimized versions of themselves. This optimization includes both minification and performance improvements. Optimized regexes always match exactly the same strings, with the same subpattern matches.
 
 > [!NOTE]
-> Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, GitHub, etc.), and many other tools.
+> Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, [Shiki](https://shiki.style/), etc.), and many other tools.
 
 Example:
 
@@ -20,7 +20,7 @@ Becomes:
 > [!TIP]
 > 🧪 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
 
-The optimizer has been battle-tested by [tm-grammars](https://github.com/shikijs/textmate-grammars-themes), which is used by [Shiki](https://shiki.style/) to process tens of thousands of real-world Oniguruma regexes.
+The optimizer has been battle-tested by [tm-grammars](https://github.com/shikijs/textmate-grammars-themes), which is used by Shiki to process tens of thousands of real-world Oniguruma regexes.
 
 ## Contents
 
