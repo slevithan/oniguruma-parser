@@ -77,7 +77,7 @@ function optimize(
 
 ## Optimizations
 
-All of the following optimizations are on by default. Optimizations with names can optionally be disabled. Optimizations that don't yet have a name listed below are always enabled, but will become optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
+All of the following optimizations are on by default. Optimizations with names can optionally be disabled. Optimizations that don't yet have a name listed are currently always enabled, but will become optional in future versions (see [issue](https://github.com/slevithan/oniguruma-parser/issues/1)).
 
 🚀 = Can improve performance.
 
@@ -201,12 +201,17 @@ All of the following optimizations are on by default. Optimizations with names c
   </tr>
 
   <tr>
-    <th rowspan="4" valign="top" align="left">
+    <th rowspan="5" valign="top" align="left">
       Character sets
     </th>
     <td><code>useShorthands</code></td>
     <td>Use shorthands (<code>\d</code>, <code>\h</code>, <code>\s</code>, etc.) when possible</td>
     <td><code>[[:space:]\p{Nd}]</code> → <code>[\s\d]</code></td>
+  </tr>
+  <tr>
+    <td><em>Always on</em><sup>[1]</sup></td>
+    <td>Normalize Unicode property names</td>
+    <td><code>\p{-IDS- TART}</code> → <code>\p{ID_Start}</code></td>
   </tr>
   <tr>
     <td><code>useUnicodeAliases</code></td>
@@ -239,9 +244,14 @@ All of the following optimizations are on by default. Optimizations with names c
   </tr>
 
   <tr>
-    <th rowspan="1" valign="top" align="left">
+    <th rowspan="2" valign="top" align="left">
       Flags
     </th>
+    <td><em>Always on</em><sup>[1]</sup></td>
+    <td>Remove duplicate flags</td>
+    <td><code>(?ii-m-m)</code> → <code>(?i-m)</code></td>
+  </tr>
+  <tr>
     <td><code>removeUselessFlags</code></td>
     <td>Remove flags (from top-level and modifiers) that have no effect</td>
     <td><code>(?x)a</code> → <code>a</code></td>
@@ -288,12 +298,9 @@ All of the following optimizations are on by default. Optimizations with names c
 
 Optimizations are applied in a loop until no further optimization progress is made. Individual optimization transforms are typically narrow and work best when combined with others.
 
-The following additional optimizations are always enabled. They're not expected to become optional in the future, since they result from the nature of the parser.
+### Footnotes
 
-| Description | Example |
-|-|-|
-| Remove duplicate flags | `(?ii-m-m)` → `(?i-m)` |
-| Normalize Unicode property names | `\p{-IDS- TART}` → `\p{ID_Start}` |
+1. This optimization is not expected to become optional in the future since it results from the nature of the parser.
 
 ## How performance optimizations work
 
