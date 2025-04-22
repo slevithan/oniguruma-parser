@@ -300,7 +300,7 @@ Optimizations are applied in a loop until no further optimization progress is ma
 
 ### Footnotes
 
-1. This optimization is not expected to become optional in the future since it results from the nature of the parser.
+1. This optimization isn't expected to become optional in future versions since it results from the nature of the parser, which builds an AST.
 
 ## How performance optimizations work
 

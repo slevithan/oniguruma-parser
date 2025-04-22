@@ -33,14 +33,14 @@ import {toOnigurumaAst} from 'oniguruma-parser';
 
 The following modules are available in addition to the root `'oniguruma-parser'` export:
 
-- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the `parse` function that's wrapped by `toOnigurumaAst`.
+- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the `parse` function, wrapped by `toOnigurumaAst`.
 - [Traverser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md): Traverse and transform an `OnigurumaAst`.
 - [Generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
 - [Optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md): Minify and improve the performance of Oniguruma regexes.
 
 ## 🌿 Convert a pattern to an AST
 
-To parse an Oniguruma regex pattern (with optional flags and compile-time options) and return an AST, call `toOnigurumaAst`, which uses the following type definition:
+To parse an Oniguruma pattern (with optional flags and compile-time options) and return an AST, call `toOnigurumaAst`, which uses the following type definition:
 
 ```ts
 function toOnigurumaAst(
@@ -60,13 +60,16 @@ For example:
 ```js
 import {toOnigurumaAst} from 'oniguruma-parser';
 
-const ast = toOnigurumaAst('.*');
+const ast = toOnigurumaAst('A.*');
 console.log(ast);
 /* →
 { type: 'Regex',
   body: [
     { type: 'Alternative',
       body: [
+        { type: 'Character',
+          value: 65,
+        },
         { type: 'Quantifier',
           kind: 'greedy',
           min: 0,
@@ -95,7 +98,7 @@ console.log(ast);
 
 An error is thrown if the provided pattern or flags aren't valid in Oniguruma.
 
-> **Note:** `toOnigurumaAst` is a wrapper around the [parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md)'s `parse` function that makes it easier to use by automatically providing the appropriate `unicodePropertyMap`.
+> **Note:** `toOnigurumaAst` is a wrapper around the [parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md)'s `parse` function that makes it easier to use by automatically providing the appropriate Unicode property validation data.
 
 ## 🌀 Traverse and transform an AST
 
