@@ -69,7 +69,7 @@ const generator: Generator = {
   },
 
   Assertion({kind, negate}) {
-    if (kind === 'grapheme_boundary') {
+    if (kind === 'text_segment_boundary') {
       return negate ? r`\Y` : r`\y`;
     }
     if (kind === 'word_boundary') {

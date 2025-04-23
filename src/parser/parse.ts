@@ -78,13 +78,13 @@ type NodeAbsenceFunctionKind =
   'repeater';
 
 type NodeAssertionKind =
-  'grapheme_boundary' |
   'line_end' |
   'line_start' |
   'search_start' |
   'string_end' |
   'string_end_newline' |
   'string_start' |
+  'text_segment_boundary' |
   'word_boundary';
 
 type NodeCharacterClassKind =
@@ -266,8 +266,8 @@ function parseAssertion({kind}: AssertionToken): AssertionNode {
       '\\b': 'word_boundary',
       '\\B': 'word_boundary',
       '\\G': 'search_start',
-      '\\y': 'grapheme_boundary',
-      '\\Y': 'grapheme_boundary',
+      '\\y': 'text_segment_boundary',
+      '\\Y': 'text_segment_boundary',
       '\\z': 'string_end',
       '\\Z': 'string_end_newline',
     }[kind], `Unexpected assertion kind "${kind}"`) as NodeAssertionKind,
@@ -590,7 +590,7 @@ function createAssertion(kind: NodeAssertionKind, options?: {
     type: 'Assertion',
     kind,
   };
-  if (kind === 'word_boundary' || kind === 'grapheme_boundary') {
+  if (kind === 'word_boundary' || kind === 'text_segment_boundary') {
     node.negate = !!options?.negate;
   }
   return node;
