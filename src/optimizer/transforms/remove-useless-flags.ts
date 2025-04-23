@@ -11,7 +11,7 @@ const removeUselessFlags: Visitor = {
   Flags({node}) {
     // Effects of flag x are already applied during parsing
     node.extended = false;
-    // Grapheme mode is the default
+    // Text segment handling uses grapheme mode by default, so it doesn't need to be set
     if (node.textSegmentMode === 'grapheme') {
       node.textSegmentMode = null;
     }

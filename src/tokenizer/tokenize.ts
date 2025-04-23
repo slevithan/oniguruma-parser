@@ -1094,7 +1094,7 @@ function getFlagProperties(flags: string): FlagProperties {
     // Flags y{g}, y{w} are currently only supported via the top-level `flags` option
     if (char === 'y') {
       if (!/^y{[gw]}/.test(flags.slice(i))) {
-        throw new Error('Invalid text segment mode with flag "y"');
+        throw new Error('Invalid or unspecified flag "y" mode');
       }
       // If text segment mode flags appear multiple times, use the last one
       flagProperties.textSegmentMode = flags[i + 2] === 'g' ? 'grapheme' : 'word';
