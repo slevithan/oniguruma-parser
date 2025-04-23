@@ -407,7 +407,6 @@ function getFlagsStr({
     wordIsAscii ? 'W' : ''
   }${
     textSegmentMode ? throwIfNullish({
-      default: '',
       grapheme: 'y{g}',
       word: 'y{w}',
     }[textSegmentMode], `Unexpected text segment mode "${textSegmentMode}"`) : ''

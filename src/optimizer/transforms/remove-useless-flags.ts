@@ -13,7 +13,7 @@ const removeUselessFlags: Visitor = {
     node.extended = false;
     // Grapheme mode is the default
     if (node.textSegmentMode === 'grapheme') {
-      node.textSegmentMode = 'default';
+      node.textSegmentMode = null;
     }
   },
 

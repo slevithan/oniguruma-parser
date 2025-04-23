@@ -59,7 +59,7 @@ function showGenerated() {
     }${
       state.flags.W ? 'W' : ''
     }${
-      { default: '',
+      { null: '',
         grapheme: 'y{g}',
         word: 'y{w}',
       }[state.flags.y]

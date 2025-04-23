@@ -36,7 +36,7 @@ function singleAltAst(body: Array<AlternativeElementNode>): OnigurumaAst {
       posixIsAscii: false,
       spaceIsAscii: false,
       wordIsAscii: false,
-      textSegmentMode: 'default',
+      textSegmentMode: null,
     },
   }
 }

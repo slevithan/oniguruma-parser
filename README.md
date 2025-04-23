@@ -91,7 +91,7 @@ console.log(ast);
     posixIsAscii: false,
     spaceIsAscii: false,
     wordIsAscii: false,
-    textSegmentMode: 'default',
+    textSegmentMode: null,
   },
 }
 */

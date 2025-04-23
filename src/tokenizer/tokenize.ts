@@ -834,7 +834,7 @@ type FlagProperties = {
   posixIsAscii: boolean;
   spaceIsAscii: boolean;
   wordIsAscii: boolean;
-  textSegmentMode: 'default' | 'grapheme' | 'word';
+  textSegmentMode: 'grapheme' | 'word' | null;
 };
 
 type FlagGroupModifiers = {
@@ -1084,7 +1084,7 @@ function getFlagProperties(flags: string): FlagProperties {
     posixIsAscii: false,
     spaceIsAscii: false,
     wordIsAscii: false,
-    textSegmentMode: 'default',
+    textSegmentMode: null,
   };
   for (let i = 0; i < flags.length; i++) {
     const char = flags[i];
