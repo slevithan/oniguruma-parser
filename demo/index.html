@@ -61,7 +61,7 @@
       <label>
         <kbd>y{?}</kbd>
         <select id="flag-y" onchange="setFlag('y', this.value)">
-          <option value="null" selected>null</option>
+          <option value="null" selected>&lt;null></option>
           <option value="grapheme">grapheme</option>
           <option value="word">word</option>
         </select>
@@ -118,12 +118,12 @@
     </p>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/oniguruma-parser/dist/oniguruma-parser.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/slevithan/oniguruma-parser/demo/demo.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/oniguruma-parser/dist/oniguruma-parser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/slevithan/oniguruma-parser/demo/demo.js"></script> -->
 
   <!-- If running in development, replace with local copies -->
-  <!-- <script src="../dist/oniguruma-parser.min.js"></script>
-  <script src="./demo.js"></script> -->
+  <script src="../dist/oniguruma-parser.min.js"></script>
+  <script src="./demo.js"></script>
 
   <script>
     // For testing in the console

@@ -146,7 +146,7 @@ The following rarely-used features throw errors since they aren't yet supported:
 - Conditionals: `(?(…)…)`, etc.
 - Non-built-in callouts: `(?{…})`, etc.
 - Numbered *forward* backreferences (incl. relative `\k<+N>`) and backreferences with recursion level (`\k<N+N>`, etc.).
-- Flags `D` `P` `S` `W` `y{g}` `y{w}` within pattern modifiers (supported via top-level `flags` option), and whole-pattern modifiers `C` `I` `L`.
+- Flags `D` `P` `S` `W` `y{g}` `y{w}` within pattern modifiers (they're supported via the top-level `flags` option), and whole-pattern modifiers `C` `I` `L`.
 
 Despite these gaps, more than 99.99% of real-world Oniguruma regexes are supported, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all). Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub.
 

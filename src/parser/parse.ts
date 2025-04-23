@@ -746,7 +746,7 @@ function createCharacterSet(kind: UnnamedCharacterSetNode['kind'], options?: {
     node.negate = negate;
   }
   if (
-    kind === 'grapheme' ||
+    kind === 'text_segment' ||
     (kind === 'newline' && !negate)
   ) {
     node.variableLength = true;

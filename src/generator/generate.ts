@@ -181,8 +181,6 @@ const generator: Generator = {
         return negate ? r`\D` : r`\d`;
       case 'dot':
         return '.';
-      case 'grapheme':
-        return r`\X`;
       case 'hex':
         return negate ? r`\H` : r`\h`;
       case 'newline':
@@ -195,6 +193,8 @@ const generator: Generator = {
         return `${negate ? r`\P` : r`\p`}{${value}}`;
       case 'space':
         return negate ? r`\S` : r`\s`;
+      case 'text_segment':
+        return r`\X`;
       case 'word':
         return negate ? r`\W` : r`\w`;
       default:

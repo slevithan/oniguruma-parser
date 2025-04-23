@@ -24,12 +24,12 @@ type TokenCharacterSetKind =
   'any' |
   'digit' |
   'dot' |
-  'grapheme' |
   'hex' |
   'newline' |
   'posix' |
   'property' |
   'space' |
+  'text_segment' |
   'word';
 
 type TokenDirectiveKind =
@@ -274,7 +274,7 @@ function getTokenWithDetails(context: Context, pattern: string, m: string, lastI
     }
     if (m1 === 'X') {
       return {
-        token: createCharacterSetToken('grapheme', m),
+        token: createCharacterSetToken('text_segment', m),
       };
     }
     // Run last since it assumes an identity escape as final condition
