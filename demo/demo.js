@@ -14,6 +14,7 @@ const state = {
     P: getValue('flag-P'),
     S: getValue('flag-S'),
     W: getValue('flag-W'),
+    y: getValue('flag-y'),
   },
   opts: {
     rules: {
@@ -57,6 +58,11 @@ function showGenerated() {
       state.flags.S ? 'S' : ''
     }${
       state.flags.W ? 'W' : ''
+    }${
+      { default: '',
+        grapheme: 'y{g}',
+        word: 'y{w}',
+      }[state.flags.y]
     }`,
   };
   if (state.useGenerator) {

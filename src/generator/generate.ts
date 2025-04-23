@@ -389,6 +389,7 @@ function getFlagsStr({
   posixIsAscii,
   spaceIsAscii,
   wordIsAscii,
+  textSegmentMode,
 }: Partial<FlagProperties>): string {
   return `${
     ignoreCase ? 'i' : ''
@@ -404,6 +405,12 @@ function getFlagsStr({
     spaceIsAscii ? 'S' : ''
   }${
     wordIsAscii ? 'W' : ''
+  }${
+    textSegmentMode ? throwIfNullish({
+      default: '',
+      grapheme: 'y{g}',
+      word: 'y{w}',
+    }[textSegmentMode], `Unexpected text segment mode "${textSegmentMode}"`) : ''
   }`;
 }
 

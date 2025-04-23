@@ -4,13 +4,15 @@ import type {Visitor} from '../../traverser/traverse.js';
 /**
 Pull leading and trailing assertions out of capturing groups when possible; helps group unwrapping.
 Ex: `(^abc$)` -> `^(abc)$`.
+Ex: `(\b(?:a|bc)\b)` -> `\b((?:a|bc))\b`. The inner group can subsequently be unwrapped.
 */
 const exposeAnchors: Visitor = {
   // Done for capturing groups only because they can't be unwrapped like noncapturing groups (done
   // via `unwrapUselessGroups` combined with `removeUselessFlags`; the latter also avoids hazards
-  // from flags that modify word/grapheme boundary assertions that would need to be handled here).
-  // Pulling anchors out can subsequently enable unwrapping multi-alternative noncapturing groups
-  // within the capturing group, and has the side benefit that exposed anchors improve readability
+  // from flags that modify word boundary and text segment boundary assertions that would need to
+  // be handled here since noncapturing groups can specify flags to change). Pulling anchors out
+  // can subsequently enable unwrapping multi-alternative noncapturing groups within the capturing
+  // group, and has the side benefit that exposed anchors also improve readability
   CapturingGroup({node, parent, replaceWithMultiple}) {
     if (
       parent.type === 'Quantifier' ||

@@ -834,6 +834,7 @@ type FlagProperties = {
   posixIsAscii: boolean;
   spaceIsAscii: boolean;
   wordIsAscii: boolean;
+  textSegmentMode: 'default' | 'grapheme' | 'word';
 };
 
 type FlagGroupModifiers = {
@@ -1075,9 +1076,6 @@ function getFlagGroupSwitches(flags: string): FlagGroupSwitches | null {
 }
 
 function getFlagProperties(flags: string): FlagProperties {
-  if (!/^[imxDPSW]*$/.test(flags)) {
-    throw new Error(`Flags "${flags}" includes unsupported value`);
-  }
   const flagProperties: FlagProperties = {
     ignoreCase: false,
     dotAll: false,
@@ -1086,8 +1084,23 @@ function getFlagProperties(flags: string): FlagProperties {
     posixIsAscii: false,
     spaceIsAscii: false,
     wordIsAscii: false,
+    textSegmentMode: 'default',
   };
-  for (const char of flags) {
+  for (let i = 0; i < flags.length; i++) {
+    const char = flags[i];
+    if (!'imxDPSWy'.includes(char)) {
+      throw new Error(`Invalid flag "${char}"`);
+    }
+    // Flags y{g}, y{w} are currently only supported via the top-level `flags` option
+    if (char === 'y') {
+      if (!/^y{[gw]}/.test(flags.slice(i))) {
+        throw new Error('Invalid text segment mode with flag "y"');
+      }
+      // If text segment mode flags appear multiple times, use the last one
+      flagProperties.textSegmentMode = flags[i + 2] === 'g' ? 'grapheme' : 'word';
+      i += 3;
+      continue;
+    }
     flagProperties[{
       i: 'ignoreCase',
       // Flag m is called `multiline` in Onig, but that has a different meaning in JS. Onig flag m
@@ -1095,12 +1108,12 @@ function getFlagProperties(flags: string): FlagProperties {
       m: 'dotAll',
       // Flag x is fully handled during tokenization
       x: 'extended',
-      // Flags D, P, S, W are currently only supported as top-level flags
+      // Flags D, P, S, W are currently only supported via the top-level `flags` option
       D: 'digitIsAscii',
       P: 'posixIsAscii',
       S: 'spaceIsAscii',
       W: 'wordIsAscii',
-    }[char] as keyof FlagProperties] = true;
+    }[char] as Exclude<keyof FlagProperties, 'textSegmentMode'>] = true;
   }
   return flagProperties;
 }
