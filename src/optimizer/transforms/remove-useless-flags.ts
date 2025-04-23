@@ -4,12 +4,17 @@ import type {Visitor} from '../../traverser/traverse.js';
 
 /**
 Remove flags (from top-level and modifiers) that have no effect.
-TODO: Support removing additional flags besides `x`.
 */
 const removeUselessFlags: Visitor = {
+  // TODO: Support removing additional flags
+
   Flags({node}) {
     // Effects of flag x are already applied during parsing
     node.extended = false;
+    // Grapheme mode is the default
+    if (node.textSegmentMode === 'grapheme') {
+      node.textSegmentMode = 'default';
+    }
   },
 
   Directive({node, remove}) {
