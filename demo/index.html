@@ -31,32 +31,32 @@
       <label>
         <kbd>m</kbd>
         <input type="checkbox" id="flag-m" onchange="setFlag('m', this.checked)">
-        <span class="tip tip-md"><code>dotAll</code> (JS flag <kbd>s</kbd>)</span>
+        <span class="tip tip-md"><code>dotAll</code>: JS flag <kbd>s</kbd></span>
       </label>
       <label>
         <kbd>x</kbd>
         <input type="checkbox" id="flag-x" onchange="setFlag('x', this.checked)">
-        <span class="tip tip-lg"><code>extended</code> (insignificant whitespace and comments)</span>
+        <span class="tip tip-lg"><code>extended</code>: insignificant whitespace and comments</span>
       </label>
       <label>
         <kbd>D</kbd>
         <input type="checkbox" id="flag-D" onchange="setFlag('D', this.checked)">
-        <span class="tip tip-sm"><code>digitIsAscii</code></span>
+        <span class="tip tip-lg"><code>digitIsAscii</code>: ASCII <code>\d</code>, <code>\p{Digit}</code>, <code>[[:digit:]]</code></span>
       </label>
       <label>
         <kbd>P</kbd>
         <input type="checkbox" id="flag-P" onchange="setFlag('P', this.checked)">
-        <span class="tip tip-sm"><code>posixIsAscii</code></span>
+        <span class="tip tip-xl"><code>posixIsAscii</code>: ASCII POSIX properties (includes flags <kbd>D</kbd>, <kbd>S</kbd>, <kbd>W</kbd>)</span>
       </label>
       <label>
         <kbd>S</kbd>
         <input type="checkbox" id="flag-S" onchange="setFlag('S', this.checked)">
-        <span class="tip tip-sm"><code>spaceIsAscii</code></span>
+        <span class="tip tip-lg"><code>spaceIsAscii</code>: ASCII <code>\s</code>, <code>\p{Space}</code>, <code>[[:space:]]</code></span>
       </label>
       <label>
         <kbd>W</kbd>
         <input type="checkbox" id="flag-W" onchange="setFlag('W', this.checked)">
-        <span class="tip tip-sm"><code>wordIsAscii</code></span>
+        <span class="tip tip-lg"><code>wordIsAscii</code>: ASCII <code>\w</code>, <code>\p{Word}</code>, <code>[[:word:]]</code>, <code>\b</code></span>
       </label>
       <label>
         <kbd>y{?}</kbd>
@@ -65,7 +65,7 @@
           <option value="grapheme">grapheme</option>
           <option value="word">word</option>
         </select>
-        <span class="tip tip-sm"><code>textSegmentMode</code></span>
+        <span class="tip tip-lg"><code>textSegmentMode</code>: Changes the meaning of <code>\X</code>, <code>\y</code></span>
       </label>
     </p>
     <details>
