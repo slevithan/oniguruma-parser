@@ -7,7 +7,7 @@
 A TypeScript library for parsing, validating, traversing, transforming, and optimizing [Oniguruma](https://github.com/kkos/oniguruma) regular expressions.
 
 > [!NOTE]
-> Oniguruma is an advanced regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, [Shiki](https://shiki.style/), etc.), and many other tools.
+> Oniguruma is a regular expression engine written in C that's used in Ruby (via a fork named Onigmo), PHP (`mb_ereg`, etc.), TextMate grammars (used by VS Code, [Shiki](https://shiki.style/), etc.), and many other tools.
 
 This library has been battle-tested by [Oniguruma-To-ES](https://github.com/slevithan/oniguruma-to-es) and [tm-grammars](https://github.com/shikijs/textmate-grammars-themes), which are used by Shiki to process tens of thousands of real-world Oniguruma regexes.
 
@@ -238,11 +238,9 @@ Behavior details in Oniguruma:
 
 All versions of this library to date have followed the rules of Oniguruma 6.9.10 (released 2025-01-01), which uses Unicode 16.0.0.
 
-At least since Oniguruma 6.0.0 (released 2016-05-09), regex syntax changes in [new versions](https://github.com/kkos/oniguruma/blob/master/HISTORY) of the library have been backward compatible. Some versions added new syntax that was previously an error (such as new Unicode property names), and in a few cases, edge case parsing bugs were fixed.
+At least since Oniguruma 6.0.0 (released 2016-05-09), regex syntax changes in [new versions](https://github.com/kkos/oniguruma/blob/master/HISTORY) have been backward compatible. Some versions added new syntax that was previously an error (such as new Unicode property names), and in a few cases, edge case parsing bugs were fixed.
 
-> Oniguruma 6.9.8 (released 2022-04-29) is an important baseline for JavaScript projects, since that's the version used by [vscode-oniguruma](https://github.com/microsoft/vscode-oniguruma) 1.7.0 to the latest 2.0.1. It's therefore used in recent versions of various projects, including VS Code and Shiki.
->
-> It's possible that future versions of this library will add an option that allows specifying an Oniguruma version to emulate when parsing. However, the differences so far between regex syntax in Oniguruma 6.9.8 and later versions have been so minor that this is a non-issue.
+> Oniguruma 6.9.8 (released 2022-04-29) is an important baseline for JavaScript projects, since that's the version used by [vscode-oniguruma](https://github.com/microsoft/vscode-oniguruma) 1.7.0 to the latest 2.0.1. It's therefore used in recent versions of various projects, including VS Code and Shiki. However, the regex syntax differences between Oniguruma 6.9.8 and 6.9.10 are so minor that this is a non-issue.
 
 ## 🧩 Contributing
 

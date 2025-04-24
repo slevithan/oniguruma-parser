@@ -1121,12 +1121,12 @@ function getFlagProperties(flags: string): FlagProperties {
 // - Unenclosed `\xNN` above 0x7F is handled elsewhere as a UTF-8 encoded byte sequence
 // - Enclosed `\x{}` with value above 0x10FFFF is allowed here; handled in the parser
 function getValidatedHexCharCode(raw: string): number {
-  // Note: Onig v6.9.10 and earlier have a bug where pattern-terminating `\u` and `\x` are treated
+  // Note: Onig 6.9.10 and earlier have a bug where pattern-terminating `\u` and `\x` are treated
   // as identity escapes; see <github.com/kkos/oniguruma/issues/343>. Don't emulate these bugs.
   // Additionally, Onig treats bare `\x` as equivalent to `\0`, and treats incomplete `\x{` (with
-  // the brace and not immediately followed by a hex digit) as an identity escape, so e.g. `\x{`
+  // the brace but not immediately followed by a hex digit) as an identity escape, so e.g. `\x{`
   // matches `x{` and `^\x{,2}$` matches `xx`, but `\x{2,}` and `\x{0,2}` are errors. Currently,
-  // this library treats these cases as errors
+  // this library treats all such cases as errors
   if (/^(?:\\u(?!\p{AHex}{4})|\\x(?!\p{AHex}{1,2}|\{\p{AHex}{1,8}\}))/u.test(raw)) {
     throw new Error(`Incomplete or invalid escape "${raw}"`);
   }

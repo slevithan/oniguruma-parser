@@ -2,7 +2,7 @@ import type {UnicodePropertyMap} from "./parser/parse.js";
 import {slug} from "./parser/parse.js";
 
 /**
-All Unicode properties supported by Oniguruma as of v6.9.10 (Unicode v16.0.0).
+All Unicode properties supported by Oniguruma 6.9.10 (Unicode 16.0.0).
 Copied from <github.com/kkos/oniguruma/blob/master/doc/UNICODE_PROPERTIES>
 */
 const OnigUnicodePropertyMap: UnicodePropertyMap = /* @__PURE__ */ new Map(
