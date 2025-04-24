@@ -57,10 +57,10 @@
     "parser"
   ],
   "devDependencies": {
-    "esbuild": "^0.25.2",
+    "esbuild": "^0.25.3",
     "rimraf": "^6.0.1",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.1"
+    "vitest": "^3.1.2"
   },
-  "packageManager": "pnpm@10.8.1"
+  "packageManager": "pnpm@10.9.0"
 }
