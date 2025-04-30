@@ -13,6 +13,8 @@ describe('Optimizer: optionalize', () => {
       ['aa|a|x', 'aa?|x'],
       ['a|aa', 'aa??'],
       ['a|aa|x', 'aa??|x'],
+      ['a(a)|a', 'a(a)?'],
+      ['a|a(a)', 'a(a)??'],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
@@ -107,7 +109,6 @@ describe('Optimizer: optionalize', () => {
       'test|tests*|x',
       'test|tests+|x',
       'test|tests?+|x',
-      't(e)st(er)+|t(e)st',
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
@@ -119,6 +120,17 @@ describe('Optimizer: optionalize', () => {
     const cases = [
       'a?|a',
       'a|a?',
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
+
+  it('should not apply if it would alter capturing group matches', () => {
+    const cases = [
+      '(a)|(a)',
+      'a|(a)',
+      't(e)st(er)+|t(e)st',
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
