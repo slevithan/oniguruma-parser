@@ -79,7 +79,40 @@ describe('Optimizer: optionalize', () => {
     }
   });
 
-  it('should not apply if the last node is a quantifier', () => {
+  it('should merge adjacent alternatives where only the last node is different and it uses a supported quantifier', () => {
+    const cases = [
+      ['tests?|test|x', 'tests?|x'],
+      ['tests*|test|x', 'tests*|x'],
+      ['tests+|test|x', 'tests*|x'], // `+` to `*`
+      ['tests??|test|x', 'tests??|x'],
+      ['tests*?|test|x', 'tests*?|x'],
+      ['tests?+|test|x', 'tests?+|x'],
+      ['test|tests?|x', 'tests??|x'], // `?` to `??`
+      ['test|tests??|x', 'tests??|x'],
+      ['test|tests*?|x', 'tests*?|x'],
+      ['test|tests+?|x', 'tests*?|x'], // `+?` to `*?`
+    ];
+    for (const [input, expected] of cases) {
+      expect(thisOptimization(input)).toBe(expected);
+    }
+  });
+
+  it('should not apply where only the last node is different and it uses an unsupported quantifier', () => {
+    // Collapsing these would change the meaning, at least if we don't want to use a quantifier chain
+    const cases = [
+      'tests{2,}|test|x',
+      'tests+?|test|x',
+      'test|tests*|x',
+      'test|tests+|x',
+      'test|tests?+|x',
+    ];
+    for (const input of cases) {
+      expect(thisOptimization(input)).toBe(input);
+    }
+  });
+
+  // Just documenting current behavior; could support some cases
+  it('should not apply if alts are the same except one of them quantifies the last node', () => {
     const cases = [
       'a?|a',
       'a|a?',

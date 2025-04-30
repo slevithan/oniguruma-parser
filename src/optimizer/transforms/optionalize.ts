@@ -17,13 +17,13 @@ const optionalize: Visitor = {
     const newAlts = [body[0]];
     let lastAltKept = body[0];
     for (let i = 1; i < body.length; i++) {
+      // NOTE: Anytime we `continue` we don't keep this alt
       const alt = body[i];
       const altKids = alt.body;
       const prevAltKids = lastAltKept.body;
       const lengthDiff = Math.abs(altKids.length - prevAltKids.length);
       if (!lengthDiff) {
         if (isNodeArrayEqual(altKids, prevAltKids)) {
-          // Don't keep this alt
           continue;
         }
       } else if (lengthDiff === 1) {
@@ -32,13 +32,23 @@ const optionalize: Visitor = {
         const prevAltKidsToCompare = isPrevAltLonger ? prevAltKids.slice(0, -1) : prevAltKids;
         if (isNodeArrayEqual(altKidsToCompare, prevAltKidsToCompare)) {
           if (isPrevAltLonger) {
-            // If the prev alt has an extra node, put its last node in a greedy `?`
             const prevAltLastKid = throwIfNullish(prevAltKids.at(-1));
-            if (isQuantifiableNonQuantifier(prevAltLastKid)) {
-              prevAltKids.pop();
-              prevAltKids.push(createQuantifier('greedy', 0, 1, prevAltLastKid));
-              // Don't keep this alt
-              continue;
+            if (isQuantifiable(prevAltLastKid)) {
+              // Avoid chaining quantifiers since e.g. chained greedy `?` is `?{0,1}` and can
+              // lengthen the pattern
+              if (prevAltLastKid.type === 'Quantifier') {
+                if (!prevAltLastKid.min) {
+                  continue;
+                } else if (prevAltLastKid.min === 1 && prevAltLastKid.kind !== 'lazy') {
+                  prevAltLastKid.min = 0;
+                  continue;
+                }
+              } else {
+                // Put the prev alt's extra last node in a greedy `?`
+                prevAltKids.pop();
+                prevAltKids.push(createQuantifier('greedy', 0, 1, prevAltLastKid));
+                continue;
+              }
             }
           } else if (
             // Don't apply if last alt empty since that would lengthen e.g. `(|a|b)` to `(a??|b)`
@@ -46,13 +56,25 @@ const optionalize: Visitor = {
             // Unless there are two alts since e.g. `(?:|a)` to `(?:a??)` enables group unwrapping
             body.length === 2
           ) {
-            // Since this alt has an extra node compared to prev, add the last node of this alt to
-            // the prev, but within a lazy `??`
             const altLastKid = throwIfNullish(altKids.at(-1));
-            if (isQuantifiableNonQuantifier(altLastKid)) {
-              prevAltKids.push(createQuantifier('lazy', 0, 1, altLastKid));
-              // Don't keep this alt
-              continue;
+            if (isQuantifiable(altLastKid)) {
+              if (altLastKid.type === 'Quantifier') {
+                if (altLastKid.kind === 'possessive') {
+                  // No-op since possessive quantifiers can't also be lazy
+                } else if (altLastKid.min <= 1 && altLastKid.kind === 'lazy') {
+                  altLastKid.min = 0;
+                  prevAltKids.push(altLastKid);
+                  continue;
+                } else if (!altLastKid.min && altLastKid.max === 1) {
+                  altLastKid.kind = 'lazy';
+                  prevAltKids.push(altLastKid);
+                  continue;
+                }
+              } else {
+                // Put this alt's extra last node in a lazy `??` then add it to the prev alt
+                prevAltKids.push(createQuantifier('lazy', 0, 1, altLastKid));
+                continue;
+              }
             }
           }
         }
@@ -64,7 +86,8 @@ const optionalize: Visitor = {
   },
 };
 
-// Returns `false` if the arrays contain a node type it doesn't know how to compare
+// Returns `false` if the arrays contain a node type it doesn't know how to compare, or doesn't
+// want to compare (e.g. with capturing groups, which can't be removed)
 function isNodeArrayEqual(a: Array<AlternativeElementNode>, b: Array<AlternativeElementNode>) {
   if (a.length !== b.length) {
     return false;
@@ -78,11 +101,6 @@ function isNodeArrayEqual(a: Array<AlternativeElementNode>, b: Array<Alternative
     }
   }
   return true;
-}
-
-function isQuantifiableNonQuantifier(node: AlternativeElementNode) {
-  // Avoid chaining `?` quantifiers since that can come out as `?{0,1}` and be longer than input
-  return isQuantifiable(node) && node.type !== 'Quantifier';
 }
 
 export {
