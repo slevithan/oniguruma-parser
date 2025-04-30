@@ -157,12 +157,11 @@ function traverse<State extends object | null = null, Root extends Node = RegexN
     if (!skipTraversingKidsOfPath) {
       switch (type) {
         case 'AbsenceFunction':
-        case 'CapturingGroup':
-        case 'Group':
-          traverseArray(node.body, node);
-          break;
         case 'Alternative':
+        case 'CapturingGroup':
         case 'CharacterClass':
+        case 'Group':
+        case 'LookaroundAssertion':
           traverseArray(node.body, node);
           break;
         case 'Assertion':
@@ -177,9 +176,6 @@ function traverse<State extends object | null = null, Root extends Node = RegexN
         case 'CharacterClassRange':
           traverseNode(node.min, node, 'min');
           traverseNode(node.max, node, 'max');
-          break;
-        case 'LookaroundAssertion':
-          traverseArray(node.body, node);
           break;
         case 'Quantifier':
           traverseNode(node.body, node, 'body');
