@@ -91,6 +91,8 @@ describe('Optimizer: optionalize', () => {
       ['test|tests??|x', 'tests??|x'],
       ['test|tests*?|x', 'tests*?|x'],
       ['test|tests+?|x', 'tests*?|x'], // `+?` to `*?`
+      ['a+|', 'a*'],
+      ['test(er)+|test', 'test(er)*'],
     ];
     for (const [input, expected] of cases) {
       expect(thisOptimization(input)).toBe(expected);
@@ -105,6 +107,7 @@ describe('Optimizer: optionalize', () => {
       'test|tests*|x',
       'test|tests+|x',
       'test|tests?+|x',
+      't(e)st(er)+|t(e)st',
     ];
     for (const input of cases) {
       expect(thisOptimization(input)).toBe(input);
