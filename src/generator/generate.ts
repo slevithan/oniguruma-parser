@@ -246,8 +246,8 @@ const generator: Generator = {
     // - Interval quantifiers can't use `+` to make them possessive (it creates a quantifier
     //   chain), even though quantifiers `?` `*` `+` can.
     // - A reversed range in a quantifier makes it possessive (ex: `{2,1}`).
-    //   - `{,n}` is always greedy with an implicit zero min, and can't represent a possesive range
-    //     from n to infinity.
+    //   - `{,n}` is always greedy with an implicit zero min, and can't represent a possessive
+    //     range from n to infinity.
     const {body, kind, max, min} = node;
     // These errors shouldn't happen unless the AST is modified in an invalid way after parsing
     if (min === Infinity) {
