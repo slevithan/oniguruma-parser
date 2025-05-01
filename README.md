@@ -146,7 +146,7 @@ The following rarely-used features throw errors since they aren't yet supported:
 - Conditionals: `(?(…)…)`, etc.
 - Non-built-in callouts: `(?{…})`, etc.
 - Numbered *forward* backreferences (incl. relative `\k<+N>`) and backreferences with recursion level (`\k<N+N>`, etc.).
-- Flags `D` `P` `S` `W` `y{g}` `y{w}` within pattern modifiers, and whole-pattern modifiers `C` `I` `L`.
+- Flags `D` `P` `S` `W` `y{g}` `y{w}` within pattern modifiers, and whole-pattern flags `C` `I` `L` ([#26](https://github.com/slevithan/oniguruma-parser/issues/26)).
 
 Despite these gaps, more than 99.99% of real-world Oniguruma regexes are supported, based on a sample of ~55k regexes used in TextMate grammars (conditionals were used in three regexes, and other unsupported features weren't used at all). Some of the Oniguruma features above are so exotic that they aren't used in *any* public code on GitHub.
 
@@ -170,6 +170,16 @@ The following don't yet throw errors, but should:
   - Note that an error is already correctly thrown for any backreference name that includes `-` or `+` (which is separate from how these symbols are used in relative *numbered* backreferences).
 - Subroutines used in ways that resemble infinite recursion ([#5](https://github.com/slevithan/oniguruma-parser/issues/5)).
   - Such subroutines error at compile time in Oniguruma.
+</details>
+
+<details>
+  <summary>Future AST node types</summary>
+
+Most of the currently unsupported features will be captured in the AST format using existing node types (`Character`, `AbsenceFunction`, `Backreference`, etc.). The exceptions are:
+
+- Code point sequences need a new `CharacterSequence` node type, which will hold two or more `Character` nodes in a `body` array.
+- Conditionals need a new `Conditional` node type.
+- Unnamed callouts need a new `Callout` node type.
 </details>
 
 ### Behavior differences
