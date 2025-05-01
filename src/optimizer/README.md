@@ -304,7 +304,7 @@ Optimizations are applied in a loop until no further optimization progress is ma
 
 ## How performance optimizations work
 
-Although the optimizer's primary purpose is minification, some optimizations can improve search-time performance by:
+Although the optimizer's primary purpose is minification, some optimizations can improve search performance by:
 
 - Reducing backtracking.
   - Ex: Reducing use of alternation or adjusting quantifiers in ways that don't change what the regex matches.
@@ -367,11 +367,13 @@ Contributions are welcome! Review this library's [contributing guide](https://gi
 - Add tests in `test/optimizer/foo.test.ts`; run them via `pnpm test`.
 - List it in this readme file with a simple example.
 
-You don't need to do too much in one optimization, since optimizations can compliment each other. Ideas for new optimizations are collected [here](https://github.com/slevithan/oniguruma-parser/issues/7).
+Optimizations can compliment each other, so you don't need to do too much in one. Ideas for new optimizations are collected [here](https://github.com/slevithan/oniguruma-parser/issues/7).
 
 ## About
 
-Created by [Steven Levithan](https://github.com/slevithan) and [contributors](https://github.com/slevithan/oniguruma-parser/graphs/contributors). Inspiration for the optimizer included [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
+Created by [Steven Levithan](https://github.com/slevithan) and [contributors](https://github.com/slevithan/oniguruma-parser/graphs/contributors).
+
+Inspiration for the optimizer included [regexp-tree](https://github.com/DmitrySoshnikov/regexp-tree), which includes an optimizer for JavaScript regexes.
 
 If you want to support this project, I'd love your help by contributing improvements ([guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md)), sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
