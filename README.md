@@ -175,11 +175,11 @@ The following don't yet throw errors, but should:
 <details>
   <summary>Future AST node types</summary>
 
-Most of the currently unsupported features will be captured in the AST format using existing node types (`Character`, `AbsenceFunction`, `Backreference`, etc.). The exceptions are:
+Support for most of the currently unsupported features listed above will be added to the `OnigurumaAst` structure using existing node types (`Character`, `AbsenceFunction`, `Backreference`, etc.). However, the following new node types will be required:
 
-- Code point sequences need a new `CharacterSequence` node type, which will hold two or more `Character` nodes in a `body` array.
-- Conditionals need a new `Conditional` node type.
-- Unnamed callouts need a new `Callout` node type.
+- `CharacterSequence`: Code point sequences will use this new node type that will hold two or more `Character` nodes in its `body` array.
+- `Conditional`: Conditionals will use this new node type.
+- `Callout`: Unnamed callouts will use this new node type.
 </details>
 
 ### Behavior differences
