@@ -260,6 +260,15 @@ Contributions are welcome. See the [guide](https://github.com/slevithan/onigurum
 
 Created by [Steven Levithan](https://github.com/slevithan) and [contributors](https://github.com/slevithan/oniguruma-parser/graphs/contributors).
 
+### Sponsors and backers
+
+[<img src="https://github.com/brc-dd.png" width="40" height="40">](https://github.com/brc-dd)
+[<img src="https://github.com/roboflow.png" width="40" height="40">](https://github.com/roboflow)
+
+### Past sponsors
+
+[<img src="https://github.com/antfu.png" width="40" height="40">](https://github.com/antfu)
+
 If you want to support this project, I'd love your help by contributing improvements ([guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md)), sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
 MIT License.
