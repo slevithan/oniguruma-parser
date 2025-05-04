@@ -29,11 +29,39 @@ npm install oniguruma-parser
 
 ```js
 import {toOnigurumaAst} from 'oniguruma-parser';
+
+const ast = toOnigurumaAst('A.*');
+console.log(ast);
 ```
+
+<details>
+  <summary>Using CommonJS require</summary>
+
+```js
+const {toOnigurumaAst} = require('oniguruma-parser-cjs');
+```
+
+> **Note:** [*oniguruma-parser-cjs*](https://github.com/RedCMD/oniguruma-parser-cjs) is a third-party CommonJS wrapper for this library. It might not always be up to date with the latest version.
+</details>
+
+<details>
+  <summary>Using a global name with no build</summary>
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/oniguruma-parser/dist/oniguruma-parser.min.js"></script>
+<script>
+  const {toOnigurumaAst} = OnigurumaParser;
+</script>
+```
+
+> **Note:** This bundle includes a subset of all exports, combined in one file. See [`src/bundle.ts`](https://github.com/slevithan/oniguruma-parser/blob/main/src/bundle.ts).
+</details>
+
+### Additional modules
 
 The following modules are available in addition to the root `'oniguruma-parser'` export:
 
-- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the `parse` function, wrapped by `toOnigurumaAst`.
+- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the `parse` function, which is wrapped by `toOnigurumaAst`.
 - [Traverser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md): Traverse and transform an `OnigurumaAst`.
 - [Generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
 - [Optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md): Minify and improve the performance of Oniguruma regexes.

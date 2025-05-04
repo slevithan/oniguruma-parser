@@ -2,7 +2,7 @@
 
 Thanks for lending a hand 👋
 
-To understand how the code is structured, start with `./src/index.ts`, which exports `toOnigurumaAst`. If you have questions before starting development, feel free to open an issue.
+To understand how the code is structured, start with `src/index.ts`, which exports `toOnigurumaAst`. If you have questions before starting development, feel free to open an issue.
 
 ## Readmes
 
