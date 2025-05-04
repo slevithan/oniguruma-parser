@@ -1027,14 +1027,11 @@ function slug(name: string): string {
   return name.replace(/[- _]+/g, '').toLowerCase();
 }
 
-function throwIfUnclosedCharacterClass<T>(token: T, firstClassToken?: Token): NonNullable<T> {
-  return throwIfNullish(
-    token,
-    // Easier to understand the error if it says "empty" when the unclosed class starts with
-    // literal `]`; ex: `[]` or `[]a`
-    `${firstClassToken?.type === 'Character' && firstClassToken.value === 93 ?
-      'Empty' : 'Unclosed'} character class`
-  );
+function throwIfUnclosedCharacterClass<T>(token: T, firstToken?: Token): NonNullable<T> {
+  return throwIfNullish(token, `Unclosed character class ${
+    // Help avoid confusion
+    firstToken?.type === 'Character' && firstToken.value === 93 ? '(starts with literal "]")' : ''
+  }`);
 }
 
 function throwIfUnclosedGroup<T>(token: T): NonNullable<T> {
