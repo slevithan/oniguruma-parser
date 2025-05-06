@@ -368,9 +368,9 @@ function parseCharacterClassHyphen(_: CharacterClassHyphenToken, context: Contex
 
 function parseCharacterClassOpen({negate}: CharacterClassOpenToken, context: Context, state: State): CharacterClassNode {
   const {tokens, walk} = context;
-  const firstClassToken = tokens[context.nextIndex];
   const intersections = [createCharacterClass()];
-  let nextToken = throwIfUnclosedCharacterClass(firstClassToken);
+  const ccFirstToken = tokens[context.nextIndex];
+  let nextToken = throwIfUnclosedCharacterClass(ccFirstToken);
   while (nextToken.type !== 'CharacterClassClose') {
     if (nextToken.type === 'CharacterClassIntersector') {
       intersections.push(createCharacterClass());
@@ -380,7 +380,7 @@ function parseCharacterClassOpen({negate}: CharacterClassOpenToken, context: Con
       const cc = intersections.at(-1)!; // Always at least one
       cc.body.push(walk(cc, state) as CharacterClassElementNode);
     }
-    nextToken = throwIfUnclosedCharacterClass(tokens[context.nextIndex], firstClassToken);
+    nextToken = throwIfUnclosedCharacterClass(tokens[context.nextIndex], ccFirstToken);
   }
   const node = createCharacterClass({negate});
   if (intersections.length === 1) {
@@ -1027,10 +1027,11 @@ function slug(name: string): string {
   return name.replace(/[- _]+/g, '').toLowerCase();
 }
 
-function throwIfUnclosedCharacterClass<T>(token: T, firstToken?: Token): NonNullable<T> {
-  return throwIfNullish(token, `Unclosed character class ${
-    // Help avoid confusion
-    firstToken?.type === 'Character' && firstToken.value === 93 ? '(starts with literal "]")' : ''
+function throwIfUnclosedCharacterClass<T>(token: T, ccFirstToken?: Token): NonNullable<T> {
+  const first = ccFirstToken;
+  return throwIfNullish(token, `Unclosed character class${
+    // Help avoid confusion since e.g. `[]abc` is unclosed but looks it has an empty class
+    first?.type === 'Character' && first.value === 93 && first.raw === ']' ? ' (started with "]")' : ''
   }`);
 }
 
