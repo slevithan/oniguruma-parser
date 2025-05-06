@@ -1,6 +1,6 @@
 # Parser module 🌲<br>`oniguruma-parser/parser`
 
-This module's `parse` function accepts an Oniguruma pattern with optional flags and other options, and returns an AST. It also exports numerous functions and types that might be helpful when [traversing](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md) and transforming an AST.
+This module's `parse` function accepts an Oniguruma pattern with optional flags and other options, and returns an AST. This module also exports numerous functions and types that can be used when [traversing](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md), transforming, or manually creating an AST.
 
 > [!NOTE]
 > Compared to the `toOnigurumaAst` wrapper from the [root module](https://github.com/slevithan/oniguruma-parser), `parse` includes additional options for specialized use, but `toOnigurumaAst` is often easier to use since it automatically provides the appropriate Unicode property validation data. The data is available by importing `OnigUnicodePropertyMap` from `'oniguruma-parser/unicode'`.
