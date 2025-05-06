@@ -30,8 +30,7 @@ npm install oniguruma-parser
 ```js
 import {toOnigurumaAst} from 'oniguruma-parser';
 
-const ast = toOnigurumaAst('A.*');
-console.log(ast);
+const ast = toOnigurumaAst('^.*');
 ```
 
 <details>
@@ -41,11 +40,11 @@ console.log(ast);
 const {toOnigurumaAst} = require('oniguruma-parser-cjs');
 ```
 
-> **Note:** [*oniguruma-parser-cjs*](https://github.com/RedCMD/oniguruma-parser-cjs) is a third-party CommonJS wrapper for this library. It might not always be up to date with the latest version.
+> **Note:** [oniguruma-parser-cjs](https://github.com/RedCMD/oniguruma-parser-cjs) is a third-party CommonJS wrapper for this library. It might not always be up to date with the latest version.
 </details>
 
 <details>
-  <summary>Using a global name with no build</summary>
+  <summary>Using a CDN and global name</summary>
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/oniguruma-parser/dist/oniguruma-parser.min.js"></script>
@@ -61,14 +60,14 @@ const {toOnigurumaAst} = require('oniguruma-parser-cjs');
 
 The following modules are available in addition to the root `'oniguruma-parser'` export:
 
-- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the `parse` function, which is wrapped by `toOnigurumaAst`.
+- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the `parse` function that `toOnigurumaAst` wraps.
 - [Traverser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md): Traverse and transform an `OnigurumaAst`.
 - [Generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
 - [Optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md): Minify and improve the performance of Oniguruma regexes.
 
 ## 🌿 Convert a pattern to an AST
 
-To parse an Oniguruma pattern (with optional flags and compile-time options) and return an AST, call `toOnigurumaAst`, which uses the following type definition:
+Call `toOnigurumaAst` to parse an Oniguruma pattern (with optional flags and compile-time options) and return an AST. It uses the following type definition:
 
 ```ts
 function toOnigurumaAst(
@@ -88,15 +87,15 @@ For example:
 ```js
 import {toOnigurumaAst} from 'oniguruma-parser';
 
-const ast = toOnigurumaAst('A.*');
+const ast = toOnigurumaAst('^.*');
 console.log(ast);
 /* →
 { type: 'Regex',
   body: [
     { type: 'Alternative',
       body: [
-        { type: 'Character',
-          value: 65,
+        { type: 'Assertion',
+          kind: 'line_start',
         },
         { type: 'Quantifier',
           kind: 'greedy',
@@ -299,7 +298,7 @@ Created by [Steven Levithan](https://github.com/slevithan) and [contributors](ht
 
 If you want to support this project, I'd love your help by contributing improvements ([guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md)), sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
-MIT License.
+© 2025–present. MIT License.
 
 <!-- Badges -->
 
