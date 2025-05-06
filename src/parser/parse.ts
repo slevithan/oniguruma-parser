@@ -1030,7 +1030,7 @@ function slug(name: string): string {
 function throwIfUnclosedCharacterClass<T>(token: T, ccFirstToken?: Token): NonNullable<T> {
   const first = ccFirstToken;
   return throwIfNullish(token, `Unclosed character class${
-    // Help avoid confusion since e.g. `[]abc` is unclosed but looks it has an empty class
+    // Help avoid confusion since e.g. `[]abc` is unclosed but looks like it has an empty class
     first?.type === 'Character' && first.value === 93 && first.raw === ']' ? ' (started with "]")' : ''
   }`);
 }

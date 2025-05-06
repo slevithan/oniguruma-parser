@@ -53,14 +53,14 @@ const {toOnigurumaAst} = require('oniguruma-parser-cjs');
 </script>
 ```
 
-> **Note:** This bundle includes a subset of all exports, combined in one file. See [`src/bundle.ts`](https://github.com/slevithan/oniguruma-parser/blob/main/src/bundle.ts).
+> **Note:** This bundle includes a subset of all available exports. See [`src/bundle.ts`](https://github.com/slevithan/oniguruma-parser/blob/main/src/bundle.ts).
 </details>
 
 ### Additional modules
 
 The following modules are available in addition to the root `'oniguruma-parser'` export:
 
-- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the `parse` function that `toOnigurumaAst` wraps.
+- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the core `parse` function that's wrapped by `toOnigurumaAst`.
 - [Traverser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md): Traverse and transform an `OnigurumaAst`.
 - [Generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
 - [Optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md): Minify and improve the performance of Oniguruma regexes.
@@ -202,10 +202,10 @@ The following don't yet throw errors, but should:
 <details>
   <summary>Future AST node types</summary>
 
-Support for most of the currently unsupported features listed above will be added to the `OnigurumaAst` structure using existing node types (`Character`, `AbsenceFunction`, `Backreference`, etc.). However, the following new node types will be added:
+Support for most of the currently unsupported features above will be added to the `OnigurumaAst` structure using existing node types (`Character`, `AbsenceFunction`, `Backreference`, etc.). However, the following node types will be added when their corresponding features are supported:
 
-- `CharacterSequence`: New node type for code point sequences; will hold two or more `Character` nodes.
-- `Conditional`: New node type for conditionals.
+- `CharacterSequence`: New node type for code point sequences; will contain two or more `Character` nodes.
+- `Conditional`: New node type for all conditional kinds.
 - `Callout`: New node type for unnamed callouts.
 </details>
 
