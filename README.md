@@ -60,12 +60,12 @@ const {toOnigurumaAst} = require('oniguruma-parser-cjs');
 
 The following modules are available in addition to the root `'oniguruma-parser'` export:
 
-- [Parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the core `parse` function that's wrapped by `toOnigurumaAst`.
-- [Traverser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md): Traverse and transform an `OnigurumaAst`.
-- [Generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
-- [Optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md): Minify and improve the performance of Oniguruma regexes.
+- [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md): Includes numerous functions and types for constructing and working with `OnigurumaAst` nodes. Also includes the core `parse` function that's wrapped by `toOnigurumaAst`.
+- [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md): Traverse and transform an `OnigurumaAst`.
+- [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md): Convert an `OnigurumaAst` to pattern and flags strings.
+- [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md): Minify and improve the performance of Oniguruma regexes.
 
-## 🌿 Convert a pattern to an AST
+## 🌲 Convert a pattern to an AST
 
 Call `toOnigurumaAst` to parse an Oniguruma pattern (with optional flags and compile-time options) and return an AST. It uses the following type definition:
 
@@ -126,15 +126,15 @@ console.log(ast);
 
 An error is thrown if the provided pattern or flags aren't valid in Oniguruma.
 
-> **Note:** `toOnigurumaAst` is a wrapper around the [parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md)'s `parse` function that makes it easier to use by automatically providing the appropriate Unicode property validation data.
+> **Note:** `toOnigurumaAst` is a wrapper around the [parser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md)'s `parse` function that automatically provides the appropriate Unicode property validation data.
 
 ## 🌀 Traverse and transform an AST
 
-See details and examples in the [traverser module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md).
+See details and examples in the [traverser module](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md)'s readme.
 
 ## ↩️ Convert an AST to a pattern
 
-See details and examples in the [generator module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md).
+See details and examples in the [generator module](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md)'s readme.
 
 ## 🪄 Optimize regexes
 
@@ -154,7 +154,7 @@ Becomes:
 
 Optimized regexes always match exactly the same strings.
 
-See more details and examples in the [optimizer module's readme](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md).
+See more details and examples in the [optimizer module](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md)'s readme.
 
 > [!TIP]
 > 🧪 Try the [optimizer demo](https://slevithan.github.io/oniguruma-parser/demo/).
