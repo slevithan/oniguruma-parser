@@ -25,7 +25,7 @@ The `traverse` function takes three arguments:
 
 The `root` argument is returned. It might have been modified by the visitor's node type functions.
 
-> **Note:** The `traverse` method's actual types are quite complex, so refer to the source code if needed.
+> **Note:** The full description of the `traverse` function's types is complex. Refer to `traverse.ts` if needed.
 
 The visitor's keys can be any node type (ex: `CapturingGroup`) or `'*'`. Their values can be either functions that accept arguments `path` and `state`, or objects with `enter` and/or `exit` methods (that offer more control over when the functions run during traversal).
 
@@ -97,7 +97,7 @@ Many node types are subdivided by other properties; especially `kind`. Types for
 
 ## Path
 
-> **Note:** Refer to [`traverse.ts`](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/traverse.ts) for more details.
+> **Note:** Refer to `traverse.ts` for more details.
 
 ### Properties
 

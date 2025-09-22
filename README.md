@@ -289,12 +289,12 @@ Created by [Steven Levithan](https://github.com/slevithan) and [contributors](ht
 
 ### Sponsors and backers
 
-[<img src="https://github.com/brc-dd.png" width="40" height="40">](https://github.com/brc-dd)
 [<img src="https://github.com/roboflow.png" width="40" height="40">](https://github.com/roboflow)
 
 ### Past sponsors
 
 [<img src="https://github.com/antfu.png" width="40" height="40">](https://github.com/antfu)
+[<img src="https://github.com/brc-dd.png" width="40" height="40">](https://github.com/brc-dd)
 
 If you want to support this project, I'd love your help by contributing improvements ([guide](https://github.com/slevithan/oniguruma-parser/blob/main/CONTRIBUTING.md)), sharing it with others, or [sponsoring](https://github.com/sponsors/slevithan) ongoing development.
 
