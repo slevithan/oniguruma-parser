@@ -6,12 +6,12 @@ To understand how the code is structured, start with `src/index.ts`, which expor
 
 ## Readmes
 
-- [Main](https://github.com/slevithan/oniguruma-parser/blob/main/README.md).
-- [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md).
-- [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md).
-- [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md).
-- [Tokenizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/tokenizer/README.md).
-- [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md).
+- [Main](https://github.com/slevithan/oniguruma-parser/blob/main/README.md)
+- [Optimizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/optimizer/README.md)
+- [Traverser](https://github.com/slevithan/oniguruma-parser/blob/main/src/traverser/README.md)
+- [Parser](https://github.com/slevithan/oniguruma-parser/blob/main/src/parser/README.md)
+- [Tokenizer](https://github.com/slevithan/oniguruma-parser/blob/main/src/tokenizer/README.md)
+- [Generator](https://github.com/slevithan/oniguruma-parser/blob/main/src/generator/README.md)
 
 ## Setup
 

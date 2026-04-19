@@ -51,7 +51,7 @@ npm install oniguruma-parser
 ```js
 import {optimize} from 'oniguruma-parser/optimizer';
 
-optimize('[a]');
+optimize('[aa]');
 // → {pattern: 'a', flags: ''}
 ```
 
